@@ -1,32 +1,37 @@
-import ballerina/io;
-public distinct service class ApiMetadata {
-    private final readonly & ApiMetadataEntry entryRecord;
+public type ApiInfo record {
+    string apiCategory;
+    string apiDocumentation;
+    string ?apiImage;
+};
 
-    public function init(ApiMetadataEntry entryRecord) {
-        self.entryRecord = entryRecord.cloneReadOnly();
-    }
+public type ThrottlingPolicy record {
+    string policyId;
+    string 'type;
+    string policyName;
+    string description;
+};
 
-    resource function get apiId() returns string {
-        return self.entryRecord.apiId;
-    }
-    resource function get openApiDefinition() returns json|error {
-        io:println(self.entryRecord.openApiDefinition);
-        return self.entryRecord.openApiDefinition;
-    }
-    resource function get apiInfo() returns ApiInformation {
-        return new ApiInformation(self.entryRecord.apiInfo);
-    }
-    resource function get usagePolicy() returns UsagePolicy {
-        return new UsagePolicy(self.entryRecord.usagePolicy);
-    }
-    resource function get rateLimitingPolicy() returns RateLimitingPolicy {
-        return new RateLimitingPolicy(self.entryRecord.rateLimitingPolicy);
-    }
-    resource function get accessibilityRole() returns string {
-        return self.entryRecord.accessibilityRole;
-    }
-    resource function get serverUrl() returns ServerUrl {
-        return new ServerUrl(self.entryRecord.serverUrl);
-    }
+public type RateLimitingPolicy record {
+    string policyName;
+    string policyInfo;
+};
 
-}
+public type ServerUrl record {
+    string sandboxUrl;
+    string productionUrl;
+};
+public type Feedback record {
+    string email;
+    string rating;
+    string comment;
+};
+
+public type ApiMetadata record {|
+    readonly string apiId;         
+    string openApiDefinition;
+    ApiInfo apiInfo;
+    ThrottlingPolicy[] ?throttlingPolicies;
+    string accessibilityRole;
+    ServerUrl serverUrl;
+    Feedback[] ?feedback;
+|};

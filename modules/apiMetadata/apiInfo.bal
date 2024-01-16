@@ -1,7 +1,7 @@
 public distinct service class ApiInformation {
-    private final readonly & ApiInfoEntry entryRecord;
+    private final readonly & ApiInfo entryRecord;
 
-    public function init(ApiInfoEntry entryRecord) {
+    public function init(ApiInfo entryRecord) {
         self.entryRecord = entryRecord.cloneReadOnly();
     }
 
