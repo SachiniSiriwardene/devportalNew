@@ -34,4 +34,5 @@ public type ApiMetadata record {|
     string accessibilityRole;
     ServerUrl serverUrl;
     Feedback[] ?feedback;
+    string category;
 |};
