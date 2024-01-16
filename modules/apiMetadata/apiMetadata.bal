@@ -9,7 +9,7 @@ public distinct service class ApiMetadata {
     resource function get apiId() returns string {
         return self.entryRecord.apiId;
     }
-    resource function get openApiDefinition() returns string|error {
+    resource function get openApiDefinition() returns json|error {
         io:println(self.entryRecord.openApiDefinition);
         return self.entryRecord.openApiDefinition;
     }

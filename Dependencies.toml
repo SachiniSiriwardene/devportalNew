@@ -356,6 +356,7 @@ dependencies = [
 modules = [
 	{org = "divya", packageName = "devportal", moduleName = "devportal"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.apiMetadata"},
+	{org = "divya", packageName = "devportal", moduleName = "devportal.content"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.theme"}
 ]
 
