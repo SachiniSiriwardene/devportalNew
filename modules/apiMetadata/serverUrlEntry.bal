@@ -1,7 +1,7 @@
-public distinct service class ServerUrl {
-    private final readonly & ServerUrlEntry entryRecord;
+public distinct service class ServerUrlEntry {
+    private final readonly & ServerUrl entryRecord;
 
-    public function init(ServerUrlEntry entryRecord) {
+    public function init(ServerUrl entryRecord) {
         self.entryRecord = entryRecord.cloneReadOnly();
     }
 

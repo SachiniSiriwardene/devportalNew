@@ -1,30 +1,23 @@
-public type ApiInfoEntry record {
-    string apiCategory;
-    string apiDocumentation;
-    string ?apiImage;
-};
+public distinct service class ApiMetadataEntry {
+    private final readonly & ApiMetadata entryRecord;
 
-public type UsagePolicyEntry record {
-    string policyName;
-    string policyInfo;
-};
+    // public function init(ApiMetadata entryRecord) {
+    //     self.entryRecord = entryRecord.cloneReadOnly();
+    // }
 
-public type RateLimitingPolicyEntry record {
-    string policyName;
-    string policyInfo;
-};
+    // resource function get apiId() returns string {
+    //     return self.entryRecord.apiId;
+    // }
+    // resource function get openApiDefinition() returns json|error {
+    //     io:println(self.entryRecord.openApiDefinition);
+    //     return self.entryRecord.openApiDefinition;
+    // }
+    // resource function get apiInfo() returns ApiInformation {
+    //     return new ApiInformation(self.entryRecord.apiInfo);
+    // }
 
-public type ServerUrlEntry record {
-    string sandboxUrl;
-    string productionUrl;
-};
+    // resource function get accessibilityRole() returns string {
+    //     return self.entryRecord.accessibilityRole;
+    // }
 
-public type ApiMetadataEntry record {|
-    readonly string apiId;         
-    json openApiDefinition;
-    ApiInfoEntry apiInfo;
-    UsagePolicyEntry usagePolicy;
-    RateLimitingPolicyEntry ?rateLimitingPolicy;
-    string accessibilityRole;
-    ServerUrlEntry serverUrl;
-|};
+}
