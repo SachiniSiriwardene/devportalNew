@@ -76,11 +76,9 @@ public table<Application> key(appId) applicationDetails = table [
     }
 ];
 
-public table<Organization> key(orgId) organizationDetails = table [
+public table<ConsumerComponentDetails> key(orgId) organizationDetails = table [
     {
-        "orgId" : "1",  "subscribedAPIs" : [ "API1"]
-        
-    }
+        "orgId" : "1",  "subscribedAPIs" : [ "API1"], userId: "adc@gmail.com"}
 ];
 
 public distinct service class OrganizationContentResponse {
@@ -203,11 +201,11 @@ public distinct service class ComponentDetails {
 
 }
 
-public distinct service class OrganizationResponse {
+public distinct service class ConsuemrComponentDetailsResponse {
 
-    private final readonly & Organization organization;
+    private final readonly & ConsumerComponentDetails organization;
 
-    public function init(Organization entryRecord) {
+    public function init(ConsumerComponentDetails entryRecord) {
         self.organization = entryRecord.cloneReadOnly();
     }
     resource function get subscription() returns string[] {

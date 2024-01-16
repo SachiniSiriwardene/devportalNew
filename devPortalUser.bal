@@ -55,16 +55,16 @@ service graphql:Service /devPortalContent on new graphql:Listener(4000) {
     #
     # + organization - details related to the organization
     # + return - return value description
-    remote function addOrganizationDetails(content:Organization organization) returns content:OrganizationResponse {
+    remote function userDefinedComponentDetails(content:ConsumerComponentDetails organization) returns content:ConsuemrComponentDetailsResponse {
 
         content:organizationDetails.add(organization);
         return new (organization);
     }
 
-    resource function get organizations(string orgId) returns content:OrganizationResponse? {
+    resource function get userDefinedComponentDetails(string orgId) returns content:ConsuemrComponentDetailsResponse? {
         
-        content:Organization? organization = content:organizationDetails[orgId];
-        if organization is content:Organization {
+        content:ConsumerComponentDetails? organization = content:organizationDetails[orgId];
+        if organization is content:ConsumerComponentDetails {
             return new (organization);
         }
         return;

@@ -81,8 +81,9 @@ public type Subscription record {|
     string[] subscribedAPIs;
 |};
 
-public type Organization record {|
+public type ConsumerComponentDetails record {|
     readonly string orgId;
+    string userId;
     string[] subscribedAPIs;
 |};
 
