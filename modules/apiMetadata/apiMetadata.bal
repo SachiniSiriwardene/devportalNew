@@ -1,7 +1,11 @@
 public type ApiInfo record {
+    string apiName;
     string apiCategory;
     string apiDocumentation;
     string ?apiImage;
+    string lifeCycleStatus;         
+    json openApiDefinition;
+    map<string> additionalProperties;
 };
 
 public type ThrottlingPolicy record {
@@ -21,18 +25,30 @@ public type ServerUrl record {
     string productionUrl;
 };
 public type Feedback record {
-    string email;
-    string rating;
+    string apiId;
+    string averageRating;
+    int noOfRating;
+    int noOfComments;
+    Review[] reviews;
+};
+public type Review record {
+    string reviewId;
+    string reviewedBy;
+    int rating;
     string comment;
+};
+public type Keymanager record {
+    string name;
+    string tokenEndpointUrl;
+    string revokeEndpointUrl;
+    string authorizeEndpointUrl;
 };
 
 public type ApiMetadata record {|
-    readonly string apiId;         
-    string openApiDefinition;
+    readonly string apiId;
     ApiInfo apiInfo;
     ThrottlingPolicy[] ?throttlingPolicies;
-    string accessibilityRole;
     ServerUrl serverUrl;
-    Feedback[] ?feedback;
-    string category;
+    Feedback ?feedback;
+    Keymanager keyManagerUrl;
 |};

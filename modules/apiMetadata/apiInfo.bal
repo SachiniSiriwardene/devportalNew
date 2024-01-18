@@ -8,9 +8,9 @@ public distinct service class ApiInformation {
     resource function get apiCategory() returns string {
         return self.entryRecord.apiCategory;
     }
-    resource function get apiDocumentation() returns string {
-        return self.entryRecord.apiDocumentation;
-    }
+    // resource function get apiDocumentation() returns string {
+    //     return self.entryRecord.apiDocumentation;
+    // }
     resource function get apiImage() returns string? {
         return self.entryRecord.apiImage;
     }
