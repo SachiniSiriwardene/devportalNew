@@ -1,71 +1,33 @@
+import devportal.entry;
+import devportal.models;
+
 import ballerina/graphql;
-import devportal.content;
 
 service graphql:Service /devPortalContent on new graphql:Listener(4000) {
 
-    # Retrieve details to display on the organization landing page.
-    #
-    # + orgId - parameter description
-    # + return - return value description
-    resource function get organizationContent(string orgId) returns content:OrganizationContentResponse? {
+    resource function get componentContent(string orgId) returns models:ComponentContent? {
 
-        content:OrganizationContent? orgEntry = content:orgContentDetails[orgId];
-        if orgEntry is content:OrganizationContent {
-            return new (orgEntry);
-        }
-        return;
-
-    }
-    // remote function addOrganizationDetails(OrganizationContent orgLandiPageContent) returns Organization {
-
-    //     orgDetails.add(orgLandiPageContent);
-    //     return new (orgLandiPageContent);
-    // }
-
-    resource function get componentContent(string orgId) returns content:ComponentDetails? {
-
-        content:ComponentContent? componentEntry = content:componentDetails[orgId];
-        if componentEntry is content:ComponentContent {
-            return new (componentEntry);
+        models:ComponentContent? componentEntry = entry:componentDetails[orgId];
+        if componentEntry is models:ComponentContent {
+            return componentEntry;
         }
         return;
     }
 
-    // remote function addComponentDetails(ComponentContent componentContent) returns  ComponentDetails{
-
-    //     componentDetails.add(componentContent);
-    //     return new (componentContent);
-    // }
-
-    remote function addApplicationDetails(content:Application application) returns content:ApplicationResponse {
-
-        content:applicationDetails.add(application);
-        return new (application);
-    }
-
-    resource function get applications(string appId) returns content:ApplicationResponse? {
-        content:Application? application = content:applicationDetails[appId];
-        if application is content:Application {
-            return new (application);
+    resource function get applications(string appId) returns models:Application? {
+        models:Application? application = entry:applicationDetails[appId];
+        if application is models:Application {
+            return application;
         }
         return;
     }
 
-    # Add organization specific details.
-    #
-    # + organization - details related to the organization
-    # + return - return value description
-    remote function addOrganizationDetails(content:Organization organization) returns content:OrganizationResponse {
 
-        content:organizationDetails.add(organization);
-        return new (organization);
-    }
+    resource function get organizations(string orgId) returns models:Organization? {
 
-    resource function get organizations(string orgId) returns content:OrganizationResponse? {
-        
-        content:Organization? organization = content:organizationDetails[orgId];
-        if organization is content:Organization {
-            return new (organization);
+        models:Organization? organization = entry:organizationDetails[orgId];
+        if organization is models:Organization {
+            return organization;
         }
         return;
     }

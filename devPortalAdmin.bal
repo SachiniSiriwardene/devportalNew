@@ -1,5 +1,5 @@
-import devportal.content;
-import devportal.theme;
+import devportal.models;
+import devportal.entry;
 
 import ballerina/http;
 
@@ -7,35 +7,28 @@ import ballerina/http;
 # bound to port `9090`.
 service /devPortal/admin on new http:Listener(8080) {
 
-    resource function post theme(@http:Payload theme:ThemeEntry themeData) returns json {
+    resource function post theme(@http:Payload models:Theme themeData) returns models:Theme | error{
 
-        content:themeEntriesTable.add(themeData);
-        table<theme:ThemeEntry> themeRecords = from var themeRecord in content:themeEntriesTable
+        entry:themeTable.add(themeData);
+        table<models:Theme> themeRecords = from var themeRecord in entry:themeTable
             where themeRecord.themeId == themeData.themeId
             select themeRecord;
-        return themeRecords.toJson();
+        
+        if (themeRecords.length() > 0) {
+            return themeRecords.toArray().first()[0];
+        }
+        return error("Error while adding theme");
     }
-    resource function get theme(string themeId) returns json {
+    resource function get theme(string themeId) returns models:Theme | error {
 
-        table<theme:ThemeEntry> themeRecords = from var themeRecord in content:themeEntriesTable
+        table<models:Theme> themeRecords = from var themeRecord in entry:themeTable
             where themeRecord.themeId == themeId
             select themeRecord;
-        return themeRecords.toJson();
+        
+        if (themeRecords.length() > 0) {
+            return themeRecords.toArray().first()[0];
+        }
+        return error("Error while retrieving theme");
     }
-
-    # A resource for content changes of the organizatoion landing page
-    # + return - string name with hello message or error
-    resource function post organizationDetails(@http:Payload content:OrganizationContent organizationDetails) returns content:OrganizationContent|error {
-        // Send a response back to the caller.
-        return organizationDetails;
-    }
-
-    # A resource for content changes of the dev portal components landing page
-    # + return - string name with hello message or error
-    resource function post componentDetails(@http:Payload content:ComponentContent componentDefinition) returns content:ComponentContent|error {
-        // Send a response back to the caller.
-        return componentDefinition;
-    }
-
 }
 
