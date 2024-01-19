@@ -13,7 +13,6 @@ public  type OrganizationContent record {
     Contentdescription[] contentDescription;
 };
 
-
 # Represents content for a component landing page(API/Solution).
 #
 # + componentId - unique identification for the component  
@@ -28,7 +27,6 @@ public type ComponentContent record {
     string componentTileImage;
     string componentTileDescription;
 };
-
 //input
 # Represents a content section which is included in the landing pages.
 #
@@ -60,7 +58,6 @@ public type Item record {
    string description;
    string icon?;
 };
-
 
 # Represents content to be included in the application section.
 #
