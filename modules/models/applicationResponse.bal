@@ -28,7 +28,7 @@ public distinct service class ApplicationResponse {
         return properties;
     }
 
-    resource function get UserResponse() returns UserResponse[] {
+    resource function get users() returns UserResponse[] {
 
         UserResponse[] users = [];
 

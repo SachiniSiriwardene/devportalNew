@@ -4,8 +4,28 @@ public table<models:ApiMetadata> key(apiId) apiMetadataTable = table [
     ];
 
 public table<models:Theme> key(themeId) themeTable = table [
-    
-    ];
+    {
+        typography: {
+            heading: {
+                fontFamily: "TimesNewRoman"
+            },
+            body: {
+                fontFamily: "TimesNewRoman"
+            },
+            paragraph: {fontFamily: "Arial"}
+        },
+        assets: {logoUrl: {footer: "abc.com", favicon: "image1", header: "ABCD"}},
+        themeId: "1",
+        palette: {
+            'type: "light",
+            background: {secondary: {light: "#132", dark: "e44"}, primary: {light: "ddd", dark: "3233"}},
+            text: {secondary: {light: "ee", dark: "qq"}, primary: {light: "33", dark: "434"}},
+            button: {secondary: {light: "dwd", dark: "dede"}, primary: {light: "4344", dark: "4434"}}
+        },
+        footerLink: {terms: "terms", privacyPolicy: "privacy", support: "support"},
+        orgId: "308"
+    }
+];
 
 public table<models:OrganizationContent> key(orgContentId) orgContentDetails = table [
     {
@@ -31,11 +51,13 @@ public table<models:OrganizationContent> key(orgContentId) orgContentDetails = t
                 video: ""
             }
         ]
-    , orgId: "1"}
+    ,
+        orgId: "1"
+    }
 
 ];
 
-public  table<models:ComponentContent> key(componentId) componentDetails = table [
+public table<models:ComponentContent> key(componentId) componentDetails = table [
     {
         "componentId": "1",
         "orgId": "308",
@@ -75,11 +97,11 @@ public  table<models:ComponentContent> key(componentId) componentDetails = table
 
 public table<models:Application> key(appId) applicationDetails = table [
     {
-        "appId" : "1" , 
-        "applicationName" : "ApplicationOne",
-        "appProperties" : [{"name": "prop1", "value": "ABC"}, {"name": "prop2", "value": "ABCD"}],
-        "addedAPIs" : ["api1"],
-        "accessControl" : [
+        "appId": "1",
+        "applicationName": "ApplicationOne",
+        "appProperties": [{"name": "prop1", "value": "ABC"}, {"name": "prop2", "value": "ABCD"}],
+        "addedAPIs": ["api1"],
+        "accessControl": [
             {"role": "Developer", "userName": "John"}
         ]
     }
@@ -87,7 +109,10 @@ public table<models:Application> key(appId) applicationDetails = table [
 
 public table<models:ConsumerComponentDetails> key(orgId) organizationDetails = table [
     {
-        "orgId" : "1",  "subscribedAPIs" : [ "API1"],  userId: "abc.com"}
+        "orgId": "1",
+        "subscribedAPIs": ["API1"],
+        userId: "abc.com",
+        comment: {APIId: "", comment: "", rating: 0}
+    }
 ];
-
 

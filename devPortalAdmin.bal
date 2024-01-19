@@ -5,7 +5,7 @@ import ballerina/http;
 
 # A service representing a network-accessible API
 # bound to port `9090`.
-service /devPortal/admin on new http:Listener(8080) {
+service /devPortal/admin on new http:Listener(8000) {
 
     resource function post theme(@http:Payload models:Theme themeData) returns models:Theme | error{
 

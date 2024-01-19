@@ -1,16 +1,7 @@
 import ballerina/graphql;
 import devportal.models;
 import devportal.entry;
-service graphql:Service /devPortalContent on new graphql:Listener(4000) {
-
-    resource function get organizations(string orgId) returns models:Organization? {
-
-        models:Organization? organization = entry:organizationDetails[orgId];
-        if organization is models:Organization {
-            return organization;
-        }
-        return;
-    }
+service  /devPortalContent on new graphql:Listener(4000) {
 
     # Retrieve details to display on the organization landing page.
     #
@@ -25,7 +16,6 @@ service graphql:Service /devPortalContent on new graphql:Listener(4000) {
         return;
 
     }
-
     resource function get componentContent(string orgId) returns models:ComponentContent? {
 
         models:ComponentContent? componentEntry = entry:componentDetails[orgId];
@@ -48,5 +38,24 @@ service graphql:Service /devPortalContent on new graphql:Listener(4000) {
         }
         return;
     }
+
+    # Add organization specific details.
+    # + organization - details related to the organization
+    # + return - return value description
+    remote function userDefinedComponentDetails(models:ConsumerComponentDetails organization) returns models:ConsuemrComponentDetailsResponse {
+
+        entry:organizationDetails.add(organization);
+        return new (organization);
+    }
+
+    resource function get userDefinedComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
+        
+        models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
+        if organization is models:ConsumerComponentDetails {
+            return new (organization);
+        }
+        return;
+    }
+
 
 }
