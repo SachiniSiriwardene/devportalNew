@@ -85,11 +85,9 @@ public table<models:Application> key(appId) applicationDetails = table [
     }
 ];
 
-public table<models:Organization> key(orgId) organizationDetails = table [
+public table<models:ConsumerComponentDetails> key(orgId) organizationDetails = table [
     {
-        "orgId" : "1",  "subscribedAPIs" : [ "API1"]
-        
-    }
+        "orgId" : "1",  "subscribedAPIs" : [ "API1"],  userId: "abc.com"}
 ];
 
 

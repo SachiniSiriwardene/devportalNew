@@ -1,0 +1,109 @@
+type Query {
+  "Retrieve details to display on the organization landing page."
+  organizationContent(
+    "parameter description"
+    orgId: String!
+  ): OrganizationContentResponse
+  componentContent(orgId: String!): ComponentDetails
+  applications(appId: String!): ApplicationResponse
+  userDefinedComponentDetails(orgId: String!): ConsuemrComponentDetailsResponse
+}
+
+type OrganizationContentResponse {
+  orgId: String!
+  organizationName: String!
+  bannerImage: String!
+  contentDescription: [ContentDescriptionResponse!]!
+}
+
+type ContentDescriptionResponse {
+  precision: Int!
+  title: String!
+  description: String
+  subtitle: String
+  descriptionMarkDown: String
+  bullets: [Bullets!]
+}
+
+type Bullets {
+  description: String!
+  icon: String
+}
+
+type ComponentDetails {
+  componentId: String!
+  orgId: String!
+  componentTileImage: String
+  sections: [ContentDescriptionResponse!]!
+}
+
+type Mutation {
+  addApplicationDetails(application: Application!): ApplicationResponse!
+  "Add organization specific details."
+  userDefinedComponentDetails(
+    "details related to the organization"
+    organization: ConsumerComponentDetails!
+  ): ConsuemrComponentDetailsResponse!
+}
+
+type ApplicationResponse {
+  appId: String!
+  applicationName: String!
+  addedAPIs: [String!]!
+  appProperties: [ApplicationPropertiesResponse!]!
+  UserResponse: [UserResponse!]!
+}
+
+type ApplicationPropertiesResponse {
+  name: String!
+  value: String!
+}
+
+type UserResponse {
+  role: String!
+  userName: String!
+}
+
+"Represents content to be included in the application section."
+input Application {
+  appId: String!
+  applicationName: String!
+  appProperties: [ApplicationProperties!]!
+  addedAPIs: [String!]!
+  accessControl: [User!]!
+}
+
+input ApplicationProperties {
+  name: String!
+  value: String!
+}
+
+input User {
+  role: String!
+  userName: String!
+}
+
+type ConsuemrComponentDetailsResponse {
+  subscription: [String!]!
+  orgId: String!
+  comments: CommentResponse!
+}
+
+type CommentResponse {
+  APIId: String!
+  comment: String!
+  rating: Int!
+}
+
+input ConsumerComponentDetails {
+  orgId: String!
+  userId: String!
+  subscribedAPIs: [String!]!
+  comment: Comments!
+}
+
+input Comments {
+  APIId: String!
+  comment: String!
+  rating: Int!
+}

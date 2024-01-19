@@ -1,3 +1,10 @@
+public type AdminSettings record {
+    string kind;
+    OrganizationContent organizationContent?;
+    Theme themeDetails?;
+};
+
+
 # Represents content for the organization landin page.
 #
 # + orgContentId - unique identification for the organization  
