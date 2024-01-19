@@ -3,6 +3,15 @@ import devportal.models;
 import devportal.entry;
 service graphql:Service /devPortalContent on new graphql:Listener(4000) {
 
+    resource function get organizations(string orgId) returns models:Organization? {
+
+        models:Organization? organization = entry:organizationDetails[orgId];
+        if organization is models:Organization {
+            return organization;
+        }
+        return;
+    }
+
     # Retrieve details to display on the organization landing page.
     #
     # + orgId - parameter description
@@ -16,11 +25,6 @@ service graphql:Service /devPortalContent on new graphql:Listener(4000) {
         return;
 
     }
-    // remote function addOrganizationDetails(OrganizationContent orgLandiPageContent) returns Organization {
-
-    //     orgDetails.add(orgLandiPageContent);
-    //     return new (orgLandiPageContent);
-    // }
 
     resource function get componentContent(string orgId) returns models:ComponentContent? {
 
@@ -31,43 +35,18 @@ service graphql:Service /devPortalContent on new graphql:Listener(4000) {
         return;
     }
 
-    // remote function addComponentDetails(ComponentContent componentContent) returns  ComponentDetails{
+    remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
 
-    //     componentDetails.add(componentContent);
-    //     return new (componentContent);
-    // }
+        entry:applicationDetails.add(application);
+        return new (application);
+    }
 
-    // remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
-
-    //     content:applicationDetails.add(application);
-    //     return new (application);
-    // }
-
-    // resource function get applications(string appId) returns content:ApplicationResponse? {
-    //     content:Application? application = content:applicationDetails[appId];
-    //     if application is content:Application {
-    //         return new (application);
-    //     }
-    //     return;
-    // }
-
-    // # Add organization specific details.
-    // #
-    // # + organization - details related to the organization
-    // # + return - return value description
-    // remote function userDefinedComponentDetails(content:ConsumerComponentDetails organization) returns content:ConsuemrComponentDetailsResponse {
-
-    //     content:organizationDetails.add(organization);
-    //     return new (organization);
-    // }
-
-    // resource function get userDefinedComponentDetails(string orgId) returns content:ConsuemrComponentDetailsResponse? {
-        
-    //     content:ConsumerComponentDetails? organization = content:organizationDetails[orgId];
-    //     if organization is content:ConsumerComponentDetails {
-    //         return new (organization);
-    //     }
-    //     return;
-    // }
+    resource function get applications(string appId) returns models:ApplicationResponse? {
+        models:Application? application = entry:applicationDetails[appId];
+        if application is models:Application {
+            return new (application);
+        }
+        return;
+    }
 
 }
