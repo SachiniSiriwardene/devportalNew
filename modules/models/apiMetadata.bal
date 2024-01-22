@@ -1,9 +1,9 @@
 public type ApiInfo record {
     string apiName;
-    string apiCategory;
-    string apiDocumentation;
-    string ?apiImage;
-    string lifeCycleStatus;         
+    string[] apiCategory;
+    ContentDescription apiDocumentation;
+    string? apiImage;
+    string lifeCycleStatus;
     json openApiDefinition;
     map<string> additionalProperties;
 };
@@ -38,6 +38,7 @@ public type ServerUrl record {
     string sandboxUrl;
     string productionUrl;
 };
+
 # Description.
 #
 # + apiId - field description  
@@ -47,11 +48,12 @@ public type ServerUrl record {
 # + reviews - field description
 public type Feedback record {
     string apiId;
-    string averageRating;
+    int averageRating;
     int noOfRating;
     int noOfComments;
     Review[] reviews;
 };
+
 # Description.
 #
 # + reviewId - field description  
@@ -64,13 +66,14 @@ public type Review record {
     int rating;
     string comment;
 };
+
 # Description.
 #
 # + name - field description  
 # + tokenEndpointUrl - field description  
 # + revokeEndpointUrl - field description  
 # + authorizeEndpointUrl - field description
-public type Keymanager record {
+public type KeyManager record {
     string name;
     string tokenEndpointUrl;
     string revokeEndpointUrl;
@@ -80,19 +83,21 @@ public type Keymanager record {
 # Description.
 #
 # + apiId - api id 
+# + orgId - organization id
 # + apiInfo - api information  
 # + throttlingPolicies - details about the throttling policies  
 # + serverUrl - Gateway server urls  
 # + feedback - feedback provided by each customer 
 # + keyManagerUrl - URLs exposed by the key manager
-# + componentContent - content of the component
+# + apiDetailPageContent - content of the api detail page
 public type ApiMetadata record {|
     readonly string apiId;
+    string orgId;
     ApiInfo apiInfo;
-    ThrottlingPolicy[] ?throttlingPolicies;
+    ThrottlingPolicy[]? throttlingPolicies;
     ServerUrl serverUrl;
-    Feedback ?feedback;
-    Keymanager keyManagerUrl;
-    ComponentContent componentContent;
+    Feedback? feedback;
+    KeyManager keyManagerUrl;
+    ComponentContent apiDetailPageContent;
 |};
 

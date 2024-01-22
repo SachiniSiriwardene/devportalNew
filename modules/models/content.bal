@@ -17,7 +17,7 @@ public  type OrganizationContent record {
     string organizationName;
     string orgId;
     string orgBanner;
-    Contentdescription[] contentDescription;
+    ContentDescription[] contentDescription;
 };
 
 # Represents content for a component landing page(API/Solution).
@@ -30,7 +30,7 @@ public  type OrganizationContent record {
 public type ComponentContent record {
     readonly string componentId;
     string orgId;
-    Contentdescription[] sections;
+    ContentDescription[] sections;
     string componentTileImage;
     string componentTileDescription;
 };
@@ -45,7 +45,7 @@ public type ComponentContent record {
 # + image - link to image shown in a section  
 # + video - link to video shown in a section
 # + bullets - list of points to be displayed in a content section
-public type Contentdescription record {
+public type ContentDescription record {
     int precision;
     string description?;
     string title;
