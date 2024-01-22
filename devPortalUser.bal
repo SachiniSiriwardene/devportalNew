@@ -29,6 +29,10 @@ service  /devPortalConsumer on new graphql:Listener(4000) {
         return;
     }
 
+    # Retrieve the details for an API.
+    #
+    # + apiID - parameter description
+    # + return - return value description
     resource function get apiContent(string apiID) returns models:ApiMetadata? {
         
       models:ApiMetadata? apiContent = entry:apiMetadataTable[apiID];
@@ -36,6 +40,27 @@ service  /devPortalConsumer on new graphql:Listener(4000) {
         return apiContent;
       }
         return ;
+    }
+
+    # Filter the APIs using category.
+    #
+    # + orgId - parameter description  
+    # + category - parameter description
+    # + return - return value description
+    resource function get apifilter(string orgId, string category) returns models:ApiMetadata[] {
+
+       models:ApiMetadata[] apiDetails =  from var apiData in entry:apiMetadataTable 
+                                       where apiData.orgId == orgId select apiData ;
+        models:ApiMetadata[] filteredData = [];
+        foreach var api in apiDetails {
+            
+            foreach var item in api.apiInfo.apiCategory {
+                if(category.equalsIgnoreCaseAscii(item)) {
+                        filteredData.push(api);
+                }
+            }
+        }
+        return  filteredData;
     }
 
     # Create an application.

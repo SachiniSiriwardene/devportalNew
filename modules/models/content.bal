@@ -17,7 +17,7 @@ public  type OrganizationContent record {
     string organizationName;
     string orgId;
     string orgBanner?;
-    Contentdescription[] contentDescription;
+    ContentDescription[] contentDescription;
 };
 
 # Represents content for a component landing page(API/Solution).
