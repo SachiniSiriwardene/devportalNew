@@ -1,7 +1,7 @@
 import ballerina/graphql;
 import devportal.models;
 import devportal.entry;
-service  /devPortalContent on new graphql:Listener(4000) {
+service  /devPortalConsumer on new graphql:Listener(4000) {
 
     # Retrieve details to display on the organization landing page.
     #
@@ -16,6 +16,10 @@ service  /devPortalContent on new graphql:Listener(4000) {
         return;
 
     }
+    # Retrieve details to display on the component landing page.
+    #
+    # + orgId - parameter description
+    # + return - return value description
     resource function get componentContent(string orgId) returns models:ComponentContent? {
 
         models:ComponentContent? componentEntry = entry:componentDetails[orgId];
@@ -25,12 +29,29 @@ service  /devPortalContent on new graphql:Listener(4000) {
         return;
     }
 
+    resource function get apiContent(string apiID) returns models:ApiMetadata? {
+        
+      models:ApiMetadata? apiContent = entry:apiMetadataTable[apiID];
+      if(apiContent is models:ApiMetadata) {
+        return apiContent;
+      }
+        return ;
+    }
+
+    # Create an application.
+    #
+    # + application - parameter description
+    # + return - return value description
     remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
 
         entry:applicationDetails.add(application);
         return new (application);
     }
 
+    # Retrieve application details.
+    #
+    # + appId - parameter description
+    # + return - return value description
     resource function get applications(string appId) returns models:ApplicationResponse? {
         models:Application? application = entry:applicationDetails[appId];
         if application is models:Application {
@@ -39,16 +60,20 @@ service  /devPortalContent on new graphql:Listener(4000) {
         return;
     }
 
-    # Add organization specific details.
-    # + organization - details related to the organization
+    # Add consumer specific details.
+    # + consumerComponentDetails - details related to the component and consumer
     # + return - return value description
-    remote function userDefinedComponentDetails(models:ConsumerComponentDetails organization) returns models:ConsuemrComponentDetailsResponse {
+    remote function consumerComponentDetails(models:ConsumerComponentDetails consumerComponentDetails) returns models:ConsuemrComponentDetailsResponse {
 
-        entry:organizationDetails.add(organization);
-        return new (organization);
+        entry:organizationDetails.add(consumerComponentDetails);
+        return new (consumerComponentDetails);
     }
 
-    resource function get userDefinedComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
+    # Retrieve consumer specific component details.
+    #
+    # + orgId - parameter description
+    # + return - return value description
+    resource function get consumerComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
         
         models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
         if organization is models:ConsumerComponentDetails {

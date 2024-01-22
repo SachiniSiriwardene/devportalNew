@@ -1,0 +1,153 @@
+type Query {
+  "Retrieve details to display on the organization landing page."
+  organizationContent(
+    "parameter description"
+    orgId: String!
+  ): OrganizationContent
+  "Retrieve details to display on the component landing page."
+  componentContent(
+    "parameter description"
+    orgId: String!
+  ): ComponentContent
+  "Retrieve application details."
+  applications(
+    "parameter description"
+    appId: String!
+  ): ApplicationResponse
+  "Retrieve consumer specific component details."
+  consumerComponentDetails(
+    "parameter description"
+    orgId: String!
+  ): ConsuemrComponentDetailsResponse
+}
+
+"Represents content for the organization landin page."
+type OrganizationContent {
+  "unique identification for the organization"
+  orgContentId: String!
+  "name of the organization"
+  organizationName: String!
+  "field description"
+  orgId: String!
+  "image to be displayed in the organization landing page"
+  orgBanner: String
+  "content to be displayed in the organization landing page"
+  contentDescription: [Contentdescription!]!
+}
+
+"Represents a content section which is included in the landing pages."
+type Contentdescription {
+  "represents the order of the content section in the page"
+  precision: Int!
+  "description of the section"
+  description: String
+  "heading of the section"
+  title: String!
+  "sub heading of the section"
+  subtitle: String
+  "markdown content for the description of the section"
+  descriptionMarkDown: String
+  "link to image shown in a section"
+  image: String
+  "link to video shown in a section"
+  video: String
+  "list of points to be displayed in a content section"
+  bullets: [Item!]
+}
+
+"Represents a bulleted list which is included in a content section."
+type Item {
+  "description of the bullet"
+  description: String!
+  "icon image for a bullet"
+  icon: String
+}
+
+"Represents content for a component landing page(API/Solution)."
+type ComponentContent {
+  "unique identification for the component"
+  componentId: String!
+  "unique identification for the organization"
+  orgId: String!
+  "content to be displayed in the component/solutions landing page"
+  sections: [Contentdescription!]!
+  "image to be displayed in the component tile"
+  componentTileImage: String!
+  "description to be displayed in the component tile"
+  componentTileDescription: String!
+}
+
+type Mutation {
+  "Create an application."
+  addApplicationDetails(
+    "parameter description"
+    application: Application!
+  ): ApplicationResponse!
+  "Add consumer specific details."
+  consumerComponentDetails(
+    "details related to the component and consumer"
+    consumerComponentDetails: ConsumerComponentDetails!
+  ): ConsuemrComponentDetailsResponse!
+}
+
+type ApplicationResponse {
+  appId: String!
+  applicationName: String!
+  addedAPIs: [String!]!
+  appProperties: [ApplicationPropertiesResponse!]!
+  users: [UserResponse!]!
+}
+
+type ApplicationPropertiesResponse {
+  name: String!
+  value: String!
+}
+
+type UserResponse {
+  role: String!
+  userName: String!
+}
+
+"Represents content to be included in the application section."
+input Application {
+  appId: String!
+  applicationName: String!
+  appProperties: [ApplicationProperties!]!
+  addedAPIs: [String!]!
+  accessControl: [User!]!
+}
+
+input ApplicationProperties {
+  name: String!
+  value: String!
+}
+
+input User {
+  role: String!
+  userName: String!
+}
+
+type ConsuemrComponentDetailsResponse {
+  subscription: [String!]!
+  orgId: String!
+  comments: CommentResponse!
+}
+
+type CommentResponse {
+  APIId: String!
+  comment: String!
+  rating: Int!
+}
+
+input ConsumerComponentDetails {
+  orgId: String!
+  userId: String!
+  subscribedAPIs: [String!]!
+  comment: ConsumerReview!
+}
+
+input ConsumerReview {
+  APIId: String!
+  comment: String!
+  rating: Int!
+}

@@ -16,7 +16,7 @@ public  type OrganizationContent record {
     readonly string orgContentId;
     string organizationName;
     string orgId;
-    string orgBanner;
+    string orgBanner?;
     Contentdescription[] contentDescription;
 };
 
@@ -51,8 +51,8 @@ public type Contentdescription record {
     string title;
     string subtitle?;
     string descriptionMarkDown?;
-    string image;
-    string video;
+    string image?;
+    string video?;
     Item[] bullets?;
 };
 

@@ -19,9 +19,9 @@ public distinct service class ConsuemrComponentDetailsResponse {
 }
 
 public distinct service class CommentResponse {
-    private final readonly & Comments comments;
+    private final readonly & ConsumerReview comments;
 
-    public function init(Comments entryRecord) {
+    public function init(ConsumerReview entryRecord) {
         self.comments = entryRecord.cloneReadOnly();
     }
 

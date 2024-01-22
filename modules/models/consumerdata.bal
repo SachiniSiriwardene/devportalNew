@@ -2,10 +2,10 @@ public type ConsumerComponentDetails record {|
     readonly string orgId;
     string userId;
     string[] subscribedAPIs;
-    Comments comment;
+    ConsumerReview comment;
 |};
 
-public type Comments record {|
+public type ConsumerReview record {|
     string APIId;
     string comment;
     int rating;
