@@ -1,9 +1,9 @@
 openapi: 3.0.1
 info:
-  title: Devportal
+  title: DevportalBackOffice
   version: 0.1.0
 servers:
-- url: "{server}:{port}/devportal"
+- url: "{server}:{port}/devportalBackOffice"
   variables:
     server:
       default: http://localhost
