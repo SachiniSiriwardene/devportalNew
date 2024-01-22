@@ -9,6 +9,18 @@ type Query {
     "parameter description"
     orgId: String!
   ): ComponentContent
+  "Retrieve the details for an API."
+  apiContent(
+    "parameter description"
+    apiID: String!
+  ): ApiMetadata
+  "Filter the APIs using category."
+  apifilter(
+    "parameter description"
+    orgId: String!
+    "parameter description"
+    category: String!
+  ): [ApiMetadata!]!
   "Retrieve application details."
   applications(
     "parameter description"
@@ -32,11 +44,11 @@ type OrganizationContent {
   "image to be displayed in the organization landing page"
   orgBanner: String
   "content to be displayed in the organization landing page"
-  contentDescription: [Contentdescription!]!
+  contentDescription: [ContentDescription!]!
 }
 
 "Represents a content section which is included in the landing pages."
-type Contentdescription {
+type ContentDescription {
   "represents the order of the content section in the page"
   precision: Int!
   "description of the section"
@@ -70,11 +82,102 @@ type ComponentContent {
   "unique identification for the organization"
   orgId: String!
   "content to be displayed in the component/solutions landing page"
-  sections: [Contentdescription!]!
+  sections: [ContentDescription!]!
   "image to be displayed in the component tile"
   componentTileImage: String!
   "description to be displayed in the component tile"
   componentTileDescription: String!
+}
+
+"Description."
+type ApiMetadata {
+  "api id"
+  apiId: String!
+  "organization id"
+  orgId: String!
+  "api information"
+  apiInfo: ApiInfo!
+  "details about the throttling policies"
+  throttlingPolicies: [ThrottlingPolicy!]
+  "Gateway server urls"
+  serverUrl: ServerUrl!
+  "feedback provided by each customer"
+  feedback: Feedback
+  "URLs exposed by the key manager"
+  keyManagerUrl: KeyManager!
+  "content of the api detail page"
+  apiDetailPageContent: ComponentContent!
+}
+
+type ApiInfo {
+  apiName: String!
+  apiCategory: [String!]!
+  apiDocumentation: ContentDescription!
+  apiImage: String
+  lifeCycleStatus: String!
+  openApiDefinition: String!
+  additionalProperties(
+    "[auto-generated]: The key of the value required from a map"
+    key: String!
+  ): String!
+}
+
+"Description."
+type ThrottlingPolicy {
+  "field description"
+  policyId: String!
+  "field description"
+  type: String!
+  "field description"
+  policyName: String!
+  "field description"
+  description: String!
+}
+
+"Description."
+type ServerUrl {
+  "field description"
+  sandboxUrl: String!
+  "field description"
+  productionUrl: String!
+}
+
+"Description."
+type Feedback {
+  "field description"
+  apiId: String!
+  "field description"
+  averageRating: Int!
+  "field description"
+  noOfRating: Int!
+  "field description"
+  noOfComments: Int!
+  "field description"
+  reviews: [Review!]!
+}
+
+"Description."
+type Review {
+  "field description"
+  reviewId: String!
+  "field description"
+  reviewedBy: String!
+  "field description"
+  rating: Int!
+  "field description"
+  comment: String!
+}
+
+"Description."
+type KeyManager {
+  "field description"
+  name: String!
+  "field description"
+  tokenEndpointUrl: String!
+  "field description"
+  revokeEndpointUrl: String!
+  "field description"
+  authorizeEndpointUrl: String!
 }
 
 type Mutation {
