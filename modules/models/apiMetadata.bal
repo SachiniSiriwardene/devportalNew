@@ -4,7 +4,7 @@ public type ApiInfo record {
     ContentDescription apiDocumentation;
     string? apiImage;
     string lifeCycleStatus;
-    json openApiDefinition;
+    string openApiDefinition;
     map<string> additionalProperties;
 };
 
