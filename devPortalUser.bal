@@ -1,19 +1,18 @@
-import ballerina/graphql;
-import devportal.models;
 import devportal.entry;
-service  /devPortalConsumer on new graphql:Listener(4000) {
+import devportal.models;
+
+import ballerina/graphql;
+
+service /devPortalConsumer on new graphql:Listener(4000) {
 
     # Retrieve details to display on the organization landing page.
     #
     # + orgId - parameter description
     # + return - return value description
-    resource function get organizationContent(string orgId) returns models:OrganizationContent? {
+    resource function get adminSettings(string orgId) returns models:AdminSettings {
 
-        models:OrganizationContent? orgEntry = entry:orgContentDetails[orgId];
-        if orgEntry is models:OrganizationContent {
-            return orgEntry;
-        }
-        return;
+        models:AdminSettings settings = {organizationLandingPageContent: "orgContent.html", themeContent: "themeContent.html"};
+        return settings;
 
     }
     # Retrieve details to display on the component landing page.
@@ -34,12 +33,12 @@ service  /devPortalConsumer on new graphql:Listener(4000) {
     # + apiID - parameter description
     # + return - return value description
     resource function get apiContent(string apiID) returns models:ApiMetadata? {
-        
-      models:ApiMetadata? apiContent = entry:apiMetadataTable[apiID];
-      if(apiContent is models:ApiMetadata) {
-        return apiContent;
-      }
-        return ;
+
+        models:ApiMetadata? apiContent = entry:apiMetadataTable[apiID];
+        if (apiContent is models:ApiMetadata) {
+            return apiContent;
+        }
+        return;
     }
 
     # Filter the APIs using category.
@@ -49,18 +48,19 @@ service  /devPortalConsumer on new graphql:Listener(4000) {
     # + return - return value description
     resource function get apifilter(string orgId, string category) returns models:ApiMetadata[] {
 
-       models:ApiMetadata[] apiDetails =  from var apiData in entry:apiMetadataTable 
-                                       where apiData.orgId == orgId select apiData ;
+        models:ApiMetadata[] apiDetails = from var apiData in entry:apiMetadataTable
+            where apiData.orgId == orgId
+            select apiData;
         models:ApiMetadata[] filteredData = [];
         foreach var api in apiDetails {
-            
+
             foreach var item in api.apiInfo.apiCategory {
-                if(category.equalsIgnoreCaseAscii(item)) {
-                        filteredData.push(api);
+                if (category.equalsIgnoreCaseAscii(item)) {
+                    filteredData.push(api);
                 }
             }
         }
-        return  filteredData;
+        return filteredData;
     }
 
     # Create an application.
@@ -99,13 +99,12 @@ service  /devPortalConsumer on new graphql:Listener(4000) {
     # + orgId - parameter description
     # + return - return value description
     resource function get consumerComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
-        
+
         models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
         if organization is models:ConsumerComponentDetails {
             return new (organization);
         }
         return;
     }
-
 
 }

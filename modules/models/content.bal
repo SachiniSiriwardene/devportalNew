@@ -1,23 +1,21 @@
 public type AdminSettings record {
-    string kind;
-    OrganizationContent organizationContent?;
-    Theme themeDetails?;
+    string organizationLandingPageContent;
+    string themeContent;
+
 };
+
+public type AdminContent record {
+    string fileURL;
+};
+
 
 
 # Represents content for the organization landin page.
 #
-# + orgContentId - unique identification for the organization  
-# + organizationName - name of the organization  
-# + orgId - field description  
-# + orgBanner - image to be displayed in the organization landing page  
-# + contentDescription - content to be displayed in the organization landing page
+# + organizationLandingPageContent - link to the content to display on the organization landing page
+
 public  type OrganizationContent record {
-    readonly string orgContentId;
-    string organizationName;
-    string orgId;
-    string orgBanner?;
-    ContentDescription[] contentDescription;
+    string organizationLandingPageContent;
 };
 
 # Represents content for a component landing page(API/Solution).
