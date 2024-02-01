@@ -84,4 +84,29 @@ public type AdditionalProperties record {|
 	ApiMetadata apimetadata;
 |};
 
+# Identity Provider configured for dev portal.
+#
+# + idpID - field description  
+# + name - field description  
+# + wellKnownEndpoint - field description  
+# + introspectionEndpoint - field description  
+# + issuer - field description  
+# + jwksEndpoint - field description  
+# + authorizeEndpoint - field description  
+# + envrionments - field description
+public type IdentityProvider record {|
+    readonly string idpID;
+    string name;
+    string wellKnownEndpoint;
+    string introspectionEndpoint;
+    string issuer;
+    string jwksEndpoint;
+    string authorizeEndpoint;
+    string[] envrionments;
+|};
 
+public type Theme record {|
+    readonly string themeId;   
+    string orgId;    
+    json theme;
+|};

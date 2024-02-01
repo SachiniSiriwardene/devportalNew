@@ -1,49 +1,76 @@
-import devportal.java.io as javaio;
-import devportal.java.util.zip as zip;
 import devportal.models;
-
 import ballerina/http;
-import ballerina/io;
 
 # A service representing a network-accessible API
 # bound to port `9090`.
 service /devPortalAdmin on new http:Listener(8080) {
 
-    resource function post admin/organizationLandingPage(http:Request request) returns models:AdminContent {
+    # Store the content for landing pages.
+    #
+    # + request - compressed file containing the folder content 
+    # + return - return value description
+    resource function post admin/devPortalContent(http:Request request) returns models:ContentResponse {
 
-        byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
-        stream<byte[], io:Error?>|http:ClientError byteSteam = request.getByteStream();
+        // byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
+        // stream<byte[], io:Error?>|http:ClientError byteSteam = request.getByteStream();
 
-        if binaryPayload is byte[] {
-            javaio:InputStream|error zipFile = javaio:newByteArrayInputStream1(binaryPayload);
-            if (zipFile is javaio:InputStream) {
-                zip:ZipInputStream zip = zip:newZipInputStream1(zipFile);
-                zip:ZipEntry entry;
-        //       while(zip.getNextEntry()!=null)
-        // {
+        // if binaryPayload is byte[] {
+        //     javaio:InputStream|error zipFile = javaio:newByteArrayInputStream1(binaryPayload);
+        //     if (zipFile is javaio:InputStream) {
+        //         zip:ZipInputStream zip = zip:newZipInputStream1(zipFile);
+        //         zip:ZipEntry entry;
+        //         //       while(zip.getNextEntry()!=null)
+        //         // {
 
+        //         // }
+        //     }
         // }
-            }
-
-        }
-
+        models:ContentResponse uploadedContent = {createdAt: "", contentId: "", fileNames: []};
+        return uploadedContent;
     }
 
-    resource function post admin/apiLandingPage(http:Request request) returns models:AdminContent {
+     # Store the resources related to dev portal ex:images, videos.
+     #
+     # + request - parameter description
+     # + return - return value description
+     resource function post admin/resources(http:Request request) returns models:ContentResponse {
 
-        byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
-        if (binaryPayload is byte[]) {
+        // byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
+        // stream<byte[], io:Error?>|http:ClientError byteSteam = request.getByteStream();
 
-        }
-        return {
-            fileURL: ""
-        };
+        // if binaryPayload is byte[] {
+        //     javaio:InputStream|error zipFile = javaio:newByteArrayInputStream1(binaryPayload);
+        //     if (zipFile is javaio:InputStream) {
+        //         zip:ZipInputStream zip = zip:newZipInputStream1(zipFile);
+        //         zip:ZipEntry entry;
+        //         //       while(zip.getNextEntry()!=null)
+        //         // {
 
+        //         // }
+        //     }
+        // }
+        models:ContentResponse uploadedContent = {createdAt: "", contentId: "", fileNames: []};
+        return uploadedContent;
     }
 
-    resource function post admin/theme(http:Request request) returns string {
+    # Store the theme for the developer portal.
+    #
+    # + theme - theme object
+    # + return - return value description
+    resource function post admin/theme(@http:Payload models:Theme theme) returns models:ThemeResponse {
 
-        return "";
+        models:ThemeResponse createdTheme = {createdAt: "", themeId: "", orgId: ""};
+        return createdTheme;
+    }
+
+    # Store the identity provider details for the developer portal.
+    #
+    # + identityProvider - IDP details
+    # + return - return value description
+    resource function post admin/identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse {
+
+        models:IdentityProviderResponse createdIDP = {createdAt: "", idpName: "", id: ""};
+        return createdIDP;
     }
 
 }

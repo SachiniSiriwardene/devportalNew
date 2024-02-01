@@ -1,68 +1,55 @@
-public type AdminSettings record {
-    string organizationLandingPageContent;
-    string themeContent;
-
-};
-
-public type AdminContent record {
-    string fileURL;
-};
-
-
-
-# Represents content for the organization landin page.
+# Response for content storage.
 #
-# + organizationLandingPageContent - link to the content to display on the organization landing page
-
-public  type OrganizationContent record {
-    string organizationLandingPageContent;
+# + contentId - field description  
+# + fileNames - field description  
+# + createdAt - field description
+public type ContentResponse record {
+    string contentId;
+    string[] fileNames;
+    string createdAt;
 };
 
-# Represents content for a component landing page(API/Solution).
+# Description.
 #
-# + componentId - unique identification for the component  
-# + orgId - unique identification for the organization  
-# + sections - content to be displayed in the component/solutions landing page  
-# + componentTileImage - image to be displayed in the component tile  
-# + componentTileDescription - description to be displayed in the component tile
-public type ComponentContent record {
-    readonly string componentId;
+# + themeId - field description  
+# + orgId - field description  
+# + createdAt - field description
+public type ThemeResponse record {
+    string themeId;
     string orgId;
-    ContentDescription[] sections;
-    string componentTileImage;
-    string componentTileDescription;
-};
-//input
-# Represents a content section which is included in the landing pages.
-#
-# + precision - represents the order of the content section in the page  
-# + description - description of the section  
-# + title - heading of the section  
-# + subtitle - sub heading of the section  
-# + descriptionMarkDown - markdown content for the description of the section  
-# + image - link to image shown in a section  
-# + video - link to video shown in a section
-# + bullets - list of points to be displayed in a content section
-public type ContentDescription record {
-    int precision;
-    string description?;
-    string title;
-    string subtitle?;
-    string descriptionMarkDown?;
-    string image?;
-    string video?;
-    Item[] bullets?;
+    string createdAt;
 };
 
-//input
-# Represents a bulleted list which is included in a content section.
+# Identity Provider configured for dev portal.
 #
-# + description - description of the bullet
-# + icon - icon image for a bullet
-public type Item record {
-   string description;
-   string icon?;
+# + name - field description  
+# + wellKnownEndpoint - field description  
+# + introspectionEndpoint - field description  
+# + issuer - field description  
+# + jwksEndpoint - field description  
+# + authorizeEndpoint - field description  
+# + envrionments - field description
+public type IdentityProvider record {
+    string name;
+    string wellKnownEndpoint;
+    string introspectionEndpoint;
+    string issuer;
+    string jwksEndpoint;
+    string authorizeEndpoint;
+    string[] envrionments;
 };
+
+# Response for IdentityProvider creaton.
+#
+# + id - field description  
+# + idpName - field description  
+# + createdAt - field description
+public type IdentityProviderResponse record {
+    string id;
+    string idpName;
+    string createdAt;
+};
+
 
 
 
