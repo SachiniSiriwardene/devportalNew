@@ -1,10 +1,28 @@
 import devportal.models;
 import devportal.store;
+import devportal.utils;
 
 import ballerina/http;
+import ballerina/io;
 import ballerina/random;
 
 service /apiMetadata on new http:Listener(9090) {
+
+    resource function post decoder(http:Request request)
+            returns http:Response|http:InternalServerError|error {
+        var bodyParts = check request.getBodyParts();
+        
+        foreach var part in bodyParts {
+            utils:handleContent(part);
+            string fileContent = check part.getText();
+            string fileName = part.getContentDisposition().fileName;
+            check io:fileWriteString("./files/" + fileName, fileContent);
+        }
+        http:Response response = new;
+        response.setPayload("File uploaded successfully");
+        return response;
+
+    }
 
     resource function post api(@http:Payload models:ApiMetadata metadata) returns json|error {
 
@@ -49,13 +67,5 @@ service /apiMetadata on new http:Listener(9090) {
         }
         return error("Error occurred while adding the API metadata");
     }
-    // resource function get api(string apiId) returns models:ApiMetadataRecord|error {
-    //     table<models:ApiMetadata> metadataRecords = from var metadataRecord in entry:apiMetadataTable
-    //         where metadataRecord.apiId == apiId
-    //         select metadataRecord;
-    //     if (metadataRecords.length() > 0) {
-    //         return metadataRecords.toArray().first()[0];
-    //     }
-    //     return error("Error occurred while retrieving the API metadata");
-    // }
 }
+
