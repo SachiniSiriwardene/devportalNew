@@ -61,7 +61,7 @@ dependencies = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.5"
+version = "2.10.6"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -344,7 +344,6 @@ dependencies = [
 ]
 modules = [
 	{org = "divya", packageName = "devportal", moduleName = "devportal"},
-	{org = "divya", packageName = "devportal", moduleName = "devportal.entry"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.models"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.store"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.utils"}

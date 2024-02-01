@@ -7,7 +7,7 @@ import ballerina/io;
 import ballerina/random;
 
 
-service /apiMetadata on new http:Listener(9090) {
+service /apiMetadata on new http:Listener(9000) {
 
     resource function post apiContent(http:Request request)
             returns http:Response|http:InternalServerError|error {
