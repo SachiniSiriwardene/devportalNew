@@ -9,10 +9,10 @@ import ballerina/random;
 
 service /apiMetadata on new http:Listener(9090) {
 
-    resource function post decoder(http:Request request)
+    resource function post apiContent(http:Request request)
             returns http:Response|http:InternalServerError|error {
         var bodyParts = check request.getBodyParts();
-        
+
         foreach var part in bodyParts {
             utils:handleContent(part);
             string fileContent = check part.getText();
