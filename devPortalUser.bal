@@ -1,158 +1,130 @@
-import devportal.models;
-import devportal.store;
+// import devportal.models;
+// import devportal.store;
 
-import ballerina/graphql;
-import ballerina/io;
-import ballerina/persist;
+// import ballerina/graphql;
 
-final store:Client sClient = check new ();
+// final store:Client sClient = check new ();
 
-service /apiUserPortal on new graphql:Listener(4000) {
+// service /apiUserPortal on new graphql:Listener(4000) {
 
-    # Retrieve details to display on the organization landing page.
-    #
-    # + orgId - parameter description
-    # + return - return value description
-    // resource function get organizationContent(string orgId) returns graphql:Upload|io:Error {
+//     # Retrieve the details for an API.
+//     #
+//     # + apiID - parameter description
+//     # + return - return value description
+//     resource function get apiMetaData(string apiID) returns models:ApiMetadata {
 
-    //     byte[] fileReadBytes = check io:fileReadBytes("/openapi.json");
-    //     stream<byte> streamResult = fileReadBytes.toStream()
+//         //stream<store:ApiMetadata, persist:Error?> employees = sClient->/apiMetaData;
 
-    //     graphql:Upload response = {fileName: "abc", byteStream:  streamResult,
-    //     encoding: "base64",mimeType: ""} ;
+//         // models:ApiMetadata? apiContent = sClient->/store:ApiMetadata;
 
-    // }
-    # Retrieve details to display on the component landing page.
-    #
-    # + orgId - parameter description
-    # + return - return value description
-    // resource function get apiContent(string orgId) returns models:ComponentContent? {
+//         models:ApiMetadata api = {
+//             serverUrl: {sandboxUrl: "", productionUrl: ""},
+//             throttlingPolicies: (),
+//             apiInfo: {apiName: "", apiCategory: [], apiImage: "", openApiDefinition: "", additionalProperties: {}}
+//         };
 
-    //     models:ComponentContent? componentEntry = entry:componentDetails[orgId];
-    //     if componentEntry is models:ComponentContent {
-    //         return componentEntry;
-    //     }
-    //     return;
-    // }
+//         return api;
+//     }
 
-    # Retrieve the details for an API.
-    #
-    # + apiID - parameter description
-    # + return - return value description
-    resource function get apiMetaData(string apiID) returns models:ApiMetadata {
+//     # Filter the APIs using category or a keyword/s.
+//     #
+//     # + orgId - parameter description  
+//     # + category - parameter description
+//     # + return - return value description
+//     resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[] {
 
-        //stream<store:ApiMetadata, persist:Error?> employees = sClient->/apiMetaData;
+//         // stream<store:ApiMetadata, persist:Error?> apiContent = sClient->/apimetadata/[orgId];
 
-        // models:ApiMetadata? apiContent = sClient->/store:ApiMetadata;
+//         // models:ApiMetadata[] apiDetails = from var apiData in entry:apiMetadataTable
+//         //     where apiData.orgId == orgId
+//         //     select apiData;
+//         // models:ApiMetadata[] filteredData = [];
+//         // foreach var api in apiDetails {
 
-        models:ApiMetadata api = {
-            serverUrl: {sandboxUrl: "", productionUrl: ""},
-            throttlingPolicies: (),
-            apiInfo: {apiName: "", apiCategory: [], apiImage: , openApiDefinition: "", additionalProperties: {}}
-        };
+//         //     foreach var item in api.apiInfo.apiCategory {
+//         //         if (category.equalsIgnoreCaseAscii(item)) {
+//         //             filteredData.push(api);
+//         //         }
+//         //     }
+//         // }
+//         models:ApiMetadata[] metaData = [
+//             {
+//                 serverUrl: {sandboxUrl: "", productionUrl: ""},
+//                 throttlingPolicies: (),
+//                 apiInfo: {
+//                     apiName: "",
+//                     apiCategory: [],
+//                     apiImage: "",
+//                     openApiDefinition: "",
+//                     additionalProperties: {}
+//                 }
+//             }
+//         ];
 
-        return api;
-    }
+//         return metaData;
+//     }
 
-    # Filter the APIs using category or a keyword/s.
-    #
-    # + orgId - parameter description  
-    # + category - parameter description
-    # + return - return value description
-    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[] {
+//     # Create an application.
+//     #
+//     # + application - parameter description
+//     # + return - return value description
+//     remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
 
-        // stream<store:ApiMetadata, persist:Error?> apiContent = sClient->/apimetadata/[orgId];
+//         // entry:applicationDetails.add(application);
+//         // return new (application);
+//         return new (application);
+//     }
 
-        // models:ApiMetadata[] apiDetails = from var apiData in entry:apiMetadataTable
-        //     where apiData.orgId == orgId
-        //     select apiData;
-        // models:ApiMetadata[] filteredData = [];
-        // foreach var api in apiDetails {
+//     # Retrieve application details.
+//     #
+//     # + appId - parameter description
+//     # + return - return value description
+//     resource function get applications(string appId) returns models:ApplicationResponse {
 
-        //     foreach var item in api.apiInfo.apiCategory {
-        //         if (category.equalsIgnoreCaseAscii(item)) {
-        //             filteredData.push(api);
-        //         }
-        //     }
-        // }
-        models:ApiMetadata[] metaData = [
-            {
-                serverUrl: {sandboxUrl: "", productionUrl: ""},
-                throttlingPolicies: (),
-                apiInfo: {
-                    apiName: "",
-                    apiCategory: [],
-                    apiImage: "",
-                    openApiDefinition: "",
-                    additionalProperties: {}
-                }
-            }
-        ];
+//         // models:Application? application = entry:applicationDetails[appId];
+//         // if application is models:Application {
+//         //     return new (application);
+//         // }
+//         // return;
 
-        return metaData;
-    }
+//         models:Application app = {accessControl: [], addedAPIs: [], appId: "", applicationName: "", appProperties: []};
+//         return new (app);
+//     }
 
-    # Create an application.
-    #
-    # + application - parameter description
-    # + return - return value description
-    remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
+//     # Add consumer specific details.
+//     # + consumerComponentDetails - details related to the component and consumer
+//     # + return - return value description
+//     remote function consumerComponentDetails(models:ConsumerComponentDetails consumerComponentDetails) returns models:ConsuemrComponentDetailsResponse {
 
-        // entry:applicationDetails.add(application);
-        // return new (application);
-        return new (application);
-    }
+//         // entry:organizationDetails.add(consumerComponentDetails);
+//         // return new (consumerComponentDetails);
+//         models:ConsumerComponentDetails userComponentDetails = {
+//             comment: {APIId: "", comment: "", rating: 0},
+//             subscribedAPIs: [],
+//             userId: "",
+//             orgId: ""
+//         };
+//         return new (userComponentDetails);
+//     }
 
-    # Retrieve application details.
-    #
-    # + appId - parameter description
-    # + return - return value description
-    resource function get applications(string appId) returns models:ApplicationResponse {
+//     # Retrieve consumer specific component details.
+//     #
+//     # + orgId - parameter description
+//     # + return - return value description
+//     resource function get consumerComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
 
-        // models:Application? application = entry:applicationDetails[appId];
-        // if application is models:Application {
-        //     return new (application);
-        // }
-        // return;
+//         // models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
+//         // if organization is models:ConsumerComponentDetails {
+//         //     return new (organization);
+//         // }
+//         // return;
+//         models:ConsumerComponentDetails userComponentDetails = {
+//             comment: {APIId: "", comment: "", rating: 0},
+//             subscribedAPIs: [],
+//             userId: "",
+//             orgId: ""
+//         };
+//         return new (userComponentDetails);
+//     }
 
-        models:Application app = {accessControl: [], addedAPIs: [], appId: "", applicationName: "", appProperties: []};
-        return new (app);
-    }
-
-    # Add consumer specific details.
-    # + consumerComponentDetails - details related to the component and consumer
-    # + return - return value description
-    remote function consumerComponentDetails(models:ConsumerComponentDetails consumerComponentDetails) returns models:ConsuemrComponentDetailsResponse {
-
-        // entry:organizationDetails.add(consumerComponentDetails);
-        // return new (consumerComponentDetails);
-        models:ConsumerComponentDetails userComponentDetails = {
-            comment: {APIId: "", comment: "", rating: 0},
-            subscribedAPIs: [],
-            userId: "",
-            orgId: ""
-        };
-        return new (userComponentDetails);
-    }
-
-    # Retrieve consumer specific component details.
-    #
-    # + orgId - parameter description
-    # + return - return value description
-    resource function get consumerComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
-
-        // models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
-        // if organization is models:ConsumerComponentDetails {
-        //     return new (organization);
-        // }
-        // return;
-        models:ConsumerComponentDetails userComponentDetails = {
-            comment: {APIId: "", comment: "", rating: 0},
-            subscribedAPIs: [],
-            userId: "",
-            orgId: ""
-        };
-        return new (userComponentDetails);
-    }
-
-}
+// }

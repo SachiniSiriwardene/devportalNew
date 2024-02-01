@@ -1,57 +1,52 @@
-import devportal.models;
-
 import ballerina/http;
+import ballerina/io;
 
-service /devPortalContent on new http:Listener(9090) {
+service / on new http:Listener(9090) {
 
     # Retrieve image files.
     #
-    # + orgId - parameter description  
-    # + imageName - parameter description
+    # + orgName - parameter description  
+    # + imageName - parameter description  
+    # + request - parameter description
     # + return - return value description
-    resource function get [string orgId]/images/[string imageName]() returns http:Response {
+    resource function get [string orgName]/images/[string imageName](http:Request request) returns http:Response|error {
 
-       
-
-      
-
-        return api;
+        byte[] content = check io:fileReadBytes("./files/" + imageName);
+        http:Response response = new;
+        check response.setContentType("application/octet-stream");
+        response.setBinaryPayload(content);
+        return response;
     }
 
-     # Retrieve video files.
-     #
-     # + orgId - parameter description  
-     # + videoName - parameter description
-     # + return - return value description
-     resource function get [string orgId]/video/[string videoName]() returns http:Response {
+    # Retrieve video files.
+    #
+    # + orgName - parameter description  
+    # + videoName - parameter description  
+    # + request - parameter description
+    # + return - return value description
+    resource function get [string orgName]/video/[string videoName](http:Request request) returns http:Response|error {
 
-        //stream<store:ApiMetadata, persist:Error?> employees = sClient->/apiMetaData;
+        byte[] content = check io:fileReadBytes("./files/" + videoName);
+        http:Response response = new;
+        check response.setContentType("application/octet-stream");
+        response.setBinaryPayload(content);
 
-        // models:ApiMetadata? apiContent = sClient->/store:ApiMetadata;
-
-        models:ApiMetadata api = {
-            serverUrl: {sandboxUrl: "", productionUrl: ""},
-            throttlingPolicies: (),
-            apiInfo: {apiName: "", apiCategory: [], apiImage: , openApiDefinition: "", additionalProperties: {}}
-        };
-
-        return api;
+        return response;
     }
 
-      # Retrieve text files.
-      #
-      # + orgId - parameter description  
-      # + fileName - parameter description
-      # + return - return value description
-      resource function get [string orgId]/text/[string fileName]() returns http:Response {
+    # Retrieve text files.
+    #
+    # + orgId - parameter description  
+    # + fileName - parameter description
+    # + return - return value description
+    resource function get [string orgId]/text/[string fileName]() returns http:Response|error {
 
-       
+        byte[] content = check io:fileReadBytes("./files/" + fileName);
+        http:Response response = new;
+        check response.setContentType("application/octet-stream");
+        response.setBinaryPayload(content);
 
-      
-
-        return api;
+        return response;
     }
-
-
 
 }

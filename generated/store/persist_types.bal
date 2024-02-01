@@ -190,3 +190,60 @@ public type AdditionalPropertiesUpdate record {|
     string apimetadataApiId?;
 |};
 
+public type IdentityProvider record {|
+    readonly string idpID;
+    string name;
+    string wellKnownEndpoint;
+    string introspectionEndpoint;
+    string issuer;
+    string jwksEndpoint;
+    string authorizeEndpoint;
+    string[] envrionments;
+|};
+
+public type IdentityProviderOptionalized record {|
+    string idpID?;
+    string name?;
+    string wellKnownEndpoint?;
+    string introspectionEndpoint?;
+    string issuer?;
+    string jwksEndpoint?;
+    string authorizeEndpoint?;
+    string[] envrionments?;
+|};
+
+public type IdentityProviderTargetType typedesc<IdentityProviderOptionalized>;
+
+public type IdentityProviderInsert IdentityProvider;
+
+public type IdentityProviderUpdate record {|
+    string name?;
+    string wellKnownEndpoint?;
+    string introspectionEndpoint?;
+    string issuer?;
+    string jwksEndpoint?;
+    string authorizeEndpoint?;
+    string[] envrionments?;
+|};
+
+public type Theme record {|
+    readonly string themeId;
+    string orgId;
+    string theme;
+|};
+
+public type ThemeOptionalized record {|
+    string themeId?;
+    string orgId?;
+    string theme?;
+|};
+
+public type ThemeTargetType typedesc<ThemeOptionalized>;
+
+public type ThemeInsert Theme;
+
+public type ThemeUpdate record {|
+    string orgId?;
+    string theme?;
+|};
+

@@ -11,12 +11,16 @@ const FEEDBACK = "feedbacks";
 const REVIEW = "reviews";
 const API_METADATA = "apimetadata";
 const ADDITIONAL_PROPERTIES = "additionalproperties";
+const IDENTITY_PROVIDER = "identityproviders";
+const THEME = "themes";
 final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = table [];
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
 final isolated table<Feedback> key(apiId) feedbacksTable = table [];
 final isolated table<Review> key(reviewId) reviewsTable = table [];
 final isolated table<ApiMetadata> key(apiId) apimetadataTable = table [];
 final isolated table<AdditionalProperties> key(propertyId) additionalpropertiesTable = table [];
+final isolated table<IdentityProvider> key(idpID) identityprovidersTable = table [];
+final isolated table<Theme> key(themeId) themesTable = table [];
 
 public isolated client class Client {
     *persist:AbstractPersistClient;
@@ -59,6 +63,16 @@ public isolated client class Client {
                 keyFields: ["propertyId"],
                 query: queryAdditionalproperties,
                 queryOne: queryOneAdditionalproperties
+            },
+            [IDENTITY_PROVIDER] : {
+                keyFields: ["idpID"],
+                query: queryIdentityproviders,
+                queryOne: queryOneIdentityproviders
+            },
+            [THEME] : {
+                keyFields: ["themeId"],
+                query: queryThemes,
+                queryOne: queryOneThemes
             }
         };
         self.persistClients = {
@@ -67,7 +81,9 @@ public isolated client class Client {
             [FEEDBACK] : check new (metadata.get(FEEDBACK).cloneReadOnly()),
             [REVIEW] : check new (metadata.get(REVIEW).cloneReadOnly()),
             [API_METADATA] : check new (metadata.get(API_METADATA).cloneReadOnly()),
-            [ADDITIONAL_PROPERTIES] : check new (metadata.get(ADDITIONAL_PROPERTIES).cloneReadOnly())
+            [ADDITIONAL_PROPERTIES] : check new (metadata.get(ADDITIONAL_PROPERTIES).cloneReadOnly()),
+            [IDENTITY_PROVIDER] : check new (metadata.get(IDENTITY_PROVIDER).cloneReadOnly()),
+            [THEME] : check new (metadata.get(THEME).cloneReadOnly())
         };
     }
 
@@ -353,6 +369,100 @@ public isolated client class Client {
         }
     }
 
+    isolated resource function get identityproviders(IdentityProviderTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get identityproviders/[string idpID](IdentityProviderTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post identityproviders(IdentityProviderInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach IdentityProviderInsert value in data {
+            lock {
+                if identityprovidersTable.hasKey(value.idpID) {
+                    return persist:getAlreadyExistsError("IdentityProvider", value.idpID);
+                }
+                identityprovidersTable.put(value.clone());
+            }
+            keys.push(value.idpID);
+        }
+        return keys;
+    }
+
+    isolated resource function put identityproviders/[string idpID](IdentityProviderUpdate value) returns IdentityProvider|persist:Error {
+        lock {
+            if !identityprovidersTable.hasKey(idpID) {
+                return persist:getNotFoundError("IdentityProvider", idpID);
+            }
+            IdentityProvider identityprovider = identityprovidersTable.get(idpID);
+            foreach var [k, v] in value.clone().entries() {
+                identityprovider[k] = v;
+            }
+            identityprovidersTable.put(identityprovider);
+            return identityprovider.clone();
+        }
+    }
+
+    isolated resource function delete identityproviders/[string idpID]() returns IdentityProvider|persist:Error {
+        lock {
+            if !identityprovidersTable.hasKey(idpID) {
+                return persist:getNotFoundError("IdentityProvider", idpID);
+            }
+            return identityprovidersTable.remove(idpID).clone();
+        }
+    }
+
+    isolated resource function get themes(ThemeTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get themes/[string themeId](ThemeTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post themes(ThemeInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ThemeInsert value in data {
+            lock {
+                if themesTable.hasKey(value.themeId) {
+                    return persist:getAlreadyExistsError("Theme", value.themeId);
+                }
+                themesTable.put(value.clone());
+            }
+            keys.push(value.themeId);
+        }
+        return keys;
+    }
+
+    isolated resource function put themes/[string themeId](ThemeUpdate value) returns Theme|persist:Error {
+        lock {
+            if !themesTable.hasKey(themeId) {
+                return persist:getNotFoundError("Theme", themeId);
+            }
+            Theme theme = themesTable.get(themeId);
+            foreach var [k, v] in value.clone().entries() {
+                theme[k] = v;
+            }
+            themesTable.put(theme);
+            return theme.clone();
+        }
+    }
+
+    isolated resource function delete themes/[string themeId]() returns Theme|persist:Error {
+        lock {
+            if !themesTable.hasKey(themeId) {
+                return persist:getNotFoundError("Theme", themeId);
+            }
+            return themesTable.remove(themeId).clone();
+        }
+    }
+
     public isolated function close() returns persist:Error? {
         return ();
     }
@@ -560,6 +670,58 @@ isolated function queryOneAdditionalproperties(anydata key) returns record {}|pe
         };
     };
     return persist:getNotFoundError("AdditionalProperties", key);
+}
+
+isolated function queryIdentityproviders(string[] fields) returns stream<record {}, persist:Error?> {
+    table<IdentityProvider> key(idpID) identityprovidersClonedTable;
+    lock {
+        identityprovidersClonedTable = identityprovidersTable.clone();
+    }
+    return from record {} 'object in identityprovidersClonedTable
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOneIdentityproviders(anydata key) returns record {}|persist:NotFoundError {
+    table<IdentityProvider> key(idpID) identityprovidersClonedTable;
+    lock {
+        identityprovidersClonedTable = identityprovidersTable.clone();
+    }
+    from record {} 'object in identityprovidersClonedTable
+    where persist:getKey('object, ["idpID"]) == key
+    do {
+        return {
+            ...'object
+        };
+    };
+    return persist:getNotFoundError("IdentityProvider", key);
+}
+
+isolated function queryThemes(string[] fields) returns stream<record {}, persist:Error?> {
+    table<Theme> key(themeId) themesClonedTable;
+    lock {
+        themesClonedTable = themesTable.clone();
+    }
+    return from record {} 'object in themesClonedTable
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOneThemes(anydata key) returns record {}|persist:NotFoundError {
+    table<Theme> key(themeId) themesClonedTable;
+    lock {
+        themesClonedTable = themesTable.clone();
+    }
+    from record {} 'object in themesClonedTable
+    where persist:getKey('object, ["themeId"]) == key
+    do {
+        return {
+            ...'object
+        };
+    };
+    return persist:getNotFoundError("Theme", key);
 }
 
 isolated function queryFeedbackReviews(record {} value, string[] fields) returns record {}[] {

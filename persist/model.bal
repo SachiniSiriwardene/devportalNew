@@ -108,5 +108,5 @@ public type IdentityProvider record {|
 public type Theme record {|
     readonly string themeId;   
     string orgId;    
-    json theme;
+    string theme;
 |};
