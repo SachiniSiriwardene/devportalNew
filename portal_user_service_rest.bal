@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/mime;
 
-service / on new http:Listener(9090) {
+service / on new http:Listener(9080) {
 
     # Retrieve image files.
     #

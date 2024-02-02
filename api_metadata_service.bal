@@ -4,11 +4,9 @@ import devportal.utils;
 
 import ballerina/http;
 import ballerina/io;
-import ballerina/random;
+import ballerina/uuid;
 
-final store:Client sClient = check new();
-
-service /apiMetadata on new http:Listener(9000) {
+service /apiMetadata on new http:Listener(9090) {
 
     resource function post apiContent(http:Request request)
             returns http:Response|http:InternalServerError|error {
@@ -26,15 +24,17 @@ service /apiMetadata on new http:Listener(9000) {
 
     }
 
-    resource function post api(@http:Payload models:ApiMetadata metadata) returns json|error {
+    resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
+        final store:Client sClient = check new ();
 
         models:ThrottlingPolicy[] throttlingPolicies = metadata.throttlingPolicies ?: [];
-        store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+        store:ThrottlingPolicyInsert[] throttlingPolicyRecords = [];
+        string apiID = uuid:createType1AsString();
 
         foreach var policy in throttlingPolicies {
             throttlingPolicyRecords.push({
-                apimetadataApiId: "123",
-                policyId: (check random:createIntInRange(1, 999)).toString(),
+                apimetadataApiId: apiID,
+                policyId: uuid:createType1AsString(),
                 'type: policy.'type,
                 policyName: policy.policyName,
                 description: policy.description
@@ -42,20 +42,20 @@ service /apiMetadata on new http:Listener(9000) {
         }
 
         map<string> additionalProperties = metadata.apiInfo.additionalProperties;
-        store:AdditionalProperties[] additionalPropertiesRecords = [];
+        store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
 
         foreach var propertyKey in additionalProperties.keys() {
             additionalPropertiesRecords.push({
-                apimetadataApiId: "123",
-                propertyId: (check random:createIntInRange(1, 999)).toString(),
+                apimetadataApiId: apiID,
+                propertyId: uuid:createType1AsString(),
                 'key: propertyKey,
                 value: additionalProperties.get(propertyKey)
             });
         }
 
-        store:ApiMetadata metadataRecord = {
-            apiId: "123",
-            orgId: "234",
+        store:ApiMetadataInsert metadataRecord = {
+            apiId: apiID,
+            orgId: uuid:createType1AsString(),
             apiName: metadata.apiInfo.apiName,
             apiCategory: metadata.apiInfo.apiCategory,
             apiImage: metadata.apiInfo.apiImage,
@@ -63,9 +63,12 @@ service /apiMetadata on new http:Listener(9000) {
             productionUrl: metadata.serverUrl.productionUrl,
             sandboxUrl: metadata.serverUrl.sandboxUrl
         };
+        string[] apiIDs = check sClient->/apimetadata.post([metadataRecord]);
 
         if (metadataRecord.length() > 0) {
-            return metadataRecord.toJson();
+            http:Response response = new;
+            response.setPayload({apiId: apiIDs});
+            return response;
         }
         return error("Error occurred while adding the API metadata");
     }
