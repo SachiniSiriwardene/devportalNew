@@ -67,7 +67,7 @@ service /apiMetadata on new http:Listener(9090) {
 
         if (metadataRecord.length() > 0) {
             http:Response response = new;
-            response.setPayload({apiId: apiIDs});
+            response.setPayload({apiId: apiIDs[0]});
             return response;
         }
         return error("Error occurred while adding the API metadata");
