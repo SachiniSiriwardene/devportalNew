@@ -1,55 +1,37 @@
 import devportal.models;
+import devportal.store;
+import devportal.utils;
+
 import ballerina/http;
+import ballerina/io;
+import ballerina/uuid;
 
 # A service representing a network-accessible API
-# bound to port `9090`.
+# bound to port `8080`.
+
+final store:Client adminClient = check new ();
+
 service /devPortalAdmin on new http:Listener(8080) {
+
 
     # Store the content for landing pages.
     #
-    # + request - compressed file containing the folder content 
+    # + request - compressed file containing the folder content  
+    # + content - file content type
     # + return - return value description
-    resource function post admin/devPortalContent(http:Request request) returns models:ContentResponse {
+    resource function post admin/devPortalContent(http:Request request, string content) returns models:ContentResponse|error {
 
-        // byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
-        // stream<byte[], io:Error?>|http:ClientError byteSteam = request.getByteStream();
-
-        // if binaryPayload is byte[] {
-        //     javaio:InputStream|error zipFile = javaio:newByteArrayInputStream1(binaryPayload);
-        //     if (zipFile is javaio:InputStream) {
-        //         zip:ZipInputStream zip = zip:newZipInputStream1(zipFile);
-        //         zip:ZipEntry entry;
-        //         //       while(zip.getNextEntry()!=null)
-        //         // {
-
-        //         // }
-        //     }
-        // }
-        models:ContentResponse uploadedContent = {createdAt: "", contentId: "", fileNames: []};
-        return uploadedContent;
-    }
-
-     # Store the resources related to dev portal ex:images, videos.
-     #
-     # + request - parameter description
-     # + return - return value description
-     resource function post admin/resources(http:Request request) returns models:ContentResponse {
-
-        // byte[]|http:ClientError binaryPayload = request.getBinaryPayload();
-        // stream<byte[], io:Error?>|http:ClientError byteSteam = request.getByteStream();
-
-        // if binaryPayload is byte[] {
-        //     javaio:InputStream|error zipFile = javaio:newByteArrayInputStream1(binaryPayload);
-        //     if (zipFile is javaio:InputStream) {
-        //         zip:ZipInputStream zip = zip:newZipInputStream1(zipFile);
-        //         zip:ZipEntry entry;
-        //         //       while(zip.getNextEntry()!=null)
-        //         // {
-
-        //         // }
-        //     }
-        // }
-        models:ContentResponse uploadedContent = {createdAt: "", contentId: "", fileNames: []};
+        var bodyParts = check request.getBodyParts();
+        string[] files = [];
+        foreach var part in bodyParts {
+            utils:handleContent(part);
+            string fileContent = check part.getText();
+            string fileName = part.getContentDisposition().fileName;
+            files.push(fileName);
+            check io:fileWriteString("./files/" + fileName, fileContent);
+        }
+        io:println(content);
+        models:ContentResponse uploadedContent = {createdAt: "", contentId: "1", fileNames: files};
         return uploadedContent;
     }
 
@@ -67,9 +49,22 @@ service /devPortalAdmin on new http:Listener(8080) {
     #
     # + identityProvider - IDP details
     # + return - return value description
-    resource function post admin/identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse {
+    resource function post admin/identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
 
-        models:IdentityProviderResponse createdIDP = {createdAt: "", idpName: "", id: ""};
+        store:IdentityProvider idp = {
+            idpID: uuid:createType1AsString(),
+            name: identityProvider.name,
+            envrionments: identityProvider.envrionments,
+            jwksEndpoint: identityProvider.jwksEndpoint,
+            introspectionEndpoint: identityProvider.introspectionEndpoint,
+            wellKnownEndpoint: identityProvider.wellKnownEndpoint,
+            authorizeEndpoint: identityProvider.authorizeEndpoint,
+            issuer: identityProvider.issuer
+        };
+
+        string[] listResult = check adminClient->/identityproviders.post([idp]);
+
+        models:IdentityProviderResponse createdIDP = {createdAt: "", idpName: identityProvider.name, id: listResult[0]};
         return createdIDP;
     }
 

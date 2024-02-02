@@ -6,6 +6,7 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/random;
 
+final store:Client sClient = check new();
 
 service /apiMetadata on new http:Listener(9000) {
 
