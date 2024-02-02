@@ -1,5 +1,5 @@
 import ballerina/http;
-import ballerina/io;
+import ballerina/mime;
 
 service / on new http:Listener(9090) {
 
@@ -11,10 +11,15 @@ service / on new http:Listener(9090) {
     # + return - return value description
     resource function get [string orgName]/images/[string imageName](http:Request request) returns http:Response|error {
 
-        byte[] content = check io:fileReadBytes("./files/" + imageName);
+        mime:Entity file = new;
+        file.setFileAsEntityBody("./files/" + imageName);
         http:Response response = new;
+        response.setEntity(file);
         check response.setContentType("application/octet-stream");
-        response.setBinaryPayload(content);
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+        response.setHeader("Content-Disposition", "attachment; filename=" + imageName);
         return response;
     }
 
@@ -26,11 +31,15 @@ service / on new http:Listener(9090) {
     # + return - return value description
     resource function get [string orgName]/video/[string videoName](http:Request request) returns http:Response|error {
 
-        byte[] content = check io:fileReadBytes("./files/" + videoName);
+        mime:Entity file = new;
+        file.setFileAsEntityBody("./files/" + videoName);
         http:Response response = new;
+        response.setEntity(file);
         check response.setContentType("application/octet-stream");
-        response.setBinaryPayload(content);
-
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+        response.setHeader("Content-Disposition", "attachment; filename=" + videoName);
         return response;
     }
 
@@ -41,12 +50,17 @@ service / on new http:Listener(9090) {
     # + return - return value description
     resource function get [string orgId]/text/[string fileName]() returns http:Response|error {
 
-        byte[] content = check io:fileReadBytes("./files/" + fileName);
+        mime:Entity file = new;
+        file.setFileAsEntityBody("./files/" + fileName);
         http:Response response = new;
+        response.setEntity(file);
         check response.setContentType("application/octet-stream");
-        response.setBinaryPayload(content);
-
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         return response;
+
     }
 
 }

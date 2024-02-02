@@ -26,3 +26,5 @@ yarn-error.log*
 # eslint
 .eslintcache
 target
+
+/files
