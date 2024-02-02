@@ -1,7 +1,7 @@
 import ballerina/http;
 import ballerina/io;
 
-service / on new http:Listener(9090) {
+service / on new http:Listener(9080) {
 
     # Retrieve image files.
     #

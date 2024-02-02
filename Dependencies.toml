@@ -268,18 +268,6 @@ modules = [
 
 [[package]]
 org = "ballerina"
-name = "random"
-version = "1.5.0"
-dependencies = [
-	{org = "ballerina", name = "jballerina.java"},
-	{org = "ballerina", name = "time"}
-]
-modules = [
-	{org = "ballerina", packageName = "random", moduleName = "random"}
-]
-
-[[package]]
-org = "ballerina"
 name = "task"
 version = "2.5.0"
 dependencies = [
@@ -301,6 +289,20 @@ name = "url"
 version = "2.4.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"}
+]
+
+[[package]]
+org = "ballerina"
+name = "uuid"
+version = "1.7.0"
+dependencies = [
+	{org = "ballerina", name = "crypto"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.int"},
+	{org = "ballerina", name = "time"}
+]
+modules = [
+	{org = "ballerina", packageName = "uuid", moduleName = "uuid"}
 ]
 
 [[package]]
@@ -338,13 +340,12 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "mime"},
 	{org = "ballerina", name = "persist"},
-	{org = "ballerina", name = "random"},
+	{org = "ballerina", name = "uuid"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "persist.inmemory"}
 ]
 modules = [
 	{org = "divya", packageName = "devportal", moduleName = "devportal"},
-	{org = "divya", packageName = "devportal", moduleName = "devportal.entry"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.models"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.store"},
 	{org = "divya", packageName = "devportal", moduleName = "devportal.utils"}
