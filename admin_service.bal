@@ -51,7 +51,7 @@ service /devPortalAdmin on new http:Listener(8080) {
     # + return - return value description
     resource function post admin/identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
 
-        store:IdentityProvider idp = {
+        store:IdentityProviderInsert idp = {
             idpID: uuid:createType1AsString(),
             name: identityProvider.name,
             envrionments: identityProvider.envrionments,

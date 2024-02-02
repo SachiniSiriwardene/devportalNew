@@ -11,6 +11,8 @@ public type Application record {|
     ApplicationProperties[] appProperties;
     string[] addedAPIs;
     User[] accessControl;
+    string sandBoxKey;
+    string productionKey;
 |};
 
 public type Subscription record {|

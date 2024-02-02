@@ -3,6 +3,7 @@ import devportal.store;
 
 import ballerina/graphql;
 import ballerina/persist;
+import ballerina/uuid;
 
 final store:Client userClient = check new ();
 
@@ -84,8 +85,35 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + return - return value description
     remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
 
-        // entry:applicationDetails.add(application);
-        // return new (application);
+        store:User[] user = [];
+        store:ApplicationProperties[] appProperties = [];
+        string applicationId = uuid:createType1AsString();
+        foreach var createdUser in application.accessControl {
+            user.push({
+                userId: uuid:createType1AsString(),
+                role: createdUser.role,
+                userName: createdUser.userName,
+                applicationAppId: applicationId
+            });
+        }
+        foreach var property in application.appProperties {
+            appProperties.push({
+                name: property.name,
+                value: property.value,
+                applicationAppId: applicationId,
+                propertyId: uuid:createType1AsString()
+            });
+        }
+
+        store:Application app = {
+            addedAPIs: application.addedAPIs,
+            appId: applicationId,
+            applicationName: application.applicationName,
+            productionKey: application.productionKey,
+            sandBoxKey: application.sandBoxKey
+        };
+
+        string[] listResult = check  userClient->/applications.post([app]);  
         return new (application);
     }
 
@@ -95,14 +123,16 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + return - return value description
     resource function get applications(string appId) returns models:ApplicationResponse {
 
-        // models:Application? application = entry:applicationDetails[appId];
-        // if application is models:Application {
-        //     return new (application);
-        // }
-        // return;
+        // store:Application|persist:Error application = userClient->/applications/[appId].get();
 
-        models:Application app = {accessControl: [], addedAPIs: [], appId: "", applicationName: "", appProperties: []};
-        return new (app);
+        // models:Application app = {
+        //     accessControl:  , 
+        //     addedAPIs: [], 
+        //     appId: application.appId, 
+        //     applicationName: "", 
+        //     appProperties: []
+        //     };
+        // return new (app);
     }
 
     # Add consumer specific details.

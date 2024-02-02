@@ -250,12 +250,16 @@ public type ThemeUpdate record {|
 public type Application record {|
     readonly string appId;
     string applicationName;
+    string sandBoxKey;
+    string productionKey;
     string[] addedAPIs;
 |};
 
 public type ApplicationOptionalized record {|
     string appId?;
     string applicationName?;
+    string sandBoxKey?;
+    string productionKey?;
     string[] addedAPIs?;
 |};
 
@@ -271,6 +275,8 @@ public type ApplicationInsert Application;
 
 public type ApplicationUpdate record {|
     string applicationName?;
+    string sandBoxKey?;
+    string productionKey?;
     string[] addedAPIs?;
 |};
 

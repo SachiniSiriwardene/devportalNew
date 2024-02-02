@@ -118,12 +118,16 @@ public type Theme record {|
 #
 # + appId - application id  
 # + applicationName - application name  
+# + sandBoxKey - field description  
+# + productionKey - field description  
 # + appProperties - list of properties as application information  
-# + accessControl - access control for the application  
-# + addedAPIs - list of added APIs for the application
+# + addedAPIs - list of added APIs for the application  
+# + accessControl - access control for the application
 public type Application record {|
     readonly string appId;
     string applicationName;
+    string sandBoxKey;
+    string productionKey;
     ApplicationProperties[] appProperties;
     string[] addedAPIs;
     User[] accessControl;
