@@ -113,3 +113,54 @@ public type Theme record {|
     string orgId;    
     string theme;
 |};
+
+# Represents content to be included in the application section.
+#
+# + appId - application id  
+# + applicationName - application name  
+# + appProperties - list of properties as application information  
+# + accessControl - access control for the application  
+# + addedAPIs - list of added APIs for the application
+public type Application record {|
+    readonly string appId;
+    string applicationName;
+    ApplicationProperties[] appProperties;
+    string[] addedAPIs;
+    User[] accessControl;
+|};
+
+public type Organization record {|
+    readonly string orgId;
+    string[] subscribedAPIs;
+|};
+
+public type ApplicationProperties record {|
+    readonly string propertyId;
+    string name;
+    string value;
+    Application application;
+|};
+
+public type User record {|
+    readonly string userId;
+    string role;
+    string userName;
+    Application application;
+|};
+
+
+
+public type ConsumerComponentDetails record {|
+    readonly string userId;
+    string orgId;
+    string[] subscribedAPIs;
+    ConsumerReview comment;
+|};
+
+public type ConsumerReview record {|
+    readonly string reviewId;
+    string APIId;
+    string comment;
+    int rating;
+    ConsumerComponentDetails? consumerComponentDetails;
+|};

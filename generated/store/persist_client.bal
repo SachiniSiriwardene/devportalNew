@@ -13,6 +13,12 @@ const API_METADATA = "apimetadata";
 const ADDITIONAL_PROPERTIES = "additionalproperties";
 const IDENTITY_PROVIDER = "identityproviders";
 const THEME = "themes";
+const APPLICATION = "applications";
+const ORGANIZATION = "organizations";
+const APPLICATION_PROPERTIES = "applicationproperties";
+const USER = "users";
+const CONSUMER_COMPONENT_DETAILS = "consumercomponentdetails";
+const CONSUMER_REVIEW = "consumerreviews";
 final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = table [];
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
 final isolated table<Feedback> key(apiId) feedbacksTable = table [];
@@ -21,6 +27,12 @@ final isolated table<ApiMetadata> key(apiId) apimetadataTable = table [];
 final isolated table<AdditionalProperties> key(propertyId) additionalpropertiesTable = table [];
 final isolated table<IdentityProvider> key(idpID) identityprovidersTable = table [];
 final isolated table<Theme> key(themeId) themesTable = table [];
+final isolated table<Application> key(appId) applicationsTable = table [];
+final isolated table<Organization> key(orgId) organizationsTable = table [];
+final isolated table<ApplicationProperties> key(propertyId) applicationpropertiesTable = table [];
+final isolated table<User> key(userId) usersTable = table [];
+final isolated table<ConsumerComponentDetails> key(userId) consumercomponentdetailsTable = table [];
+final isolated table<ConsumerReview> key(reviewId) consumerreviewsTable = table [];
 
 public isolated client class Client {
     *persist:AbstractPersistClient;
@@ -73,6 +85,40 @@ public isolated client class Client {
                 keyFields: ["themeId"],
                 query: queryThemes,
                 queryOne: queryOneThemes
+            },
+            [APPLICATION] : {
+                keyFields: ["appId"],
+                query: queryApplications,
+                queryOne: queryOneApplications,
+                associationsMethods: {
+                    "appProperties": queryApplicationAppproperties,
+                    "accessControl": queryApplicationAccesscontrol
+                }
+            },
+            [ORGANIZATION] : {
+                keyFields: ["orgId"],
+                query: queryOrganizations,
+                queryOne: queryOneOrganizations
+            },
+            [APPLICATION_PROPERTIES] : {
+                keyFields: ["propertyId"],
+                query: queryApplicationproperties,
+                queryOne: queryOneApplicationproperties
+            },
+            [USER] : {
+                keyFields: ["userId"],
+                query: queryUsers,
+                queryOne: queryOneUsers
+            },
+            [CONSUMER_COMPONENT_DETAILS] : {
+                keyFields: ["userId"],
+                query: queryConsumercomponentdetails,
+                queryOne: queryOneConsumercomponentdetails
+            },
+            [CONSUMER_REVIEW] : {
+                keyFields: ["reviewId"],
+                query: queryConsumerreviews,
+                queryOne: queryOneConsumerreviews
             }
         };
         self.persistClients = {
@@ -83,7 +129,13 @@ public isolated client class Client {
             [API_METADATA] : check new (metadata.get(API_METADATA).cloneReadOnly()),
             [ADDITIONAL_PROPERTIES] : check new (metadata.get(ADDITIONAL_PROPERTIES).cloneReadOnly()),
             [IDENTITY_PROVIDER] : check new (metadata.get(IDENTITY_PROVIDER).cloneReadOnly()),
-            [THEME] : check new (metadata.get(THEME).cloneReadOnly())
+            [THEME] : check new (metadata.get(THEME).cloneReadOnly()),
+            [APPLICATION] : check new (metadata.get(APPLICATION).cloneReadOnly()),
+            [ORGANIZATION] : check new (metadata.get(ORGANIZATION).cloneReadOnly()),
+            [APPLICATION_PROPERTIES] : check new (metadata.get(APPLICATION_PROPERTIES).cloneReadOnly()),
+            [USER] : check new (metadata.get(USER).cloneReadOnly()),
+            [CONSUMER_COMPONENT_DETAILS] : check new (metadata.get(CONSUMER_COMPONENT_DETAILS).cloneReadOnly()),
+            [CONSUMER_REVIEW] : check new (metadata.get(CONSUMER_REVIEW).cloneReadOnly())
         };
     }
 
@@ -463,6 +515,288 @@ public isolated client class Client {
         }
     }
 
+    isolated resource function get applications(ApplicationTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get applications/[string appId](ApplicationTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post applications(ApplicationInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ApplicationInsert value in data {
+            lock {
+                if applicationsTable.hasKey(value.appId) {
+                    return persist:getAlreadyExistsError("Application", value.appId);
+                }
+                applicationsTable.put(value.clone());
+            }
+            keys.push(value.appId);
+        }
+        return keys;
+    }
+
+    isolated resource function put applications/[string appId](ApplicationUpdate value) returns Application|persist:Error {
+        lock {
+            if !applicationsTable.hasKey(appId) {
+                return persist:getNotFoundError("Application", appId);
+            }
+            Application application = applicationsTable.get(appId);
+            foreach var [k, v] in value.clone().entries() {
+                application[k] = v;
+            }
+            applicationsTable.put(application);
+            return application.clone();
+        }
+    }
+
+    isolated resource function delete applications/[string appId]() returns Application|persist:Error {
+        lock {
+            if !applicationsTable.hasKey(appId) {
+                return persist:getNotFoundError("Application", appId);
+            }
+            return applicationsTable.remove(appId).clone();
+        }
+    }
+
+    isolated resource function get organizations(OrganizationTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get organizations/[string orgId](OrganizationTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post organizations(OrganizationInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach OrganizationInsert value in data {
+            lock {
+                if organizationsTable.hasKey(value.orgId) {
+                    return persist:getAlreadyExistsError("Organization", value.orgId);
+                }
+                organizationsTable.put(value.clone());
+            }
+            keys.push(value.orgId);
+        }
+        return keys;
+    }
+
+    isolated resource function put organizations/[string orgId](OrganizationUpdate value) returns Organization|persist:Error {
+        lock {
+            if !organizationsTable.hasKey(orgId) {
+                return persist:getNotFoundError("Organization", orgId);
+            }
+            Organization organization = organizationsTable.get(orgId);
+            foreach var [k, v] in value.clone().entries() {
+                organization[k] = v;
+            }
+            organizationsTable.put(organization);
+            return organization.clone();
+        }
+    }
+
+    isolated resource function delete organizations/[string orgId]() returns Organization|persist:Error {
+        lock {
+            if !organizationsTable.hasKey(orgId) {
+                return persist:getNotFoundError("Organization", orgId);
+            }
+            return organizationsTable.remove(orgId).clone();
+        }
+    }
+
+    isolated resource function get applicationproperties(ApplicationPropertiesTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get applicationproperties/[string propertyId](ApplicationPropertiesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post applicationproperties(ApplicationPropertiesInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ApplicationPropertiesInsert value in data {
+            lock {
+                if applicationpropertiesTable.hasKey(value.propertyId) {
+                    return persist:getAlreadyExistsError("ApplicationProperties", value.propertyId);
+                }
+                applicationpropertiesTable.put(value.clone());
+            }
+            keys.push(value.propertyId);
+        }
+        return keys;
+    }
+
+    isolated resource function put applicationproperties/[string propertyId](ApplicationPropertiesUpdate value) returns ApplicationProperties|persist:Error {
+        lock {
+            if !applicationpropertiesTable.hasKey(propertyId) {
+                return persist:getNotFoundError("ApplicationProperties", propertyId);
+            }
+            ApplicationProperties applicationproperties = applicationpropertiesTable.get(propertyId);
+            foreach var [k, v] in value.clone().entries() {
+                applicationproperties[k] = v;
+            }
+            applicationpropertiesTable.put(applicationproperties);
+            return applicationproperties.clone();
+        }
+    }
+
+    isolated resource function delete applicationproperties/[string propertyId]() returns ApplicationProperties|persist:Error {
+        lock {
+            if !applicationpropertiesTable.hasKey(propertyId) {
+                return persist:getNotFoundError("ApplicationProperties", propertyId);
+            }
+            return applicationpropertiesTable.remove(propertyId).clone();
+        }
+    }
+
+    isolated resource function get users(UserTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get users/[string userId](UserTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post users(UserInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach UserInsert value in data {
+            lock {
+                if usersTable.hasKey(value.userId) {
+                    return persist:getAlreadyExistsError("User", value.userId);
+                }
+                usersTable.put(value.clone());
+            }
+            keys.push(value.userId);
+        }
+        return keys;
+    }
+
+    isolated resource function put users/[string userId](UserUpdate value) returns User|persist:Error {
+        lock {
+            if !usersTable.hasKey(userId) {
+                return persist:getNotFoundError("User", userId);
+            }
+            User user = usersTable.get(userId);
+            foreach var [k, v] in value.clone().entries() {
+                user[k] = v;
+            }
+            usersTable.put(user);
+            return user.clone();
+        }
+    }
+
+    isolated resource function delete users/[string userId]() returns User|persist:Error {
+        lock {
+            if !usersTable.hasKey(userId) {
+                return persist:getNotFoundError("User", userId);
+            }
+            return usersTable.remove(userId).clone();
+        }
+    }
+
+    isolated resource function get consumercomponentdetails(ConsumerComponentDetailsTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get consumercomponentdetails/[string userId](ConsumerComponentDetailsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post consumercomponentdetails(ConsumerComponentDetailsInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ConsumerComponentDetailsInsert value in data {
+            lock {
+                if consumercomponentdetailsTable.hasKey(value.userId) {
+                    return persist:getAlreadyExistsError("ConsumerComponentDetails", value.userId);
+                }
+                consumercomponentdetailsTable.put(value.clone());
+            }
+            keys.push(value.userId);
+        }
+        return keys;
+    }
+
+    isolated resource function put consumercomponentdetails/[string userId](ConsumerComponentDetailsUpdate value) returns ConsumerComponentDetails|persist:Error {
+        lock {
+            if !consumercomponentdetailsTable.hasKey(userId) {
+                return persist:getNotFoundError("ConsumerComponentDetails", userId);
+            }
+            ConsumerComponentDetails consumercomponentdetails = consumercomponentdetailsTable.get(userId);
+            foreach var [k, v] in value.clone().entries() {
+                consumercomponentdetails[k] = v;
+            }
+            consumercomponentdetailsTable.put(consumercomponentdetails);
+            return consumercomponentdetails.clone();
+        }
+    }
+
+    isolated resource function delete consumercomponentdetails/[string userId]() returns ConsumerComponentDetails|persist:Error {
+        lock {
+            if !consumercomponentdetailsTable.hasKey(userId) {
+                return persist:getNotFoundError("ConsumerComponentDetails", userId);
+            }
+            return consumercomponentdetailsTable.remove(userId).clone();
+        }
+    }
+
+    isolated resource function get consumerreviews(ConsumerReviewTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get consumerreviews/[string reviewId](ConsumerReviewTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post consumerreviews(ConsumerReviewInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ConsumerReviewInsert value in data {
+            lock {
+                if consumerreviewsTable.hasKey(value.reviewId) {
+                    return persist:getAlreadyExistsError("ConsumerReview", value.reviewId);
+                }
+                consumerreviewsTable.put(value.clone());
+            }
+            keys.push(value.reviewId);
+        }
+        return keys;
+    }
+
+    isolated resource function put consumerreviews/[string reviewId](ConsumerReviewUpdate value) returns ConsumerReview|persist:Error {
+        lock {
+            if !consumerreviewsTable.hasKey(reviewId) {
+                return persist:getNotFoundError("ConsumerReview", reviewId);
+            }
+            ConsumerReview consumerreview = consumerreviewsTable.get(reviewId);
+            foreach var [k, v] in value.clone().entries() {
+                consumerreview[k] = v;
+            }
+            consumerreviewsTable.put(consumerreview);
+            return consumerreview.clone();
+        }
+    }
+
+    isolated resource function delete consumerreviews/[string reviewId]() returns ConsumerReview|persist:Error {
+        lock {
+            if !consumerreviewsTable.hasKey(reviewId) {
+                return persist:getNotFoundError("ConsumerReview", reviewId);
+            }
+            return consumerreviewsTable.remove(reviewId).clone();
+        }
+    }
+
     public isolated function close() returns persist:Error? {
         return ();
     }
@@ -724,6 +1058,198 @@ isolated function queryOneThemes(anydata key) returns record {}|persist:NotFound
     return persist:getNotFoundError("Theme", key);
 }
 
+isolated function queryApplications(string[] fields) returns stream<record {}, persist:Error?> {
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    return from record {} 'object in applicationsClonedTable
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOneApplications(anydata key) returns record {}|persist:NotFoundError {
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    from record {} 'object in applicationsClonedTable
+    where persist:getKey('object, ["appId"]) == key
+    do {
+        return {
+            ...'object
+        };
+    };
+    return persist:getNotFoundError("Application", key);
+}
+
+isolated function queryOrganizations(string[] fields) returns stream<record {}, persist:Error?> {
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    return from record {} 'object in organizationsClonedTable
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOneOrganizations(anydata key) returns record {}|persist:NotFoundError {
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    from record {} 'object in organizationsClonedTable
+    where persist:getKey('object, ["orgId"]) == key
+    do {
+        return {
+            ...'object
+        };
+    };
+    return persist:getNotFoundError("Organization", key);
+}
+
+isolated function queryApplicationproperties(string[] fields) returns stream<record {}, persist:Error?> {
+    table<ApplicationProperties> key(propertyId) applicationpropertiesClonedTable;
+    lock {
+        applicationpropertiesClonedTable = applicationpropertiesTable.clone();
+    }
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    return from record {} 'object in applicationpropertiesClonedTable
+        outer join var application in applicationsClonedTable on ['object.applicationAppId] equals [application?.appId]
+        select persist:filterRecord({
+            ...'object,
+            "application": application
+        }, fields);
+}
+
+isolated function queryOneApplicationproperties(anydata key) returns record {}|persist:NotFoundError {
+    table<ApplicationProperties> key(propertyId) applicationpropertiesClonedTable;
+    lock {
+        applicationpropertiesClonedTable = applicationpropertiesTable.clone();
+    }
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    from record {} 'object in applicationpropertiesClonedTable
+    where persist:getKey('object, ["propertyId"]) == key
+    outer join var application in applicationsClonedTable on ['object.applicationAppId] equals [application?.appId]
+    do {
+        return {
+            ...'object,
+            "application": application
+        };
+    };
+    return persist:getNotFoundError("ApplicationProperties", key);
+}
+
+isolated function queryUsers(string[] fields) returns stream<record {}, persist:Error?> {
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
+    }
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    return from record {} 'object in usersClonedTable
+        outer join var application in applicationsClonedTable on ['object.applicationAppId] equals [application?.appId]
+        select persist:filterRecord({
+            ...'object,
+            "application": application
+        }, fields);
+}
+
+isolated function queryOneUsers(anydata key) returns record {}|persist:NotFoundError {
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
+    }
+    table<Application> key(appId) applicationsClonedTable;
+    lock {
+        applicationsClonedTable = applicationsTable.clone();
+    }
+    from record {} 'object in usersClonedTable
+    where persist:getKey('object, ["userId"]) == key
+    outer join var application in applicationsClonedTable on ['object.applicationAppId] equals [application?.appId]
+    do {
+        return {
+            ...'object,
+            "application": application
+        };
+    };
+    return persist:getNotFoundError("User", key);
+}
+
+isolated function queryConsumercomponentdetails(string[] fields) returns stream<record {}, persist:Error?> {
+    table<ConsumerComponentDetails> key(userId) consumercomponentdetailsClonedTable;
+    lock {
+        consumercomponentdetailsClonedTable = consumercomponentdetailsTable.clone();
+    }
+    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
+    lock {
+        consumerreviewsClonedTable = consumerreviewsTable.clone();
+    }
+    return from record {} 'object in consumercomponentdetailsClonedTable
+        outer join var comment in consumerreviewsClonedTable on ['object.commentReviewId] equals [comment?.reviewId]
+        select persist:filterRecord({
+            ...'object,
+            "comment": comment
+        }, fields);
+}
+
+isolated function queryOneConsumercomponentdetails(anydata key) returns record {}|persist:NotFoundError {
+    table<ConsumerComponentDetails> key(userId) consumercomponentdetailsClonedTable;
+    lock {
+        consumercomponentdetailsClonedTable = consumercomponentdetailsTable.clone();
+    }
+    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
+    lock {
+        consumerreviewsClonedTable = consumerreviewsTable.clone();
+    }
+    from record {} 'object in consumercomponentdetailsClonedTable
+    where persist:getKey('object, ["userId"]) == key
+    outer join var comment in consumerreviewsClonedTable on ['object.commentReviewId] equals [comment?.reviewId]
+    do {
+        return {
+            ...'object,
+            "comment": comment
+        };
+    };
+    return persist:getNotFoundError("ConsumerComponentDetails", key);
+}
+
+isolated function queryConsumerreviews(string[] fields) returns stream<record {}, persist:Error?> {
+    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
+    lock {
+        consumerreviewsClonedTable = consumerreviewsTable.clone();
+    }
+    return from record {} 'object in consumerreviewsClonedTable
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOneConsumerreviews(anydata key) returns record {}|persist:NotFoundError {
+    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
+    lock {
+        consumerreviewsClonedTable = consumerreviewsTable.clone();
+    }
+    from record {} 'object in consumerreviewsClonedTable
+    where persist:getKey('object, ["reviewId"]) == key
+    do {
+        return {
+            ...'object
+        };
+    };
+    return persist:getNotFoundError("ConsumerReview", key);
+}
+
 isolated function queryFeedbackReviews(record {} value, string[] fields) returns record {}[] {
     table<Review> key(reviewId) reviewsClonedTable;
     lock {
@@ -755,6 +1281,30 @@ isolated function queryApiMetadataThrottlingpolicies(record {} value, string[] f
     }
     return from record {} 'object in throttlingpoliciesClonedTable
         where 'object.apimetadataApiId == value["apiId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryApplicationAppproperties(record {} value, string[] fields) returns record {}[] {
+    table<ApplicationProperties> key(propertyId) applicationpropertiesClonedTable;
+    lock {
+        applicationpropertiesClonedTable = applicationpropertiesTable.clone();
+    }
+    return from record {} 'object in applicationpropertiesClonedTable
+        where 'object.applicationAppId == value["appId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryApplicationAccesscontrol(record {} value, string[] fields) returns record {}[] {
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
+    }
+    return from record {} 'object in usersClonedTable
+        where 'object.applicationAppId == value["appId"]
         select persist:filterRecord({
             ...'object
         }, fields);

@@ -247,3 +247,164 @@ public type ThemeUpdate record {|
     string theme?;
 |};
 
+public type Application record {|
+    readonly string appId;
+    string applicationName;
+    string[] addedAPIs;
+|};
+
+public type ApplicationOptionalized record {|
+    string appId?;
+    string applicationName?;
+    string[] addedAPIs?;
+|};
+
+public type ApplicationWithRelations record {|
+    *ApplicationOptionalized;
+    ApplicationPropertiesOptionalized[] appProperties?;
+    UserOptionalized[] accessControl?;
+|};
+
+public type ApplicationTargetType typedesc<ApplicationWithRelations>;
+
+public type ApplicationInsert Application;
+
+public type ApplicationUpdate record {|
+    string applicationName?;
+    string[] addedAPIs?;
+|};
+
+public type Organization record {|
+    readonly string orgId;
+    string[] subscribedAPIs;
+|};
+
+public type OrganizationOptionalized record {|
+    string orgId?;
+    string[] subscribedAPIs?;
+|};
+
+public type OrganizationTargetType typedesc<OrganizationOptionalized>;
+
+public type OrganizationInsert Organization;
+
+public type OrganizationUpdate record {|
+    string[] subscribedAPIs?;
+|};
+
+public type ApplicationProperties record {|
+    readonly string propertyId;
+    string name;
+    string value;
+    string applicationAppId;
+|};
+
+public type ApplicationPropertiesOptionalized record {|
+    string propertyId?;
+    string name?;
+    string value?;
+    string applicationAppId?;
+|};
+
+public type ApplicationPropertiesWithRelations record {|
+    *ApplicationPropertiesOptionalized;
+    ApplicationOptionalized application?;
+|};
+
+public type ApplicationPropertiesTargetType typedesc<ApplicationPropertiesWithRelations>;
+
+public type ApplicationPropertiesInsert ApplicationProperties;
+
+public type ApplicationPropertiesUpdate record {|
+    string name?;
+    string value?;
+    string applicationAppId?;
+|};
+
+public type User record {|
+    readonly string userId;
+    string role;
+    string userName;
+    string applicationAppId;
+|};
+
+public type UserOptionalized record {|
+    string userId?;
+    string role?;
+    string userName?;
+    string applicationAppId?;
+|};
+
+public type UserWithRelations record {|
+    *UserOptionalized;
+    ApplicationOptionalized application?;
+|};
+
+public type UserTargetType typedesc<UserWithRelations>;
+
+public type UserInsert User;
+
+public type UserUpdate record {|
+    string role?;
+    string userName?;
+    string applicationAppId?;
+|};
+
+public type ConsumerComponentDetails record {|
+    readonly string userId;
+    string orgId;
+    string[] subscribedAPIs;
+    string commentReviewId;
+|};
+
+public type ConsumerComponentDetailsOptionalized record {|
+    string userId?;
+    string orgId?;
+    string[] subscribedAPIs?;
+    string commentReviewId?;
+|};
+
+public type ConsumerComponentDetailsWithRelations record {|
+    *ConsumerComponentDetailsOptionalized;
+    ConsumerReviewOptionalized comment?;
+|};
+
+public type ConsumerComponentDetailsTargetType typedesc<ConsumerComponentDetailsWithRelations>;
+
+public type ConsumerComponentDetailsInsert ConsumerComponentDetails;
+
+public type ConsumerComponentDetailsUpdate record {|
+    string orgId?;
+    string[] subscribedAPIs?;
+    string commentReviewId?;
+|};
+
+public type ConsumerReview record {|
+    readonly string reviewId;
+    string APIId;
+    string comment;
+    int rating;
+|};
+
+public type ConsumerReviewOptionalized record {|
+    string reviewId?;
+    string APIId?;
+    string comment?;
+    int rating?;
+|};
+
+public type ConsumerReviewWithRelations record {|
+    *ConsumerReviewOptionalized;
+    ConsumerComponentDetailsOptionalized consumerComponentDetails?;
+|};
+
+public type ConsumerReviewTargetType typedesc<ConsumerReviewWithRelations>;
+
+public type ConsumerReviewInsert ConsumerReview;
+
+public type ConsumerReviewUpdate record {|
+    string APIId?;
+    string comment?;
+    int rating?;
+|};
+
