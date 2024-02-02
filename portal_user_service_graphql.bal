@@ -4,7 +4,7 @@ import devportal.store;
 import ballerina/graphql;
 import ballerina/persist;
 
-final store:Client sClient = check new ();
+final store:Client userClient = check new ();
 
 service /apiUserPortal on new graphql:Listener(4000) {
 
@@ -12,8 +12,15 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + apiID - parameter description
     # + return - return value description
-    resource function get apiMetaData(string apiID) returns store:ApiMetadataInsert|persist:Error {
-        return sClient->/apimetadata/[apiID].get();
+    resource function get apiMetaData(string apiID) returns models:ApiMetadata {
+
+        models:ApiMetadata api = {
+            serverUrl: {sandboxUrl: "", productionUrl: ""},
+            throttlingPolicies: (),
+            apiInfo: {apiName: "", apiCategory: [], apiImage: "", openApiDefinition: "", additionalProperties: {}}
+        };
+
+        return api;
     }
 
     # Filter the APIs using category or a keyword/s.
@@ -21,37 +28,54 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + orgId - parameter description  
     # + category - parameter description
     # + return - return value description
-    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[] {
+    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|persist:Error {
 
-        // stream<store:ApiMetadata, persist:Error?> apiContent = sClient->/apimetadata/[orgId];
+        stream<store:ApiMetadataWithRelations, persist:Error?> apiData = userClient->/apimetadata.get();
+        models:ApiMetadata[] filteredData = [];
+        store:ApiMetadataWithRelations[] metaDataList = check from var apiMetadata in apiData
+            select apiMetadata;
 
-        // models:ApiMetadata[] apiDetails = from var apiData in entry:apiMetadataTable
-        //     where apiData.orgId == orgId
-        //     select apiData;
-        // models:ApiMetadata[] filteredData = [];
-        // foreach var api in apiDetails {
+        foreach var api in metaDataList {
+            foreach var item in api.apiCategory ?: [] {
+                if (category.equalsIgnoreCaseAscii(item)) {
 
-        //     foreach var item in api.apiInfo.apiCategory {
-        //         if (category.equalsIgnoreCaseAscii(item)) {
-        //             filteredData.push(api);
-        //         }
-        //     }
-        // }
-        models:ApiMetadata[] metaData = [
-            {
-                serverUrl: {sandboxUrl: "", productionUrl: ""},
-                throttlingPolicies: (),
-                apiInfo: {
-                    apiName: "",
-                    apiCategory: [],
-                    apiImage: "",
-                    openApiDefinition: "",
-                    additionalProperties: {}
+                    store:ThrottlingPolicyOptionalized[] policies = api.throttlingPolicies ?: [];
+                    models:ThrottlingPolicy[] throttlingPolicies = [];
+                    foreach var policy in policies {
+                        models:ThrottlingPolicy policyData = {
+                            policyName: policy.policyName ?: "",
+                            description: policy.description ?: "",
+                            'type: policy.'type ?: ""
+                        };
+                        throttlingPolicies.push(policyData);
+
+                    }
+
+                    store:AdditionalPropertiesOptionalized[] additionalProperties = api.additionalProperties ?: [];
+                    map<string> properties = {};
+                    foreach var property in additionalProperties {
+                        properties[property.key ?: ""] = property.value ?: "";
+                    }
+                    models:ApiMetadata metaData = {
+                        serverUrl:
+                            {
+                            sandboxUrl: api.sandboxUrl ?: "",
+                            productionUrl: api.productionUrl ?: ""
+                        },
+                        throttlingPolicies: throttlingPolicies,
+                        apiInfo: {
+                            apiName: api.apiName ?: "",
+                            apiCategory: api.apiCategory ?: [],
+                            apiImage: api?.apiImage,
+                            openApiDefinition: api.openApiDefinition ?: "",
+                            additionalProperties: properties
+                        }
+                    };
+                    filteredData.push(metaData);
                 }
             }
-        ];
-
-        return metaData;
+        }
+        return filteredData;
     }
 
     # Create an application.
