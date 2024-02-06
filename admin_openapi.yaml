@@ -39,10 +39,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /admin/theme:
+  /theme:
     post:
       summary: Store the theme for the developer portal.
-      operationId: postAdminTheme
+      operationId: postTheme
       requestBody:
         description: theme object
         content:
@@ -56,10 +56,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThemeResponse'
-  /admin/identityProvider:
+  /identityProvider:
+    get:
+      summary: Retrieve identity providers.
+      operationId: getIdentityprovider
+      parameters:
+      - name: orgId
+        in: query
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdentityProvider'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
     post:
       summary: Store the identity provider details for the developer portal.
-      operationId: postAdminIdentityprovider
+      operationId: postIdentityprovider
       requestBody:
         description: IDP details
         content:
@@ -306,9 +331,12 @@ components:
       - issuer
       - jwksEndpoint
       - name
+      - orgId
       - wellKnownEndpoint
       type: object
       properties:
+        orgId:
+          type: string
         name:
           type: string
         wellKnownEndpoint:
