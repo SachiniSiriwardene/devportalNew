@@ -1,7 +1,7 @@
-import ballerina/http;
-import ballerina/mime;
+// import ballerina/http;
+// import ballerina/mime;
 
-service / on new http:Listener(9080) {
+// service / on new http:Listener(9080) {
 
     # Retrieve organization image files.
     #
@@ -161,6 +161,6 @@ service / on new http:Listener(9080) {
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         return response;
 
-    }
+//     }
 
-}
+// }

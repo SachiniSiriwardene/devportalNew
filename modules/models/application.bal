@@ -19,7 +19,7 @@ public type Application record {|
     string idpId;
 |};
 
-public type Subscription record {|
+public type APISubscription record {|
     readonly string subscriptionId;
     string apiId;
     string orgId;

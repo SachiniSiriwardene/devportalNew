@@ -184,7 +184,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + subscription - parameter description
     # + return - return value description
-    remote function subscription(models:Subscription subscription) returns models:SubscriptionResponse|error {
+    remote function subscription(models:APISubscription subscription) returns models:SubscriptionResponse|error {
 
         string subscriptionId = uuid:createType1AsString();
 
@@ -201,19 +201,22 @@ service /apiUserPortal on new graphql:Listener(4000) {
 
     # Retrieve consumer specific component details.
     #
-    # + orgId - parameter description
-    # + return - return value description
-    resource function get subscriptions(string userId) returns models:SubscriptionResponse|error {
+    # + userId - user identifier
+    # + return - all subscribed APIs
+    resource function get subscriptions(string userId) returns models:SubscriptionResponse[]|error {
 
-        store:Subscription subscription = check userClient->/subscriptions/[userId];
-
-        models:SubscriptionResponse subscriptionResponse = new models:SubscriptionResponse(subscription);
+        stream<store:Subscription , persist:Error?>  subscription =   userClient->/subscriptions.get();
+          store:Subscription[] subscribedAPIs = check from var sub in subscription where sub.userId == userId select sub;
+            models:SubscriptionResponse[] subscriptionResponse = [];
+            foreach var sub in subscribedAPIs {
+                subscriptionResponse.push(new(sub));
+            }
         return subscriptionResponse;
     }
 
     # Add a consumer review.
     #
-    # + subscription - parameter description
+    # + review - parameter description
     # + return - return value description
     remote function review(models:ConsumerReview review) returns models:ConsumerReviewResponse|error {
 

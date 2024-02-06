@@ -26,9 +26,9 @@ public distinct service class ConsumerReviewResponse {
 
 public distinct service class SubscriptionResponse {
 
-    private final readonly & Subscription subscription;
+    private final readonly & APISubscription subscription;
 
-    public function init(Subscription entryRecord) {
+    public function init(APISubscription entryRecord) {
         self.subscription = entryRecord.cloneReadOnly();
     }
 
