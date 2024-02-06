@@ -253,6 +253,7 @@ public type Application record {|
     string sandBoxKey;
     string productionKey;
     string[] addedAPIs;
+    string idpId;
 |};
 
 public type ApplicationOptionalized record {|
@@ -261,6 +262,7 @@ public type ApplicationOptionalized record {|
     string sandBoxKey?;
     string productionKey?;
     string[] addedAPIs?;
+    string idpId?;
 |};
 
 public type ApplicationWithRelations record {|
@@ -278,6 +280,7 @@ public type ApplicationUpdate record {|
     string sandBoxKey?;
     string productionKey?;
     string[] addedAPIs?;
+    string idpId?;
 |};
 
 public type Organization record {|
@@ -356,61 +359,54 @@ public type UserUpdate record {|
     string applicationAppId?;
 |};
 
-public type ConsumerComponentDetails record {|
-    readonly string userId;
+public type Subscription record {|
+    readonly string subscriptionId;
+    string apiId;
     string orgId;
-    string[] subscribedAPIs;
-    string commentReviewId;
+    string userId;
 |};
 
-public type ConsumerComponentDetailsOptionalized record {|
+public type SubscriptionOptionalized record {|
+    string subscriptionId?;
+    string apiId?;
+    string orgId?;
     string userId?;
-    string orgId?;
-    string[] subscribedAPIs?;
-    string commentReviewId?;
 |};
 
-public type ConsumerComponentDetailsWithRelations record {|
-    *ConsumerComponentDetailsOptionalized;
-    ConsumerReviewOptionalized comment?;
-|};
+public type SubscriptionTargetType typedesc<SubscriptionOptionalized>;
 
-public type ConsumerComponentDetailsTargetType typedesc<ConsumerComponentDetailsWithRelations>;
+public type SubscriptionInsert Subscription;
 
-public type ConsumerComponentDetailsInsert ConsumerComponentDetails;
-
-public type ConsumerComponentDetailsUpdate record {|
+public type SubscriptionUpdate record {|
+    string apiId?;
     string orgId?;
-    string[] subscribedAPIs?;
-    string commentReviewId?;
+    string userId?;
 |};
 
 public type ConsumerReview record {|
     readonly string reviewId;
-    string APIId;
+    string apiId;
     string comment;
     int rating;
+    string userId;
 |};
 
 public type ConsumerReviewOptionalized record {|
     string reviewId?;
-    string APIId?;
+    string apiId?;
     string comment?;
     int rating?;
+    string userId?;
 |};
 
-public type ConsumerReviewWithRelations record {|
-    *ConsumerReviewOptionalized;
-    ConsumerComponentDetailsOptionalized consumerComponentDetails?;
-|};
-
-public type ConsumerReviewTargetType typedesc<ConsumerReviewWithRelations>;
+public type ConsumerReviewTargetType typedesc<ConsumerReviewOptionalized>;
 
 public type ConsumerReviewInsert ConsumerReview;
 
 public type ConsumerReviewUpdate record {|
-    string APIId?;
+    string apiId?;
     string comment?;
     int rating?;
+    string userId?;
 |};
 

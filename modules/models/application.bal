@@ -3,8 +3,11 @@
 # + appId - application id  
 # + applicationName - application name  
 # + appProperties - list of properties as application information  
+# + addedAPIs - list of added APIs for the application  
 # + accessControl - access control for the application  
-# + addedAPIs - list of added APIs for the application
+# + sandBoxKey - field description  
+# + productionKey - field description  
+# + idpId - field description
 public type Application record {|
     readonly string appId;
     string applicationName;
@@ -13,10 +16,14 @@ public type Application record {|
     User[] accessControl;
     string sandBoxKey;
     string productionKey;
+    string idpId;
 |};
 
 public type Subscription record {|
-    string[] subscribedAPIs;
+    readonly string subscriptionId;
+    string apiId;
+    string orgId;
+    string userId;
 |};
 
 public type Organization record {|

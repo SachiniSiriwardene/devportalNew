@@ -11,7 +11,7 @@ import ballerina/uuid;
 
 final store:Client adminClient = check new ();
 
-service /devPortalAdmin on new http:Listener(8080) {
+service /admin on new http:Listener(8080) {
 
 
     # Store the content for landing pages.
@@ -19,7 +19,7 @@ service /devPortalAdmin on new http:Listener(8080) {
     # + request - compressed file containing the folder content  
     # + content - file content type
     # + return - return value description
-    resource function post admin/devPortalContent(http:Request request, string content) returns models:ContentResponse|error {
+    resource function post orgcontent(http:Request request, string content) returns models:ContentResponse|error {
 
         var bodyParts = check request.getBodyParts();
         string[] files = [];

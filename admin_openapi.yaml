@@ -1,0 +1,342 @@
+openapi: 3.0.1
+info:
+  title: Admin
+  version: 0.1.0
+servers:
+- url: "{server}:{port}/admin"
+  variables:
+    server:
+      default: http://localhost
+    port:
+      default: "8080"
+paths:
+  /orgcontent:
+    post:
+      summary: Store the content for landing pages.
+      operationId: postOrgcontent
+      parameters:
+      - name: content
+        in: query
+        description: file content type
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /admin/theme:
+    post:
+      summary: Store the theme for the developer portal.
+      operationId: postAdminTheme
+      requestBody:
+        description: theme object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Theme'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeResponse'
+  /admin/identityProvider:
+    post:
+      summary: Store the identity provider details for the developer portal.
+      operationId: postAdminIdentityprovider
+      requestBody:
+        description: IDP details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentityProvider'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentityProviderResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+components:
+  schemas:
+    ContentResponse:
+      required:
+      - contentId
+      - createdAt
+      - fileNames
+      type: object
+      properties:
+        contentId:
+          type: string
+        fileNames:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+      description: Response for content storage.
+    ErrorPayload:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Reason phrase
+        path:
+          type: string
+          description: Request path
+        method:
+          type: string
+          description: Method type of the request
+        message:
+          type: string
+          description: Error message
+        timestamp:
+          type: string
+          description: Timestamp of the error
+        status:
+          type: integer
+          description: Relevant HTTP status code
+          format: int32
+    PalettePrimary:
+      required:
+      - dark
+      - light
+      type: object
+      properties:
+        light:
+          type: string
+        dark:
+          type: string
+    PaletteSecondary:
+      required:
+      - dark
+      - light
+      type: object
+      properties:
+        light:
+          type: string
+        dark:
+          type: string
+    PaletteBackground:
+      required:
+      - primary
+      - secondary
+      type: object
+      properties:
+        primary:
+          $ref: '#/components/schemas/PalettePrimary'
+        secondary:
+          $ref: '#/components/schemas/PaletteSecondary'
+    PaletteText:
+      required:
+      - primary
+      - secondary
+      type: object
+      properties:
+        primary:
+          $ref: '#/components/schemas/PalettePrimary'
+        secondary:
+          $ref: '#/components/schemas/PaletteSecondary'
+    PaletteButton:
+      required:
+      - primary
+      - secondary
+      type: object
+      properties:
+        primary:
+          $ref: '#/components/schemas/PalettePrimary'
+        secondary:
+          $ref: '#/components/schemas/PaletteSecondary'
+    APITilePalette:
+      required:
+      - background
+      - button
+      - text
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+        background:
+          $ref: '#/components/schemas/PaletteBackground'
+        text:
+          $ref: '#/components/schemas/PaletteText'
+        button:
+          $ref: '#/components/schemas/PaletteButton'
+      description: Description.
+    Heading:
+      required:
+      - fontFamily
+      type: object
+      properties:
+        fontFamily:
+          type: string
+    Body:
+      required:
+      - fontFamily
+      type: object
+      properties:
+        fontFamily:
+          type: string
+    Paragraph:
+      required:
+      - fontFamily
+      type: object
+      properties:
+        fontFamily:
+          type: string
+    Typography:
+      required:
+      - body
+      - heading
+      - paragraph
+      type: object
+      properties:
+        heading:
+          $ref: '#/components/schemas/Heading'
+        body:
+          $ref: '#/components/schemas/Body'
+        paragraph:
+          $ref: '#/components/schemas/Paragraph'
+    AssetLogourl:
+      required:
+      - favicon
+      - footer
+      - header
+      type: object
+      properties:
+        header:
+          type: string
+        footer:
+          type: string
+        favicon:
+          type: string
+    Assets:
+      required:
+      - logoUrl
+      type: object
+      properties:
+        logoUrl:
+          $ref: '#/components/schemas/AssetLogourl'
+    FooterLink:
+      required:
+      - privacyPolicy
+      - support
+      - terms
+      type: object
+      properties:
+        terms:
+          type: string
+        privacyPolicy:
+          type: string
+        support:
+          type: string
+    ApiListingPage:
+      required:
+      - apiTilePalette
+      type: object
+      properties:
+        apiTilePalette:
+          $ref: '#/components/schemas/APITilePalette'
+    Theme:
+      required:
+      - assets
+      - footerLink
+      - orgId
+      - palette
+      - themeId
+      - typography
+      type: object
+      properties:
+        themeId:
+          type: string
+        orgId:
+          type: string
+        palette:
+          $ref: '#/components/schemas/APITilePalette'
+        typography:
+          $ref: '#/components/schemas/Typography'
+        assets:
+          $ref: '#/components/schemas/Assets'
+        footerLink:
+          $ref: '#/components/schemas/FooterLink'
+        apiListingPage:
+          $ref: '#/components/schemas/ApiListingPage'
+    ThemeResponse:
+      required:
+      - createdAt
+      - orgId
+      - themeId
+      type: object
+      properties:
+        themeId:
+          type: string
+        orgId:
+          type: string
+        createdAt:
+          type: string
+      description: Description.
+    IdentityProvider:
+      required:
+      - authorizeEndpoint
+      - envrionments
+      - introspectionEndpoint
+      - issuer
+      - jwksEndpoint
+      - name
+      - wellKnownEndpoint
+      type: object
+      properties:
+        name:
+          type: string
+        wellKnownEndpoint:
+          type: string
+        introspectionEndpoint:
+          type: string
+        issuer:
+          type: string
+        jwksEndpoint:
+          type: string
+        authorizeEndpoint:
+          type: string
+        envrionments:
+          type: array
+          items:
+            type: string
+      description: Identity Provider configured for dev portal.
+    IdentityProviderResponse:
+      required:
+      - createdAt
+      - id
+      - idpName
+      type: object
+      properties:
+        id:
+          type: string
+        idpName:
+          type: string
+        createdAt:
+          type: string
+      description: Response for IdentityProvider creaton.

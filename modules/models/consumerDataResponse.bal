@@ -1,24 +1,6 @@
-public distinct service class ConsuemrComponentDetailsResponse {
 
-    private final readonly & ConsumerComponentDetails organization;
-    
-    public function init(ConsumerComponentDetails entryRecord) {
-        self.organization = entryRecord.cloneReadOnly();
-    }
-    resource function get subscription() returns string[] {
-        return self.organization.subscribedAPIs;
-    }
 
-    resource function get orgId() returns string{
-        return self.organization.orgId;
-    }
-
-    resource function get comments() returns CommentResponse {
-        return new (self.organization.comment);
-    }
-}
-
-public distinct service class CommentResponse {
+public distinct service class ConsumerReviewResponse {
     private final readonly & ConsumerReview comments;
 
     public function init(ConsumerReview entryRecord) {
@@ -26,7 +8,7 @@ public distinct service class CommentResponse {
     }
 
     resource function get APIId() returns string {
-        return self.comments.APIId;
+        return self.comments.apiId;
     }
 
     resource function get comment() returns string {
@@ -37,19 +19,32 @@ public distinct service class CommentResponse {
         return self.comments.rating;
     }
 
-
-
+     resource function get userId() returns string {
+        return self.comments.userId;
+    }
 }
 
 public distinct service class SubscriptionResponse {
 
     private final readonly & Subscription subscription;
 
-    function init(Subscription entryRecord) {
+    public function init(Subscription entryRecord) {
         self.subscription = entryRecord.cloneReadOnly();
     }
 
-    resource function get subscribedAPIs() returns string[] {
-        return self.subscription.subscribedAPIs;
+    resource function get subscribedAPIs() returns string {
+        return self.subscription.apiId;
+    }
+
+       resource function get orgId() returns string {
+        return self.subscription.orgId;
+    }
+
+     resource function get userId() returns string {
+        return self.subscription.userId;
+    }
+
+     resource function get subscriptionId() returns string {
+        return self.subscription.subscriptionId;
     }
 }

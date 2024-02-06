@@ -17,7 +17,7 @@ const APPLICATION = "applications";
 const ORGANIZATION = "organizations";
 const APPLICATION_PROPERTIES = "applicationproperties";
 const USER = "users";
-const CONSUMER_COMPONENT_DETAILS = "consumercomponentdetails";
+const SUBSCRIPTION = "subscriptions";
 const CONSUMER_REVIEW = "consumerreviews";
 final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = table [];
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
@@ -31,7 +31,7 @@ final isolated table<Application> key(appId) applicationsTable = table [];
 final isolated table<Organization> key(orgId) organizationsTable = table [];
 final isolated table<ApplicationProperties> key(propertyId) applicationpropertiesTable = table [];
 final isolated table<User> key(userId) usersTable = table [];
-final isolated table<ConsumerComponentDetails> key(userId) consumercomponentdetailsTable = table [];
+final isolated table<Subscription> key(subscriptionId) subscriptionsTable = table [];
 final isolated table<ConsumerReview> key(reviewId) consumerreviewsTable = table [];
 
 public isolated client class Client {
@@ -110,10 +110,10 @@ public isolated client class Client {
                 query: queryUsers,
                 queryOne: queryOneUsers
             },
-            [CONSUMER_COMPONENT_DETAILS] : {
-                keyFields: ["userId"],
-                query: queryConsumercomponentdetails,
-                queryOne: queryOneConsumercomponentdetails
+            [SUBSCRIPTION] : {
+                keyFields: ["subscriptionId"],
+                query: querySubscriptions,
+                queryOne: queryOneSubscriptions
             },
             [CONSUMER_REVIEW] : {
                 keyFields: ["reviewId"],
@@ -134,7 +134,7 @@ public isolated client class Client {
             [ORGANIZATION] : check new (metadata.get(ORGANIZATION).cloneReadOnly()),
             [APPLICATION_PROPERTIES] : check new (metadata.get(APPLICATION_PROPERTIES).cloneReadOnly()),
             [USER] : check new (metadata.get(USER).cloneReadOnly()),
-            [CONSUMER_COMPONENT_DETAILS] : check new (metadata.get(CONSUMER_COMPONENT_DETAILS).cloneReadOnly()),
+            [SUBSCRIPTION] : check new (metadata.get(SUBSCRIPTION).cloneReadOnly()),
             [CONSUMER_REVIEW] : check new (metadata.get(CONSUMER_REVIEW).cloneReadOnly())
         };
     }
@@ -703,50 +703,50 @@ public isolated client class Client {
         }
     }
 
-    isolated resource function get consumercomponentdetails(ConsumerComponentDetailsTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+    isolated resource function get subscriptions(SubscriptionTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
         'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
         name: "query"
     } external;
 
-    isolated resource function get consumercomponentdetails/[string userId](ConsumerComponentDetailsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get subscriptions/[string subscriptionId](SubscriptionTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post consumercomponentdetails(ConsumerComponentDetailsInsert[] data) returns string[]|persist:Error {
+    isolated resource function post subscriptions(SubscriptionInsert[] data) returns string[]|persist:Error {
         string[] keys = [];
-        foreach ConsumerComponentDetailsInsert value in data {
+        foreach SubscriptionInsert value in data {
             lock {
-                if consumercomponentdetailsTable.hasKey(value.userId) {
-                    return persist:getAlreadyExistsError("ConsumerComponentDetails", value.userId);
+                if subscriptionsTable.hasKey(value.subscriptionId) {
+                    return persist:getAlreadyExistsError("Subscription", value.subscriptionId);
                 }
-                consumercomponentdetailsTable.put(value.clone());
+                subscriptionsTable.put(value.clone());
             }
-            keys.push(value.userId);
+            keys.push(value.subscriptionId);
         }
         return keys;
     }
 
-    isolated resource function put consumercomponentdetails/[string userId](ConsumerComponentDetailsUpdate value) returns ConsumerComponentDetails|persist:Error {
+    isolated resource function put subscriptions/[string subscriptionId](SubscriptionUpdate value) returns Subscription|persist:Error {
         lock {
-            if !consumercomponentdetailsTable.hasKey(userId) {
-                return persist:getNotFoundError("ConsumerComponentDetails", userId);
+            if !subscriptionsTable.hasKey(subscriptionId) {
+                return persist:getNotFoundError("Subscription", subscriptionId);
             }
-            ConsumerComponentDetails consumercomponentdetails = consumercomponentdetailsTable.get(userId);
+            Subscription subscription = subscriptionsTable.get(subscriptionId);
             foreach var [k, v] in value.clone().entries() {
-                consumercomponentdetails[k] = v;
+                subscription[k] = v;
             }
-            consumercomponentdetailsTable.put(consumercomponentdetails);
-            return consumercomponentdetails.clone();
+            subscriptionsTable.put(subscription);
+            return subscription.clone();
         }
     }
 
-    isolated resource function delete consumercomponentdetails/[string userId]() returns ConsumerComponentDetails|persist:Error {
+    isolated resource function delete subscriptions/[string subscriptionId]() returns Subscription|persist:Error {
         lock {
-            if !consumercomponentdetailsTable.hasKey(userId) {
-                return persist:getNotFoundError("ConsumerComponentDetails", userId);
+            if !subscriptionsTable.hasKey(subscriptionId) {
+                return persist:getNotFoundError("Subscription", subscriptionId);
             }
-            return consumercomponentdetailsTable.remove(userId).clone();
+            return subscriptionsTable.remove(subscriptionId).clone();
         }
     }
 
@@ -1186,42 +1186,30 @@ isolated function queryOneUsers(anydata key) returns record {}|persist:NotFoundE
     return persist:getNotFoundError("User", key);
 }
 
-isolated function queryConsumercomponentdetails(string[] fields) returns stream<record {}, persist:Error?> {
-    table<ConsumerComponentDetails> key(userId) consumercomponentdetailsClonedTable;
+isolated function querySubscriptions(string[] fields) returns stream<record {}, persist:Error?> {
+    table<Subscription> key(subscriptionId) subscriptionsClonedTable;
     lock {
-        consumercomponentdetailsClonedTable = consumercomponentdetailsTable.clone();
+        subscriptionsClonedTable = subscriptionsTable.clone();
     }
-    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
-    lock {
-        consumerreviewsClonedTable = consumerreviewsTable.clone();
-    }
-    return from record {} 'object in consumercomponentdetailsClonedTable
-        outer join var comment in consumerreviewsClonedTable on ['object.commentReviewId] equals [comment?.reviewId]
+    return from record {} 'object in subscriptionsClonedTable
         select persist:filterRecord({
-            ...'object,
-            "comment": comment
+            ...'object
         }, fields);
 }
 
-isolated function queryOneConsumercomponentdetails(anydata key) returns record {}|persist:NotFoundError {
-    table<ConsumerComponentDetails> key(userId) consumercomponentdetailsClonedTable;
+isolated function queryOneSubscriptions(anydata key) returns record {}|persist:NotFoundError {
+    table<Subscription> key(subscriptionId) subscriptionsClonedTable;
     lock {
-        consumercomponentdetailsClonedTable = consumercomponentdetailsTable.clone();
+        subscriptionsClonedTable = subscriptionsTable.clone();
     }
-    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
-    lock {
-        consumerreviewsClonedTable = consumerreviewsTable.clone();
-    }
-    from record {} 'object in consumercomponentdetailsClonedTable
-    where persist:getKey('object, ["userId"]) == key
-    outer join var comment in consumerreviewsClonedTable on ['object.commentReviewId] equals [comment?.reviewId]
+    from record {} 'object in subscriptionsClonedTable
+    where persist:getKey('object, ["subscriptionId"]) == key
     do {
         return {
-            ...'object,
-            "comment": comment
+            ...'object
         };
     };
-    return persist:getNotFoundError("ConsumerComponentDetails", key);
+    return persist:getNotFoundError("Subscription", key);
 }
 
 isolated function queryConsumerreviews(string[] fields) returns stream<record {}, persist:Error?> {

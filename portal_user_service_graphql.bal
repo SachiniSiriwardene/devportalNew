@@ -29,7 +29,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + orgId - parameter description  
     # + category - parameter description
     # + return - return value description
-    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|persist:Error {
+    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|error {
 
         stream<store:ApiMetadataWithRelations, persist:Error?> apiData = userClient->/apimetadata.get();
         models:ApiMetadata[] filteredData = [];
@@ -83,7 +83,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + application - parameter description
     # + return - return value description
-    remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse {
+    remote function addApplicationDetails(models:Application application) returns models:ApplicationResponse|error {
 
         store:User[] user = [];
         store:ApplicationProperties[] appProperties = [];
@@ -110,10 +110,11 @@ service /apiUserPortal on new graphql:Listener(4000) {
             appId: applicationId,
             applicationName: application.applicationName,
             productionKey: application.productionKey,
-            sandBoxKey: application.sandBoxKey
+            sandBoxKey: application.sandBoxKey,
+            idpId: application.idpId
         };
 
-        string[] listResult = check  userClient->/applications.post([app]);  
+        string[] listResult = check userClient->/applications.post([app]);
         return new (application);
     }
 
@@ -121,54 +122,105 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + appId - parameter description
     # + return - return value description
-    resource function get applications(string appId) returns models:ApplicationResponse {
+    resource function get applications(string appId) returns models:ApplicationResponse|error {
 
-        // store:Application|persist:Error application = userClient->/applications/[appId].get();
-
-        // models:Application app = {
-        //     accessControl:  , 
-        //     addedAPIs: [], 
-        //     appId: application.appId, 
-        //     applicationName: "", 
-        //     appProperties: []
-        //     };
-        // return new (app);
+        store:ApplicationWithRelations application = check userClient->/applications/[appId].get();
+        store:UserOptionalized[] users = application.accessControl ?: [];
+        models:User[] userList = [];
+        foreach var user in users {
+            userList.push({
+                role: user.role ?: "",
+                userName: user.userName ?: ""
+            });
+        }
+        store:ApplicationPropertiesOptionalized[] properties = application.appProperties ?: [];
+        models:ApplicationProperties[] appProperties = [];
+        foreach var property in properties {
+            appProperties.push({
+                name: property.name ?: "",
+                value: property.value ?: ""
+            });
+        }
+        models:Application app = {
+            accessControl: userList,
+            productionKey: "",
+            addedAPIs: [],
+            appId: application.productionKey ?: "",
+            sandBoxKey: application.sandBoxKey ?: "",
+            applicationName: application.applicationName ?: "",
+            appProperties: appProperties,
+            idpId: application.idpId ?: ""
+        };
+        return new (app);
     }
 
-    # Add consumer specific details.
-    # + consumerComponentDetails - details related to the component and consumer
+    # Add a subscription.
+    #
+    # + subscription - parameter description
     # + return - return value description
-    remote function consumerComponentDetails(models:ConsumerComponentDetails consumerComponentDetails) returns models:ConsuemrComponentDetailsResponse {
+    remote function subscription(models:Subscription subscription) returns models:SubscriptionResponse|error {
 
-        // entry:organizationDetails.add(consumerComponentDetails);
-        // return new (consumerComponentDetails);
-        models:ConsumerComponentDetails userComponentDetails = {
-            comment: {APIId: "", comment: "", rating: 0},
-            subscribedAPIs: [],
-            userId: "",
-            orgId: ""
+        string subscriptionId = uuid:createType1AsString();
+
+        store:Subscription storeSubscription = {
+            apiId: subscription.apiId,
+            orgId: subscription.orgId,
+            subscriptionId: subscriptionId,
+            userId: subscription.userId
         };
-        return new (userComponentDetails);
+
+        string[] listResult = check userClient->/subscriptions.post([storeSubscription]);
+        return new (subscription);
     }
 
     # Retrieve consumer specific component details.
     #
     # + orgId - parameter description
     # + return - return value description
-    resource function get consumerComponentDetails(string orgId) returns models:ConsuemrComponentDetailsResponse? {
+    resource function get subscriptions(string userId) returns models:SubscriptionResponse|error {
 
-        // models:ConsumerComponentDetails? organization = entry:organizationDetails[orgId];
-        // if organization is models:ConsumerComponentDetails {
-        //     return new (organization);
-        // }
-        // return;
-        models:ConsumerComponentDetails userComponentDetails = {
-            comment: {APIId: "", comment: "", rating: 0},
-            subscribedAPIs: [],
-            userId: "",
-            orgId: ""
-        };
-        return new (userComponentDetails);
+        store:Subscription subscription = check userClient->/subscriptions/[userId];
+
+        models:SubscriptionResponse subscriptionResponse = new models:SubscriptionResponse(subscription);
+        return subscriptionResponse;
     }
 
+    # Add a consumer review.
+    #
+    # + subscription - parameter description
+    # + return - return value description
+    remote function review(models:ConsumerReview review) returns models:ConsumerReviewResponse|error {
+
+        string reviewId = uuid:createType1AsString();
+
+        store:ConsumerReview consumerReview = {
+            apiId: review.apiId,
+            userId: review.userId,
+            rating: review.rating,
+            comment: review.comment,
+            reviewId: reviewId
+        };
+
+        string[] listResult = check userClient->/consumerreviews.post([consumerReview]);
+        return new (review);
+    }
+
+    # Retrieve reviews.
+    #
+    # + orgId - parameter description
+    # + return - return value description
+    resource function get reviews(string apiId) returns models:ConsumerReviewResponse[]|error {
+
+        stream<store:ConsumerReview, persist:Error?> reviews = userClient->/consumerreviews.get();
+        store:ConsumerReview[] selectedReviews = check from var review in reviews
+            where review.apiId == apiId
+            select review;
+
+        models:ConsumerReviewResponse[] reviewResponse = [];
+
+        foreach var review in selectedReviews {
+            reviewResponse.push(new (review));
+        }
+        return reviewResponse;
+    }
 }

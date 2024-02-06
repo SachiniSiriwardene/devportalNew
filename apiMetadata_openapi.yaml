@@ -1,0 +1,144 @@
+openapi: 3.0.1
+info:
+  title: ApiMetadata
+  version: 0.1.0
+servers:
+- url: "{server}:{port}/apiMetadata"
+  variables:
+    server:
+      default: http://localhost
+    port:
+      default: "9090"
+paths:
+  /apiContent:
+    post:
+      operationId: postApicontent
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /api:
+    post:
+      operationId: postApi
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiMetadata'
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+components:
+  schemas:
+    ServerUrl:
+      required:
+      - productionUrl
+      - sandboxUrl
+      type: object
+      properties:
+        sandboxUrl:
+          type: string
+        productionUrl:
+          type: string
+      description: Description.
+    ErrorPayload:
+      type: object
+      properties:
+        reason:
+          type: string
+          description: Reason phrase
+        path:
+          type: string
+          description: Request path
+        method:
+          type: string
+          description: Method type of the request
+        message:
+          type: string
+          description: Error message
+        timestamp:
+          type: string
+          description: Timestamp of the error
+        status:
+          type: integer
+          description: Relevant HTTP status code
+          format: int32
+    ApiMetadata:
+      required:
+      - apiInfo
+      - serverUrl
+      - throttlingPolicies
+      type: object
+      properties:
+        apiInfo:
+          $ref: '#/components/schemas/ApiInfo'
+        throttlingPolicies:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ThrottlingPolicy'
+        serverUrl:
+          $ref: '#/components/schemas/ServerUrl'
+      description: Description.
+    ApiInfo:
+      required:
+      - additionalProperties
+      - apiCategory
+      - apiImage
+      - apiName
+      - openApiDefinition
+      type: object
+      properties:
+        apiName:
+          type: string
+        apiCategory:
+          type: array
+          items:
+            type: string
+        apiImage:
+          type: string
+          nullable: true
+        openApiDefinition:
+          type: string
+        additionalProperties:
+          type: object
+          additionalProperties:
+            type: string
+    ThrottlingPolicy:
+      required:
+      - description
+      - policyName
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+        policyName:
+          type: string
+        description:
+          type: string
+      description: Description.

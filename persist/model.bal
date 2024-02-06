@@ -122,7 +122,8 @@ public type Theme record {|
 # + productionKey - field description  
 # + appProperties - list of properties as application information  
 # + addedAPIs - list of added APIs for the application  
-# + accessControl - access control for the application
+# + accessControl - access control for the application  
+# + idpId - field description
 public type Application record {|
     readonly string appId;
     string applicationName;
@@ -131,6 +132,7 @@ public type Application record {|
     ApplicationProperties[] appProperties;
     string[] addedAPIs;
     User[] accessControl;
+    string idpId;
 |};
 
 public type Organization record {|
@@ -152,19 +154,17 @@ public type User record {|
     Application application;
 |};
 
-
-
-public type ConsumerComponentDetails record {|
-    readonly string userId;
+public type Subscription record {|
+    readonly string subscriptionId;
+    string apiId;
     string orgId;
-    string[] subscribedAPIs;
-    ConsumerReview comment;
+    string userId;
 |};
 
 public type ConsumerReview record {|
     readonly string reviewId;
-    string APIId;
+    string apiId;
     string comment;
     int rating;
-    ConsumerComponentDetails? consumerComponentDetails;
+    string userId;
 |};

@@ -1,0 +1,146 @@
+type Query {
+  "Retrieve the details for an API."
+  apiMetaData(
+    "parameter description"
+    apiID: String!
+  ): ApiMetadata!
+  "Filter the APIs using category or a keyword/s."
+  apifilter(
+    "parameter description"
+    orgId: String!
+    "parameter description"
+    category: String!
+    keywords: String
+  ): [ApiMetadata!]!
+  "Retrieve application details."
+  applications(
+    "parameter description"
+    appId: String!
+  ): ApplicationResponse!
+  "Retrieve consumer specific component details."
+  subscriptions(userId: String!): SubscriptionResponse!
+  "Retrieve reviews."
+  reviews(apiId: String!): [ConsumerReviewResponse!]!
+}
+
+"Description."
+type ApiMetadata {
+  "api information"
+  apiInfo: ApiInfo!
+  "details about the throttling policies"
+  throttlingPolicies: [ThrottlingPolicy!]
+  "Gateway server urls"
+  serverUrl: ServerUrl!
+}
+
+type ApiInfo {
+  apiName: String!
+  apiCategory: [String!]!
+  apiImage: String
+  openApiDefinition: String!
+  additionalProperties(
+    "[auto-generated]: The key of the value required from a map"
+    key: String!
+  ): String!
+}
+
+"Description."
+type ThrottlingPolicy {
+  "field description"
+  type: String!
+  "field description"
+  policyName: String!
+  "field description"
+  description: String!
+}
+
+"Description."
+type ServerUrl {
+  "field description"
+  sandboxUrl: String!
+  "field description"
+  productionUrl: String!
+}
+
+type Mutation {
+  "Create an application."
+  addApplicationDetails(
+    "parameter description"
+    application: Application!
+  ): ApplicationResponse!
+  "Add a subscription."
+  subscription(
+    "parameter description"
+    subscription: Subscription!
+  ): SubscriptionResponse!
+  "Add a consumer review."
+  review(review: ConsumerReview!): ConsumerReviewResponse!
+}
+
+type ApplicationResponse {
+  appId: String!
+  applicationName: String!
+  addedAPIs: [String!]!
+  appProperties: [ApplicationPropertiesResponse!]!
+  users: [UserResponse!]!
+}
+
+type ApplicationPropertiesResponse {
+  name: String!
+  value: String!
+}
+
+type UserResponse {
+  role: String!
+  userName: String!
+}
+
+"Represents content to be included in the application section."
+input Application {
+  appId: String!
+  applicationName: String!
+  appProperties: [ApplicationProperties!]!
+  addedAPIs: [String!]!
+  accessControl: [User!]!
+  sandBoxKey: String!
+  productionKey: String!
+}
+
+input ApplicationProperties {
+  name: String!
+  value: String!
+}
+
+input User {
+  role: String!
+  userName: String!
+}
+
+type SubscriptionResponse {
+  subscribedAPIs: String!
+  orgId: String!
+  userId: String!
+  subscriptionId: String!
+}
+
+input Subscription {
+  subscriptionId: String!
+  apiId: String!
+  orgId: String!
+  userId: String!
+}
+
+type ConsumerReviewResponse {
+  APIId: String!
+  comment: String!
+  rating: Int!
+  userId: String!
+}
+
+input ConsumerReview {
+  reviewId: String!
+  apiId: String!
+  comment: String!
+  rating: Int!
+  userId: String!
+}
