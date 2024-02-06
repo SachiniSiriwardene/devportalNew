@@ -6,6 +6,7 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/persist;
 import ballerina/uuid;
+import ballerina/time;
 
 # A service representing a network-accessible API
 # bound to port `8080`.
@@ -17,9 +18,9 @@ service /admin on new http:Listener(8080) {
     # Store the content for landing pages.
     #
     # + request - compressed file containing the folder content  
-    # + content - file content type
+    # + orgName - organization name
     # + return - return value description
-    resource function post orgcontent(http:Request request, string content) returns models:ContentResponse|error {
+    resource function post orgTemplate(http:Request request, string orgName) returns models:ContentResponse|error {
 
         var bodyParts = check request.getBodyParts();
         string[] files = [];
@@ -27,11 +28,53 @@ service /admin on new http:Listener(8080) {
             utils:handleContent(part);
             string fileContent = check part.getText();
             string fileName = part.getContentDisposition().fileName;
+            string filePath = "./files/" + orgName + "/OrgLandingPage";
             files.push(fileName);
-            check io:fileWriteString("./files/" + fileName, fileContent);
+            if (fileName.endsWith(".html")) {
+                check io:fileWriteString(filePath + "/template" + fileName, fileContent);
+            } else if (fileName.endsWith(".md")) {
+                check io:fileWriteString(filePath + "/content" + fileName, fileContent);
+            } else if (fileName.endsWith(".css")) {
+                check io:fileWriteString(filePath + "/assets/style" + fileName, fileContent);
+            } else if (fileName.endsWith(".mp4") || fileName.endsWith(".webm") || fileName.endsWith(".ogv")) {
+                check io:fileWriteString(filePath + "/assets/videos" + fileName, fileContent);
+            } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".svg") || fileName.endsWith(".ico") || fileName.endsWith(".webp")) {
+                check io:fileWriteString(filePath + "/assets/images" + fileName, fileContent);
+            } 
         }
-        io:println(content);
-        models:ContentResponse uploadedContent = {createdAt: "", contentId: "1", fileNames: files};
+        models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};
+        return uploadedContent;
+    }
+
+    # Store the content for landing pages.
+    #
+    # + request - compressed file containing the folder content  
+    # + orgName - organization name
+    # + apiName - API name
+    # + return - return value description
+    resource function post apiTemplate(http:Request request, string orgName, string apiName) returns models:ContentResponse|error {
+
+        var bodyParts = check request.getBodyParts();
+        string[] files = [];
+        foreach var part in bodyParts {
+            utils:handleContent(part);
+            string fileContent = check part.getText();
+            string fileName = part.getContentDisposition().fileName;
+            string filePath = "./files/" + orgName + "/OrgLandingPage" + apiName;
+            files.push(fileName);
+            if (fileName.endsWith(".html")) {
+                check io:fileWriteString(filePath + "/template" + fileName, fileContent);
+            } else if (fileName.endsWith(".md")) {
+                check io:fileWriteString(filePath + "/content" + fileName, fileContent);
+            } else if (fileName.endsWith(".css")) {
+                check io:fileWriteString(filePath + "/assets/style" + fileName, fileContent);
+            } else if (fileName.endsWith(".mp4") || fileName.endsWith(".webm") || fileName.endsWith(".ogv")) {
+                check io:fileWriteString(filePath + "/assets/videos" + fileName, fileContent);
+            } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".svg") || fileName.endsWith(".ico") || fileName.endsWith(".webp")) {
+                check io:fileWriteString(filePath + "/assets/images" + fileName, fileContent);
+            } 
+        }
+        models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};
         return uploadedContent;
     }
 

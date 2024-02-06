@@ -5,23 +5,35 @@ import devportal.utils;
 import ballerina/http;
 import ballerina/io;
 import ballerina/uuid;
+import ballerina/time;
 
 service /apiMetadata on new http:Listener(9090) {
 
-    resource function post apiContent(http:Request request)
-            returns http:Response|http:InternalServerError|error {
+    
+    # Store API Content
+    #
+    # + request - compressed file containing the folder content  
+    # + orgName - organization name
+    # + apiName - API name
+    # + return - return value description
+    resource function post apiContent(http:Request request, string orgName, string apiName) returns models:ContentResponse|http:InternalServerError|error {
         var bodyParts = check request.getBodyParts();
+        string[] files = [];
 
         foreach var part in bodyParts {
             utils:handleContent(part);
             string fileContent = check part.getText();
             string fileName = part.getContentDisposition().fileName;
-            check io:fileWriteString("./files/" + fileName, fileContent);
+            string filePath = "./files/" + orgName + "/APILandingPage/" + apiName;
+            files.push(fileName);
+            if (fileName.endsWith(".md")) {
+                check io:fileWriteString(filePath + "/content/" + fileName, fileContent);
+            } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".svg") || fileName.endsWith(".ico") || fileName.endsWith(".webp")) {
+                check io:fileWriteString(filePath + "/images/" + fileName, fileContent);
+            } 
         }
-        http:Response response = new;
-        response.setPayload("File uploaded successfully");
-        return response;
-
+        models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};
+        return uploadedContent;
     }
 
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
@@ -58,7 +70,6 @@ service /apiMetadata on new http:Listener(9090) {
             orgId: uuid:createType1AsString(),
             apiName: metadata.apiInfo.apiName,
             apiCategory: metadata.apiInfo.apiCategory,
-            apiImage: metadata.apiInfo.apiImage,
             openApiDefinition: metadata.apiInfo.openApiDefinition,
             productionUrl: metadata.serverUrl.productionUrl,
             sandboxUrl: metadata.serverUrl.sandboxUrl

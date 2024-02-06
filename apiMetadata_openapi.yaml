@@ -12,19 +12,33 @@ servers:
 paths:
   /apiContent:
     post:
+      summary: Store API Content
       operationId: postApicontent
+      parameters:
+      - name: orgName
+        in: query
+        description: organization name
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: query
+        description: API name
+        required: true
+        schema:
+          type: string
       requestBody:
         content:
           '*/*':
             schema:
               description: Any type of entity body
       responses:
-        default:
-          description: Any Response
+        "201":
+          description: Created
           content:
-            '*/*':
+            application/json:
               schema:
-                description: Any type of entity body
+                $ref: '#/components/schemas/ContentResponse'
         "500":
           description: InternalServerError
           content:
@@ -54,17 +68,19 @@ paths:
                 $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    ServerUrl:
+    ContentResponse:
       required:
-      - productionUrl
-      - sandboxUrl
+      - fileNames
+      - timeUploaded
       type: object
       properties:
-        sandboxUrl:
+        fileNames:
+          type: array
+          items:
+            type: string
+        timeUploaded:
           type: string
-        productionUrl:
-          type: string
-      description: Description.
+      description: Response for content storage.
     ErrorPayload:
       type: object
       properties:
@@ -87,28 +103,10 @@ components:
           type: integer
           description: Relevant HTTP status code
           format: int32
-    ApiMetadata:
-      required:
-      - apiInfo
-      - serverUrl
-      - throttlingPolicies
-      type: object
-      properties:
-        apiInfo:
-          $ref: '#/components/schemas/ApiInfo'
-        throttlingPolicies:
-          type: array
-          nullable: true
-          items:
-            $ref: '#/components/schemas/ThrottlingPolicy'
-        serverUrl:
-          $ref: '#/components/schemas/ServerUrl'
-      description: Description.
     ApiInfo:
       required:
       - additionalProperties
       - apiCategory
-      - apiImage
       - apiName
       - openApiDefinition
       type: object
@@ -119,9 +117,6 @@ components:
           type: array
           items:
             type: string
-        apiImage:
-          type: string
-          nullable: true
         openApiDefinition:
           type: string
         additionalProperties:
@@ -141,4 +136,32 @@ components:
           type: string
         description:
           type: string
+      description: Description.
+    ServerUrl:
+      required:
+      - productionUrl
+      - sandboxUrl
+      type: object
+      properties:
+        sandboxUrl:
+          type: string
+        productionUrl:
+          type: string
+      description: Description.
+    ApiMetadata:
+      required:
+      - apiInfo
+      - serverUrl
+      - throttlingPolicies
+      type: object
+      properties:
+        apiInfo:
+          $ref: '#/components/schemas/ApiInfo'
+        throttlingPolicies:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ThrottlingPolicy'
+        serverUrl:
+          $ref: '#/components/schemas/ServerUrl'
       description: Description.

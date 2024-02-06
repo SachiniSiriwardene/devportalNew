@@ -12,7 +12,7 @@ service / on new http:Listener(9080) {
     resource function get [string orgName]/images/[string imageName](http:Request request) returns http:Response|error {
 
         mime:Entity file = new;
-        file.setFileAsEntityBody("./files/" + imageName);
+        file.setFileAsEntityBody("./files/images" + imageName);
         http:Response response = new;
         response.setEntity(file);
         check response.setContentType("application/octet-stream");
@@ -32,7 +32,7 @@ service / on new http:Listener(9080) {
     resource function get [string orgName]/video/[string videoName](http:Request request) returns http:Response|error {
 
         mime:Entity file = new;
-        file.setFileAsEntityBody("./files/" + videoName);
+        file.setFileAsEntityBody("./files/assets/videos" + videoName);
         http:Response response = new;
         response.setEntity(file);
         check response.setContentType("application/octet-stream");
@@ -43,15 +43,35 @@ service / on new http:Listener(9080) {
         return response;
     }
 
-    # Retrieve text files.
+   # Retrieve template files.
     #
     # + orgId - parameter description  
     # + fileName - parameter description
     # + return - return value description
-    resource function get [string orgId]/text/[string fileName]() returns http:Response|error {
+    resource function get [string orgId]/template/[string fileName]() returns http:Response|error {
 
         mime:Entity file = new;
-        file.setFileAsEntityBody("./files/" + fileName);
+        file.setFileAsEntityBody("./files/template" + fileName);
+        http:Response response = new;
+        response.setEntity(file);
+        check response.setContentType("application/octet-stream");
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        return response;
+
+    }
+    
+    # Retrieve content files.
+    #
+    # + orgId - parameter description  
+    # + fileName - parameter description
+    # + return - return value description
+    resource function get [string orgId]/content/[string fileName]() returns http:Response|error {
+
+        mime:Entity file = new;
+        file.setFileAsEntityBody("./files/content" + fileName);
         http:Response response = new;
         response.setEntity(file);
         check response.setContentType("application/octet-stream");

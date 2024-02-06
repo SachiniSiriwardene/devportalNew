@@ -44,7 +44,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
             apiInfo: {
                 apiName: apiMetaData.apiName ?: "",
                 apiCategory: apiMetaData.apiCategory ?: [],
-                apiImage: apiMetaData?.apiImage,
                 openApiDefinition: apiMetaData.openApiDefinition ?: "",
                 additionalProperties: properties
             }
@@ -58,7 +57,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + orgId - parameter description  
     # + category - parameter description
     # + return - return value description
-    resource function get apifilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|error {
+    resource function get apiFilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|error {
 
         stream<store:ApiMetadataWithRelations, persist:Error?> apiData = userClient->/apimetadata.get();
         models:ApiMetadata[] filteredData = [];
@@ -95,7 +94,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
                         apiInfo: {
                             apiName: api.apiName ?: "",
                             apiCategory: api.apiCategory ?: [],
-                            apiImage: api?.apiImage,
                             openApiDefinition: api.openApiDefinition ?: "",
                             additionalProperties: properties
                         }

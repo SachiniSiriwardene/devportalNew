@@ -1,12 +1,10 @@
 # Response for content storage.
 #
-# + contentId - field description  
 # + fileNames - field description  
 # + createdAt - field description
 public type ContentResponse record {
-    string contentId;
     string[] fileNames;
-    string createdAt;
+    string timeUploaded;
 };
 
 # Description.

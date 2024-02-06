@@ -71,7 +71,6 @@ public type ApiMetadata record {|
     string orgId;
     string apiName;
     string[] apiCategory;
-    string? apiImage;
     string openApiDefinition;
     AdditionalProperties[] additionalProperties;
     ThrottlingPolicy[] throttlingPolicies;

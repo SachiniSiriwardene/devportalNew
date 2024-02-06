@@ -10,14 +10,14 @@ servers:
     port:
       default: "8080"
 paths:
-  /orgcontent:
+  /orgTemplate:
     post:
       summary: Store the content for landing pages.
-      operationId: postOrgcontent
+      operationId: postOrgtemplate
       parameters:
-      - name: content
+      - name: orgName
         in: query
-        description: file content type
+        description: organization name
         required: true
         schema:
           type: string
@@ -39,10 +39,45 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /admin/theme:
+  /apiTemplate:
+    post:
+      summary: Store the content for landing pages.
+      operationId: postApitemplate
+      parameters:
+      - name: orgName
+        in: query
+        description: organization name
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: query
+        description: API name
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /theme:
     post:
       summary: Store the theme for the developer portal.
-      operationId: postAdminTheme
+      operationId: postTheme
       requestBody:
         description: theme object
         content:
@@ -56,10 +91,35 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThemeResponse'
-  /admin/identityProvider:
+  /identityProvider:
+    get:
+      summary: Retrieve identity providers.
+      operationId: getIdentityprovider
+      parameters:
+      - name: orgId
+        in: query
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IdentityProvider'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
     post:
       summary: Store the identity provider details for the developer portal.
-      operationId: postAdminIdentityprovider
+      operationId: postIdentityprovider
       requestBody:
         description: IDP details
         content:
@@ -83,18 +143,15 @@ components:
   schemas:
     ContentResponse:
       required:
-      - contentId
-      - createdAt
       - fileNames
+      - timeUploaded
       type: object
       properties:
-        contentId:
-          type: string
         fileNames:
           type: array
           items:
             type: string
-        createdAt:
+        timeUploaded:
           type: string
       description: Response for content storage.
     ErrorPayload:
@@ -306,9 +363,12 @@ components:
       - issuer
       - jwksEndpoint
       - name
+      - orgId
       - wellKnownEndpoint
       type: object
       properties:
+        orgId:
+          type: string
         name:
           type: string
         wellKnownEndpoint:

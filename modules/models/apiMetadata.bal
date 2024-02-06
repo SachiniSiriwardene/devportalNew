@@ -1,7 +1,6 @@
 public type ApiInfo record {
     string apiName;
     string[] apiCategory;
-    string? apiImage;
     string openApiDefinition;
     map<string> additionalProperties;
 };

@@ -123,7 +123,6 @@ public type ApiMetadata record {|
     string orgId;
     string apiName;
     string[] apiCategory;
-    string? apiImage;
     string openApiDefinition;
     string productionUrl;
     string sandboxUrl;
@@ -134,7 +133,6 @@ public type ApiMetadataOptionalized record {|
     string orgId?;
     string apiName?;
     string[] apiCategory?;
-    string? apiImage?;
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
@@ -155,7 +153,6 @@ public type ApiMetadataUpdate record {|
     string orgId?;
     string apiName?;
     string[] apiCategory?;
-    string? apiImage?;
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
