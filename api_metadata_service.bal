@@ -29,7 +29,7 @@ service /apiMetadata on new http:Listener(9090) {
             if (fileName.endsWith(".md")) {
                 check io:fileWriteString(filePath + "/content/" + fileName, fileContent);
             } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".svg") || fileName.endsWith(".ico") || fileName.endsWith(".webp")) {
-                check io:fileWriteString(filePath + "/images/" + fileName, fileContent);
+                check io:fileWriteString(filePath + "/assets/images/" + fileName, fileContent);
             } 
         }
         models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};

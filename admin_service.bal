@@ -60,7 +60,7 @@ service /admin on new http:Listener(8080) {
             utils:handleContent(part);
             string fileContent = check part.getText();
             string fileName = part.getContentDisposition().fileName;
-            string filePath = "./files/" + orgName + "/OrgLandingPage" + apiName;
+            string filePath = "./files/" + orgName + "/APILandingPage" + apiName;
             files.push(fileName);
             if (fileName.endsWith(".html")) {
                 check io:fileWriteString(filePath + "/template" + fileName, fileContent);

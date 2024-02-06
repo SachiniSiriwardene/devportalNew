@@ -12,7 +12,7 @@ servers:
 paths:
   /{orgName}/images/{imageName}:
     get:
-      summary: Retrieve image files.
+      summary: Retrieve organization image files.
       operationId: getOrgnameImagesImagename
       parameters:
       - name: orgName
@@ -42,7 +42,7 @@ paths:
                 $ref: '#/components/schemas/ErrorPayload'
   /{orgName}/video/{videoName}:
     get:
-      summary: Retrieve video files.
+      summary: Retrieve organization video files.
       operationId: getOrgnameVideoVideoname
       parameters:
       - name: orgName
@@ -70,10 +70,171 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /{orgId}/text/{fileName}:
+  /{orgName}/template/{fileName}:
     get:
-      summary: Retrieve text files.
-      operationId: getOrgidTextFilename
+      summary: Retrieve organization template file.
+      operationId: getOrgnameTemplateFilename
+      parameters:
+      - name: orgName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: path
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /{orgName}/stylesheet/{fileName}:
+    get:
+      summary: Retrieve organization stylesheet.
+      operationId: getOrgnameStylesheetFilename
+      parameters:
+      - name: orgName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: path
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /{orgName}/{apiName}/images/{imageName}:
+    get:
+      summary: Retrieve api landing page image files.
+      operationId: getOrgnameApinameImagesImagename
+      parameters:
+      - name: orgName
+        in: path
+        description: 'parameter description  '
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: imageName
+        in: path
+        description: 'parameter description  '
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /{orgName}/{apiName}/template/{fileName}:
+    get:
+      summary: Retrieve api landing page template files.
+      operationId: getOrgnameApinameTemplateFilename
+      parameters:
+      - name: orgName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: path
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /{orgName}/{apiName}/stylesheet/{fileName}:
+    get:
+      summary: Retrieve api landing page stylesheet.
+      operationId: getOrgnameApinameStylesheetFilename
+      parameters:
+      - name: orgName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: path
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /{orgId}/content/{fileName}:
+    get:
+      summary: Retrieve content files.
+      operationId: getOrgidContentFilename
       parameters:
       - name: orgId
         in: path
