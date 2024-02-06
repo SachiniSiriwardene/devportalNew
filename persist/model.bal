@@ -90,6 +90,7 @@ public type AdditionalProperties record {|
 # Identity Provider configured for dev portal.
 #
 # + idpID - field description  
+# + orgId - field description  
 # + name - field description  
 # + wellKnownEndpoint - field description  
 # + introspectionEndpoint - field description  
@@ -99,6 +100,7 @@ public type AdditionalProperties record {|
 # + envrionments - field description
 public type IdentityProvider record {|
     readonly string idpID;
+    string orgId;
     string name;
     string wellKnownEndpoint;
     string introspectionEndpoint;

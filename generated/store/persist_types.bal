@@ -192,6 +192,7 @@ public type AdditionalPropertiesUpdate record {|
 
 public type IdentityProvider record {|
     readonly string idpID;
+    string orgId;
     string name;
     string wellKnownEndpoint;
     string introspectionEndpoint;
@@ -203,6 +204,7 @@ public type IdentityProvider record {|
 
 public type IdentityProviderOptionalized record {|
     string idpID?;
+    string orgId?;
     string name?;
     string wellKnownEndpoint?;
     string introspectionEndpoint?;
@@ -217,6 +219,7 @@ public type IdentityProviderTargetType typedesc<IdentityProviderOptionalized>;
 public type IdentityProviderInsert IdentityProvider;
 
 public type IdentityProviderUpdate record {|
+    string orgId?;
     string name?;
     string wellKnownEndpoint?;
     string introspectionEndpoint?;

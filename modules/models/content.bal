@@ -22,6 +22,7 @@ public type ThemeResponse record {
 
 # Identity Provider configured for dev portal.
 #
+# + orgId - field description  
 # + name - field description  
 # + wellKnownEndpoint - field description  
 # + introspectionEndpoint - field description  
@@ -30,6 +31,7 @@ public type ThemeResponse record {
 # + authorizeEndpoint - field description  
 # + envrionments - field description
 public type IdentityProvider record {
+    string orgId;
     string name;
     string wellKnownEndpoint;
     string introspectionEndpoint;

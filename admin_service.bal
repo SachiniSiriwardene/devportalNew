@@ -4,6 +4,7 @@ import devportal.utils;
 
 import ballerina/http;
 import ballerina/io;
+import ballerina/persist;
 import ballerina/uuid;
 
 # A service representing a network-accessible API
@@ -12,7 +13,6 @@ import ballerina/uuid;
 final store:Client adminClient = check new ();
 
 service /admin on new http:Listener(8080) {
-
 
     # Store the content for landing pages.
     #
@@ -39,7 +39,7 @@ service /admin on new http:Listener(8080) {
     #
     # + theme - theme object
     # + return - return value description
-    resource function post admin/theme(@http:Payload models:Theme theme) returns models:ThemeResponse {
+    resource function post theme(@http:Payload models:Theme theme) returns models:ThemeResponse {
 
         models:ThemeResponse createdTheme = {createdAt: "", themeId: "", orgId: ""};
         return createdTheme;
@@ -49,10 +49,11 @@ service /admin on new http:Listener(8080) {
     #
     # + identityProvider - IDP details
     # + return - return value description
-    resource function post admin/identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
+    resource function post identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
 
         store:IdentityProviderInsert idp = {
             idpID: uuid:createType1AsString(),
+            orgId: identityProvider.orgId,
             name: identityProvider.name,
             envrionments: identityProvider.envrionments,
             jwksEndpoint: identityProvider.jwksEndpoint,
@@ -66,6 +67,24 @@ service /admin on new http:Listener(8080) {
 
         models:IdentityProviderResponse createdIDP = {createdAt: "", idpName: identityProvider.name, id: listResult[0]};
         return createdIDP;
+    }
+
+    # Retrieve identity providers.
+    #
+    # + orgId - parameter description
+    # + return - list of identity providers for the organization.
+    resource function get identityProvider(string orgId) returns models:IdentityProvider[]|error {
+
+        stream<store:IdentityProvider, persist:Error?> identityProviders = adminClient->/identityproviders.get();
+        store:IdentityProvider[] idpList = check from var idp in identityProviders
+            where idp.orgId == orgId
+            select idp;
+        models:IdentityProvider[] idps = [];
+
+        foreach var idp in idpList {
+            idps.push(idp);
+        }
+        return idps;
     }
 
 }

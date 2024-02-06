@@ -12,16 +12,45 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # Retrieve the details for an API.
     #
     # + apiID - parameter description
-    # + return - return value description
-    resource function get apiMetaData(string apiID) returns models:ApiMetadata {
+    # + return - meta data related to the API
+    resource function get apiMetaData(string apiID) returns models:ApiMetadata|error {
 
-        models:ApiMetadata api = {
-            serverUrl: {sandboxUrl: "", productionUrl: ""},
-            throttlingPolicies: (),
-            apiInfo: {apiName: "", apiCategory: [], apiImage: "", openApiDefinition: "", additionalProperties: {}}
+        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
+        store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+        store:AdditionalPropertiesOptionalized[] additionalProperties = apiMetaData.additionalProperties ?: [];
+
+        models:ThrottlingPolicy[] throttlingPolicies = [];
+        foreach var policy in policies {
+            models:ThrottlingPolicy policyData = {
+                policyName: policy.policyName ?: "",
+                description: policy.description ?: "",
+                'type: policy.'type ?: ""
+            };
+            throttlingPolicies.push(policyData);
+        }
+
+        map<string> properties = {};
+        foreach var property in additionalProperties {
+            properties[property.key ?: ""] = property.value ?: "";
+        }
+
+        models:ApiMetadata metaData = {
+            serverUrl:
+                            {
+                sandboxUrl: apiMetaData.sandboxUrl ?: "",
+                productionUrl: apiMetaData.productionUrl ?: ""
+            },
+            throttlingPolicies: throttlingPolicies,
+            apiInfo: {
+                apiName: apiMetaData.apiName ?: "",
+                apiCategory: apiMetaData.apiCategory ?: [],
+                apiImage: apiMetaData?.apiImage,
+                openApiDefinition: apiMetaData.openApiDefinition ?: "",
+                additionalProperties: properties
+            }
         };
 
-        return api;
+        return metaData;
     }
 
     # Filter the APIs using category or a keyword/s.
@@ -51,7 +80,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
                         throttlingPolicies.push(policyData);
 
                     }
-
                     store:AdditionalPropertiesOptionalized[] additionalProperties = api.additionalProperties ?: [];
                     map<string> properties = {};
                     foreach var property in additionalProperties {
@@ -207,8 +235,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
 
     # Retrieve reviews.
     #
-    # + orgId - parameter description
-    # + return - return value description
+    # + apiId - api identifier 
+    # + return - list of reviews for the api.
     resource function get reviews(string apiId) returns models:ConsumerReviewResponse[]|error {
 
         stream<store:ConsumerReview, persist:Error?> reviews = userClient->/consumerreviews.get();
