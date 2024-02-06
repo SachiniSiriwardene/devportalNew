@@ -20,7 +20,10 @@ type Query {
   "Retrieve consumer specific component details."
   subscriptions(userId: String!): SubscriptionResponse!
   "Retrieve reviews."
-  reviews(apiId: String!): [ConsumerReviewResponse!]!
+  reviews(
+    "api identifier"
+    apiId: String!
+  ): [ConsumerReviewResponse!]!
 }
 
 "Description."
@@ -104,6 +107,7 @@ input Application {
   accessControl: [User!]!
   sandBoxKey: String!
   productionKey: String!
+  idpId: String!
 }
 
 input ApplicationProperties {
