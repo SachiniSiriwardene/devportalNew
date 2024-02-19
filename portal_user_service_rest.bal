@@ -16,7 +16,6 @@ service / on new http:Listener(3001) {
         log:printInfo("./" + request.rawPath);
 
         do {
-
             boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
             if (dirExists) {
                 file.setFileAsEntityBody("." + request.rawPath);
