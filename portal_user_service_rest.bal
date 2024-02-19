@@ -1,4 +1,3 @@
-import ballerina/file;
 import ballerina/http;
 import ballerina/log;
 import ballerina/mime;
@@ -8,7 +7,6 @@ service / on new http:Listener(3001) {
 
     # Retrieve organization template file.
     #
-    # + orgId - parameter description  
     # + fileName - parameter description
     # + return - return value description
     resource function get [string orgName]/files/[string folder]/[string page]/[string fileName](http:Request request) returns http:Response {
