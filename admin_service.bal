@@ -42,6 +42,8 @@ final store:Client adminClient = check new ();
                 check io:fileWriteString(filePath + "/assets/images" + fileName, fileContent);
             } 
         }
+
+        // DB insert the URL of the landing page
         models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};
         return uploadedContent;
     }
