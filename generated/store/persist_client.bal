@@ -7,7 +7,6 @@ import ballerinax/persist.inmemory;
 
 const THROTTLING_POLICY = "throttlingpolicies";
 const RATE_LIMITING_POLICY = "ratelimitingpolicies";
-const FEEDBACK = "feedbacks";
 const REVIEW = "reviews";
 const API_METADATA = "apimetadata";
 const ADDITIONAL_PROPERTIES = "additionalproperties";
@@ -15,13 +14,13 @@ const IDENTITY_PROVIDER = "identityproviders";
 const THEME = "themes";
 const APPLICATION = "applications";
 const ORGANIZATION = "organizations";
+const ORGANIZATION_ASSETS = "organizationassets";
+const A_P_I_ASSETS = "apiassets";
 const APPLICATION_PROPERTIES = "applicationproperties";
 const USER = "users";
 const SUBSCRIPTION = "subscriptions";
-const CONSUMER_REVIEW = "consumerreviews";
 final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = table [];
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
-final isolated table<Feedback> key(apiId) feedbacksTable = table [];
 final isolated table<Review> key(reviewId) reviewsTable = table [];
 final isolated table<ApiMetadata> key(apiId) apimetadataTable = table [];
 final isolated table<AdditionalProperties> key(propertyId) additionalpropertiesTable = table [];
@@ -29,10 +28,11 @@ final isolated table<IdentityProvider> key(idpID) identityprovidersTable = table
 final isolated table<Theme> key(themeId) themesTable = table [];
 final isolated table<Application> key(appId) applicationsTable = table [];
 final isolated table<Organization> key(orgId) organizationsTable = table [];
+final isolated table<OrganizationAssets> key(assetId) organizationassetsTable = table [];
+final isolated table<APIAssets> key(assetId) apiassetsTable = table [];
 final isolated table<ApplicationProperties> key(propertyId) applicationpropertiesTable = table [];
 final isolated table<User> key(userId) usersTable = table [];
 final isolated table<Subscription> key(subscriptionId) subscriptionsTable = table [];
-final isolated table<ConsumerReview> key(reviewId) consumerreviewsTable = table [];
 
 public isolated client class Client {
     *persist:AbstractPersistClient;
@@ -51,12 +51,6 @@ public isolated client class Client {
                 query: queryRatelimitingpolicies,
                 queryOne: queryOneRatelimitingpolicies
             },
-            [FEEDBACK] : {
-                keyFields: ["apiId"],
-                query: queryFeedbacks,
-                queryOne: queryOneFeedbacks,
-                associationsMethods: {"reviews": queryFeedbackReviews}
-            },
             [REVIEW] : {
                 keyFields: ["reviewId"],
                 query: queryReviews,
@@ -68,7 +62,9 @@ public isolated client class Client {
                 queryOne: queryOneApimetadata,
                 associationsMethods: {
                     "additionalProperties": queryApiMetadataAdditionalproperties,
-                    "throttlingPolicies": queryApiMetadataThrottlingpolicies
+                    "throttlingPolicies": queryApiMetadataThrottlingpolicies,
+                    "reviews": queryApiMetadataReviews,
+                    "subscriptions": queryApiMetadataSubscriptions
                 }
             },
             [ADDITIONAL_PROPERTIES] : {
@@ -98,7 +94,22 @@ public isolated client class Client {
             [ORGANIZATION] : {
                 keyFields: ["orgId"],
                 query: queryOrganizations,
-                queryOne: queryOneOrganizations
+                queryOne: queryOneOrganizations,
+                associationsMethods: {
+                    "theme": queryOrganizationTheme,
+                    "identityProvider": queryOrganizationIdentityprovider,
+                    "subscriptions": queryOrganizationSubscriptions
+                }
+            },
+            [ORGANIZATION_ASSETS] : {
+                keyFields: ["assetId"],
+                query: queryOrganizationassets,
+                queryOne: queryOneOrganizationassets
+            },
+            [A_P_I_ASSETS] : {
+                keyFields: ["assetId"],
+                query: queryApiassets,
+                queryOne: queryOneApiassets
             },
             [APPLICATION_PROPERTIES] : {
                 keyFields: ["propertyId"],
@@ -108,23 +119,21 @@ public isolated client class Client {
             [USER] : {
                 keyFields: ["userId"],
                 query: queryUsers,
-                queryOne: queryOneUsers
+                queryOne: queryOneUsers,
+                associationsMethods: {
+                    "reviews": queryUserReviews,
+                    "subscriptions": queryUserSubscriptions
+                }
             },
             [SUBSCRIPTION] : {
                 keyFields: ["subscriptionId"],
                 query: querySubscriptions,
                 queryOne: queryOneSubscriptions
-            },
-            [CONSUMER_REVIEW] : {
-                keyFields: ["reviewId"],
-                query: queryConsumerreviews,
-                queryOne: queryOneConsumerreviews
             }
         };
         self.persistClients = {
             [THROTTLING_POLICY] : check new (metadata.get(THROTTLING_POLICY).cloneReadOnly()),
             [RATE_LIMITING_POLICY] : check new (metadata.get(RATE_LIMITING_POLICY).cloneReadOnly()),
-            [FEEDBACK] : check new (metadata.get(FEEDBACK).cloneReadOnly()),
             [REVIEW] : check new (metadata.get(REVIEW).cloneReadOnly()),
             [API_METADATA] : check new (metadata.get(API_METADATA).cloneReadOnly()),
             [ADDITIONAL_PROPERTIES] : check new (metadata.get(ADDITIONAL_PROPERTIES).cloneReadOnly()),
@@ -132,10 +141,11 @@ public isolated client class Client {
             [THEME] : check new (metadata.get(THEME).cloneReadOnly()),
             [APPLICATION] : check new (metadata.get(APPLICATION).cloneReadOnly()),
             [ORGANIZATION] : check new (metadata.get(ORGANIZATION).cloneReadOnly()),
+            [ORGANIZATION_ASSETS] : check new (metadata.get(ORGANIZATION_ASSETS).cloneReadOnly()),
+            [A_P_I_ASSETS] : check new (metadata.get(A_P_I_ASSETS).cloneReadOnly()),
             [APPLICATION_PROPERTIES] : check new (metadata.get(APPLICATION_PROPERTIES).cloneReadOnly()),
             [USER] : check new (metadata.get(USER).cloneReadOnly()),
-            [SUBSCRIPTION] : check new (metadata.get(SUBSCRIPTION).cloneReadOnly()),
-            [CONSUMER_REVIEW] : check new (metadata.get(CONSUMER_REVIEW).cloneReadOnly())
+            [SUBSCRIPTION] : check new (metadata.get(SUBSCRIPTION).cloneReadOnly())
         };
     }
 
@@ -230,53 +240,6 @@ public isolated client class Client {
                 return persist:getNotFoundError("RateLimitingPolicy", policyId);
             }
             return ratelimitingpoliciesTable.remove(policyId).clone();
-        }
-    }
-
-    isolated resource function get feedbacks(FeedbackTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
-        name: "query"
-    } external;
-
-    isolated resource function get feedbacks/[string apiId](FeedbackTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
-        name: "queryOne"
-    } external;
-
-    isolated resource function post feedbacks(FeedbackInsert[] data) returns string[]|persist:Error {
-        string[] keys = [];
-        foreach FeedbackInsert value in data {
-            lock {
-                if feedbacksTable.hasKey(value.apiId) {
-                    return persist:getAlreadyExistsError("Feedback", value.apiId);
-                }
-                feedbacksTable.put(value.clone());
-            }
-            keys.push(value.apiId);
-        }
-        return keys;
-    }
-
-    isolated resource function put feedbacks/[string apiId](FeedbackUpdate value) returns Feedback|persist:Error {
-        lock {
-            if !feedbacksTable.hasKey(apiId) {
-                return persist:getNotFoundError("Feedback", apiId);
-            }
-            Feedback feedback = feedbacksTable.get(apiId);
-            foreach var [k, v] in value.clone().entries() {
-                feedback[k] = v;
-            }
-            feedbacksTable.put(feedback);
-            return feedback.clone();
-        }
-    }
-
-    isolated resource function delete feedbacks/[string apiId]() returns Feedback|persist:Error {
-        lock {
-            if !feedbacksTable.hasKey(apiId) {
-                return persist:getNotFoundError("Feedback", apiId);
-            }
-            return feedbacksTable.remove(apiId).clone();
         }
     }
 
@@ -609,6 +572,100 @@ public isolated client class Client {
         }
     }
 
+    isolated resource function get organizationassets(OrganizationAssetsTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get organizationassets/[string assetId](OrganizationAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post organizationassets(OrganizationAssetsInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach OrganizationAssetsInsert value in data {
+            lock {
+                if organizationassetsTable.hasKey(value.assetId) {
+                    return persist:getAlreadyExistsError("OrganizationAssets", value.assetId);
+                }
+                organizationassetsTable.put(value.clone());
+            }
+            keys.push(value.assetId);
+        }
+        return keys;
+    }
+
+    isolated resource function put organizationassets/[string assetId](OrganizationAssetsUpdate value) returns OrganizationAssets|persist:Error {
+        lock {
+            if !organizationassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("OrganizationAssets", assetId);
+            }
+            OrganizationAssets organizationassets = organizationassetsTable.get(assetId);
+            foreach var [k, v] in value.clone().entries() {
+                organizationassets[k] = v;
+            }
+            organizationassetsTable.put(organizationassets);
+            return organizationassets.clone();
+        }
+    }
+
+    isolated resource function delete organizationassets/[string assetId]() returns OrganizationAssets|persist:Error {
+        lock {
+            if !organizationassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("OrganizationAssets", assetId);
+            }
+            return organizationassetsTable.remove(assetId).clone();
+        }
+    }
+
+    isolated resource function get apiassets(APIAssetsTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get apiassets/[string assetId](APIAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post apiassets(APIAssetsInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach APIAssetsInsert value in data {
+            lock {
+                if apiassetsTable.hasKey(value.assetId) {
+                    return persist:getAlreadyExistsError("APIAssets", value.assetId);
+                }
+                apiassetsTable.put(value.clone());
+            }
+            keys.push(value.assetId);
+        }
+        return keys;
+    }
+
+    isolated resource function put apiassets/[string assetId](APIAssetsUpdate value) returns APIAssets|persist:Error {
+        lock {
+            if !apiassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("APIAssets", assetId);
+            }
+            APIAssets apiassets = apiassetsTable.get(assetId);
+            foreach var [k, v] in value.clone().entries() {
+                apiassets[k] = v;
+            }
+            apiassetsTable.put(apiassets);
+            return apiassets.clone();
+        }
+    }
+
+    isolated resource function delete apiassets/[string assetId]() returns APIAssets|persist:Error {
+        lock {
+            if !apiassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("APIAssets", assetId);
+            }
+            return apiassetsTable.remove(assetId).clone();
+        }
+    }
+
     isolated resource function get applicationproperties(ApplicationPropertiesTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
         'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
         name: "query"
@@ -750,53 +807,6 @@ public isolated client class Client {
         }
     }
 
-    isolated resource function get consumerreviews(ConsumerReviewTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
-        name: "query"
-    } external;
-
-    isolated resource function get consumerreviews/[string reviewId](ConsumerReviewTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
-        name: "queryOne"
-    } external;
-
-    isolated resource function post consumerreviews(ConsumerReviewInsert[] data) returns string[]|persist:Error {
-        string[] keys = [];
-        foreach ConsumerReviewInsert value in data {
-            lock {
-                if consumerreviewsTable.hasKey(value.reviewId) {
-                    return persist:getAlreadyExistsError("ConsumerReview", value.reviewId);
-                }
-                consumerreviewsTable.put(value.clone());
-            }
-            keys.push(value.reviewId);
-        }
-        return keys;
-    }
-
-    isolated resource function put consumerreviews/[string reviewId](ConsumerReviewUpdate value) returns ConsumerReview|persist:Error {
-        lock {
-            if !consumerreviewsTable.hasKey(reviewId) {
-                return persist:getNotFoundError("ConsumerReview", reviewId);
-            }
-            ConsumerReview consumerreview = consumerreviewsTable.get(reviewId);
-            foreach var [k, v] in value.clone().entries() {
-                consumerreview[k] = v;
-            }
-            consumerreviewsTable.put(consumerreview);
-            return consumerreview.clone();
-        }
-    }
-
-    isolated resource function delete consumerreviews/[string reviewId]() returns ConsumerReview|persist:Error {
-        lock {
-            if !consumerreviewsTable.hasKey(reviewId) {
-                return persist:getNotFoundError("ConsumerReview", reviewId);
-            }
-            return consumerreviewsTable.remove(reviewId).clone();
-        }
-    }
-
     public isolated function close() returns persist:Error? {
         return ();
     }
@@ -866,58 +876,26 @@ isolated function queryOneRatelimitingpolicies(anydata key) returns record {}|pe
     return persist:getNotFoundError("RateLimitingPolicy", key);
 }
 
-isolated function queryFeedbacks(string[] fields) returns stream<record {}, persist:Error?> {
-    table<Feedback> key(apiId) feedbacksClonedTable;
-    lock {
-        feedbacksClonedTable = feedbacksTable.clone();
-    }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
-    lock {
-        apimetadataClonedTable = apimetadataTable.clone();
-    }
-    return from record {} 'object in feedbacksClonedTable
-        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
-        select persist:filterRecord({
-            ...'object,
-            "apimetadata": apimetadata
-        }, fields);
-}
-
-isolated function queryOneFeedbacks(anydata key) returns record {}|persist:NotFoundError {
-    table<Feedback> key(apiId) feedbacksClonedTable;
-    lock {
-        feedbacksClonedTable = feedbacksTable.clone();
-    }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
-    lock {
-        apimetadataClonedTable = apimetadataTable.clone();
-    }
-    from record {} 'object in feedbacksClonedTable
-    where persist:getKey('object, ["apiId"]) == key
-    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
-    do {
-        return {
-            ...'object,
-            "apimetadata": apimetadata
-        };
-    };
-    return persist:getNotFoundError("Feedback", key);
-}
-
 isolated function queryReviews(string[] fields) returns stream<record {}, persist:Error?> {
     table<Review> key(reviewId) reviewsClonedTable;
     lock {
         reviewsClonedTable = reviewsTable.clone();
     }
-    table<Feedback> key(apiId) feedbacksClonedTable;
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
     lock {
-        feedbacksClonedTable = feedbacksTable.clone();
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
     }
     return from record {} 'object in reviewsClonedTable
-        outer join var feedback in feedbacksClonedTable on ['object.feedbackApiId] equals [feedback?.apiId]
+        outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId] equals [apifeedback?.apiId]
+        outer join var reviewedby in usersClonedTable on ['object.reviewedbyUserId] equals [reviewedby?.userId]
         select persist:filterRecord({
             ...'object,
-            "feedback": feedback
+            "apiFeedback": apifeedback,
+            "reviewedBy": reviewedby
         }, fields);
 }
 
@@ -926,17 +904,23 @@ isolated function queryOneReviews(anydata key) returns record {}|persist:NotFoun
     lock {
         reviewsClonedTable = reviewsTable.clone();
     }
-    table<Feedback> key(apiId) feedbacksClonedTable;
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
     lock {
-        feedbacksClonedTable = feedbacksTable.clone();
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
     }
     from record {} 'object in reviewsClonedTable
     where persist:getKey('object, ["reviewId"]) == key
-    outer join var feedback in feedbacksClonedTable on ['object.feedbackApiId] equals [feedback?.apiId]
+    outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId] equals [apifeedback?.apiId]
+    outer join var reviewedby in usersClonedTable on ['object.reviewedbyUserId] equals [reviewedby?.userId]
     do {
         return {
             ...'object,
-            "feedback": feedback
+            "apiFeedback": apifeedback,
+            "reviewedBy": reviewedby
         };
     };
     return persist:getNotFoundError("Review", key);
@@ -1011,9 +995,15 @@ isolated function queryIdentityproviders(string[] fields) returns stream<record 
     lock {
         identityprovidersClonedTable = identityprovidersTable.clone();
     }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
     return from record {} 'object in identityprovidersClonedTable
+        outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
         select persist:filterRecord({
-            ...'object
+            ...'object,
+            "organization": organization
         }, fields);
 }
 
@@ -1022,11 +1012,17 @@ isolated function queryOneIdentityproviders(anydata key) returns record {}|persi
     lock {
         identityprovidersClonedTable = identityprovidersTable.clone();
     }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
     from record {} 'object in identityprovidersClonedTable
     where persist:getKey('object, ["idpID"]) == key
+    outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
     do {
         return {
-            ...'object
+            ...'object,
+            "organization": organization
         };
     };
     return persist:getNotFoundError("IdentityProvider", key);
@@ -1037,9 +1033,15 @@ isolated function queryThemes(string[] fields) returns stream<record {}, persist
     lock {
         themesClonedTable = themesTable.clone();
     }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
     return from record {} 'object in themesClonedTable
+        outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
         select persist:filterRecord({
-            ...'object
+            ...'object,
+            "organization": organization
         }, fields);
 }
 
@@ -1048,11 +1050,17 @@ isolated function queryOneThemes(anydata key) returns record {}|persist:NotFound
     lock {
         themesClonedTable = themesTable.clone();
     }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
     from record {} 'object in themesClonedTable
     where persist:getKey('object, ["themeId"]) == key
+    outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
     do {
         return {
-            ...'object
+            ...'object,
+            "organization": organization
         };
     };
     return persist:getNotFoundError("Theme", key);
@@ -1108,6 +1116,82 @@ isolated function queryOneOrganizations(anydata key) returns record {}|persist:N
         };
     };
     return persist:getNotFoundError("Organization", key);
+}
+
+isolated function queryOrganizationassets(string[] fields) returns stream<record {}, persist:Error?> {
+    table<OrganizationAssets> key(assetId) organizationassetsClonedTable;
+    lock {
+        organizationassetsClonedTable = organizationassetsTable.clone();
+    }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    return from record {} 'object in organizationassetsClonedTable
+        outer join var organization in organizationsClonedTable on ['object.organizationassetsOrgId] equals [organization?.orgId]
+        select persist:filterRecord({
+            ...'object,
+            "organization": organization
+        }, fields);
+}
+
+isolated function queryOneOrganizationassets(anydata key) returns record {}|persist:NotFoundError {
+    table<OrganizationAssets> key(assetId) organizationassetsClonedTable;
+    lock {
+        organizationassetsClonedTable = organizationassetsTable.clone();
+    }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    from record {} 'object in organizationassetsClonedTable
+    where persist:getKey('object, ["assetId"]) == key
+    outer join var organization in organizationsClonedTable on ['object.organizationassetsOrgId] equals [organization?.orgId]
+    do {
+        return {
+            ...'object,
+            "organization": organization
+        };
+    };
+    return persist:getNotFoundError("OrganizationAssets", key);
+}
+
+isolated function queryApiassets(string[] fields) returns stream<record {}, persist:Error?> {
+    table<APIAssets> key(assetId) apiassetsClonedTable;
+    lock {
+        apiassetsClonedTable = apiassetsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    return from record {} 'object in apiassetsClonedTable
+        outer join var api in apimetadataClonedTable on ['object.assetmappingsApiId] equals [api?.apiId]
+        select persist:filterRecord({
+            ...'object,
+            "api": api
+        }, fields);
+}
+
+isolated function queryOneApiassets(anydata key) returns record {}|persist:NotFoundError {
+    table<APIAssets> key(assetId) apiassetsClonedTable;
+    lock {
+        apiassetsClonedTable = apiassetsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    from record {} 'object in apiassetsClonedTable
+    where persist:getKey('object, ["assetId"]) == key
+    outer join var api in apimetadataClonedTable on ['object.assetmappingsApiId] equals [api?.apiId]
+    do {
+        return {
+            ...'object,
+            "api": api
+        };
+    };
+    return persist:getNotFoundError("APIAssets", key);
 }
 
 isolated function queryApplicationproperties(string[] fields) returns stream<record {}, persist:Error?> {
@@ -1191,9 +1275,33 @@ isolated function querySubscriptions(string[] fields) returns stream<record {}, 
     lock {
         subscriptionsClonedTable = subscriptionsTable.clone();
     }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
+    }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    table<ThrottlingPolicy> key(policyId) throttlingpoliciesClonedTable;
+    lock {
+        throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
+    }
     return from record {} 'object in subscriptionsClonedTable
+        outer join var api in apimetadataClonedTable on ['object.apiApiId] equals [api?.apiId]
+        outer join var user in usersClonedTable on ['object.userUserId] equals [user?.userId]
+        outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
+        outer join var subscriptionpolicy in throttlingpoliciesClonedTable on ['object.subscriptionPolicyId] equals [subscriptionpolicy?.policyId]
         select persist:filterRecord({
-            ...'object
+            ...'object,
+            "api": api,
+            "user": user,
+            "organization": organization,
+            "subscriptionPolicy": subscriptionpolicy
         }, fields);
 }
 
@@ -1202,52 +1310,38 @@ isolated function queryOneSubscriptions(anydata key) returns record {}|persist:N
     lock {
         subscriptionsClonedTable = subscriptionsTable.clone();
     }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    table<User> key(userId) usersClonedTable;
+    lock {
+        usersClonedTable = usersTable.clone();
+    }
+    table<Organization> key(orgId) organizationsClonedTable;
+    lock {
+        organizationsClonedTable = organizationsTable.clone();
+    }
+    table<ThrottlingPolicy> key(policyId) throttlingpoliciesClonedTable;
+    lock {
+        throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
+    }
     from record {} 'object in subscriptionsClonedTable
     where persist:getKey('object, ["subscriptionId"]) == key
+    outer join var api in apimetadataClonedTable on ['object.apiApiId] equals [api?.apiId]
+    outer join var user in usersClonedTable on ['object.userUserId] equals [user?.userId]
+    outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
+    outer join var subscriptionpolicy in throttlingpoliciesClonedTable on ['object.subscriptionPolicyId] equals [subscriptionpolicy?.policyId]
     do {
         return {
-            ...'object
+            ...'object,
+            "api": api,
+            "user": user,
+            "organization": organization,
+            "subscriptionPolicy": subscriptionpolicy
         };
     };
     return persist:getNotFoundError("Subscription", key);
-}
-
-isolated function queryConsumerreviews(string[] fields) returns stream<record {}, persist:Error?> {
-    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
-    lock {
-        consumerreviewsClonedTable = consumerreviewsTable.clone();
-    }
-    return from record {} 'object in consumerreviewsClonedTable
-        select persist:filterRecord({
-            ...'object
-        }, fields);
-}
-
-isolated function queryOneConsumerreviews(anydata key) returns record {}|persist:NotFoundError {
-    table<ConsumerReview> key(reviewId) consumerreviewsClonedTable;
-    lock {
-        consumerreviewsClonedTable = consumerreviewsTable.clone();
-    }
-    from record {} 'object in consumerreviewsClonedTable
-    where persist:getKey('object, ["reviewId"]) == key
-    do {
-        return {
-            ...'object
-        };
-    };
-    return persist:getNotFoundError("ConsumerReview", key);
-}
-
-isolated function queryFeedbackReviews(record {} value, string[] fields) returns record {}[] {
-    table<Review> key(reviewId) reviewsClonedTable;
-    lock {
-        reviewsClonedTable = reviewsTable.clone();
-    }
-    return from record {} 'object in reviewsClonedTable
-        where 'object.feedbackApiId == value["apiId"]
-        select persist:filterRecord({
-            ...'object
-        }, fields);
 }
 
 isolated function queryApiMetadataAdditionalproperties(record {} value, string[] fields) returns record {}[] {
@@ -1274,6 +1368,30 @@ isolated function queryApiMetadataThrottlingpolicies(record {} value, string[] f
         }, fields);
 }
 
+isolated function queryApiMetadataReviews(record {} value, string[] fields) returns record {}[] {
+    table<Review> key(reviewId) reviewsClonedTable;
+    lock {
+        reviewsClonedTable = reviewsTable.clone();
+    }
+    return from record {} 'object in reviewsClonedTable
+        where 'object.apifeedbackApiId == value["apiId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryApiMetadataSubscriptions(record {} value, string[] fields) returns record {}[] {
+    table<Subscription> key(subscriptionId) subscriptionsClonedTable;
+    lock {
+        subscriptionsClonedTable = subscriptionsTable.clone();
+    }
+    return from record {} 'object in subscriptionsClonedTable
+        where 'object.apiApiId == value["apiId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
 isolated function queryApplicationAppproperties(record {} value, string[] fields) returns record {}[] {
     table<ApplicationProperties> key(propertyId) applicationpropertiesClonedTable;
     lock {
@@ -1293,6 +1411,66 @@ isolated function queryApplicationAccesscontrol(record {} value, string[] fields
     }
     return from record {} 'object in usersClonedTable
         where 'object.applicationAppId == value["appId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOrganizationTheme(record {} value, string[] fields) returns record {}[] {
+    table<Theme> key(themeId) themesClonedTable;
+    lock {
+        themesClonedTable = themesTable.clone();
+    }
+    return from record {} 'object in themesClonedTable
+        where 'object.organizationOrgId == value["orgId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOrganizationIdentityprovider(record {} value, string[] fields) returns record {}[] {
+    table<IdentityProvider> key(idpID) identityprovidersClonedTable;
+    lock {
+        identityprovidersClonedTable = identityprovidersTable.clone();
+    }
+    return from record {} 'object in identityprovidersClonedTable
+        where 'object.organizationOrgId == value["orgId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryOrganizationSubscriptions(record {} value, string[] fields) returns record {}[] {
+    table<Subscription> key(subscriptionId) subscriptionsClonedTable;
+    lock {
+        subscriptionsClonedTable = subscriptionsTable.clone();
+    }
+    return from record {} 'object in subscriptionsClonedTable
+        where 'object.organizationOrgId == value["orgId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryUserReviews(record {} value, string[] fields) returns record {}[] {
+    table<Review> key(reviewId) reviewsClonedTable;
+    lock {
+        reviewsClonedTable = reviewsTable.clone();
+    }
+    return from record {} 'object in reviewsClonedTable
+        where 'object.reviewedbyUserId == value["userId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryUserSubscriptions(record {} value, string[] fields) returns record {}[] {
+    table<Subscription> key(subscriptionId) subscriptionsClonedTable;
+    lock {
+        subscriptionsClonedTable = subscriptionsTable.clone();
+    }
+    return from record {} 'object in subscriptionsClonedTable
+        where 'object.userUserId == value["userId"]
         select persist:filterRecord({
             ...'object
         }, fields);

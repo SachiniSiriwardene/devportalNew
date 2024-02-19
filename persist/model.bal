@@ -1,6 +1,4 @@
 import ballerina/persist as _;
-
-
 import ballerina/persist as _;
 
 # Description.
@@ -14,7 +12,8 @@ public type ThrottlingPolicy record {|
     string 'type;
     string policyName;
     string description;
-	ApiMetadata apimetadata;
+    ApiMetadata apimetadata;
+    Subscription? subscription;
 |};
 
 # Description.
@@ -29,43 +28,33 @@ public type RateLimitingPolicy record {|
 
 # Description.
 #
-# + apiId - field description  
-# + averageRating - field description  
-# + noOfRating - field description  
-# + noOfComments - field description  
-# + reviews - field description
-public type Feedback record {|
-    readonly string apiId;
-    int noOfRating;
-    int noOfComments;
-    Review[] reviews;
-	ApiMetadata apimetadata;
-|};
-
-# Description.
-#
 # + reviewId - field description  
-# + reviewedBy - field description  
 # + rating - field description  
-# + comment - field description
+# + comment - field description  
+# + apiFeedback - field description  
+# + reviewedBy - field description
 public type Review record {|
     readonly string reviewId;
-    string reviewedBy;
     int rating;
     string comment;
-	Feedback feedback;
+    ApiMetadata apiFeedback;
+    User reviewedBy;
 |};
 
 # Description.
 #
-# + apiId - api id 
-# + orgId - organization id
-# + apiInfo - api information  
+# + apiId - api id  
+# + orgId - organization id  
+# + apiName - field description  
+# + apiCategory - field description  
+# + openApiDefinition - field description  
+# + additionalProperties - field description  
 # + throttlingPolicies - details about the throttling policies  
-# + serverUrl - Gateway server urls  
-# + feedback - feedback provided by each customer 
-# + keyManagerUrl - URLs exposed by the key manager
-# + apiDetailPageContentUrl - The url of the api detail page content
+# + productionUrl - field description  
+# + sandboxUrl - field description  
+# + reviews - field description  
+# + subscriptions - field description  
+# + assetMappings - field description
 public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
@@ -76,30 +65,31 @@ public type ApiMetadata record {|
     ThrottlingPolicy[] throttlingPolicies;
     string productionUrl;
     string sandboxUrl;
-    Feedback? feedback;
+    Review[] reviews;
+    Subscription[] subscriptions;
+    APIAssets?  assetMappings;
 |};
 
-public type AdditionalProperties record {| 
+public type AdditionalProperties record {|
     readonly string propertyId;
-    string key; 
+    string key;
     string value;
-	ApiMetadata apimetadata;
+    ApiMetadata apimetadata;
 |};
 
 # Identity Provider configured for dev portal.
 #
 # + idpID - field description  
-# + orgId - field description  
 # + name - field description  
 # + wellKnownEndpoint - field description  
 # + introspectionEndpoint - field description  
 # + issuer - field description  
 # + jwksEndpoint - field description  
 # + authorizeEndpoint - field description  
-# + envrionments - field description
+# + envrionments - field description  
+# + organization - field description
 public type IdentityProvider record {|
     readonly string idpID;
-    string orgId;
     string name;
     string wellKnownEndpoint;
     string introspectionEndpoint;
@@ -107,12 +97,14 @@ public type IdentityProvider record {|
     string jwksEndpoint;
     string authorizeEndpoint;
     string[] envrionments;
+    Organization organization;
 |};
 
 public type Theme record {|
-    readonly string themeId;   
-    string orgId;    
+    readonly string themeId;
+    Organization organization;
     string theme;
+    string templateId;
 |};
 
 # Represents content to be included in the application section.
@@ -138,7 +130,39 @@ public type Application record {|
 
 public type Organization record {|
     readonly string orgId;
-    string[] subscribedAPIs;
+    string organizationName;
+    OrganizationAssets? organizationAssets;
+    Theme[] theme;
+    IdentityProvider[] identityProvider;
+    Subscription[] subscriptions;
+|};
+
+
+
+# Assets needed for the org landing page.
+#
+# + assetId - field description  
+# + orgAssets - field description  
+# + orgLandingPage - field description  
+# + organization - field description
+public type OrganizationAssets record {|
+    readonly string assetId;
+    string[]? orgAssets;
+    string orgLandingPage;
+    Organization organization;
+|};
+
+# Assets needed for the api landing page.
+#
+# + assetId - field description  
+# + apiAssets - field description  
+# + landingPageUrl - field description  
+# + api - field description
+public type APIAssets record {|
+    readonly string assetId;
+    string[] apiAssets;
+    string landingPageUrl;
+    ApiMetadata api;
 |};
 
 public type ApplicationProperties record {|
@@ -153,19 +177,15 @@ public type User record {|
     string role;
     string userName;
     Application application;
+    Review[] reviews;
+    Subscription[] subscriptions;
 |};
 
 public type Subscription record {|
     readonly string subscriptionId;
-    string apiId;
-    string orgId;
-    string userId;
+    ApiMetadata api;
+    User user;
+    Organization organization;
+    ThrottlingPolicy subscriptionPolicy;
 |};
 
-public type ConsumerReview record {|
-    readonly string reviewId;
-    string apiId;
-    string comment;
-    int rating;
-    string userId;
-|};

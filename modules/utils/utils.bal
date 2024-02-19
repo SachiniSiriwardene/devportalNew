@@ -1,3 +1,6 @@
+import devportal.models;
+
+import ballerina/file;
 import ballerina/log;
 import ballerina/mime;
 
@@ -29,4 +32,93 @@ public function handleContent(mime:Entity bodyPart) {
             }
         }
     }
+}
+
+public function readOrganizationContent(file:MetaData[] directories, string path, string[] assetMappings) returns string[]|error {
+
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check readOrganizationContent(meta, path, assetMappings);
+        } else {
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+
+            if (relativePath.endsWith(".html")) {
+                if (relativePath.endsWith("org-landing-page.html")) {
+                    assetMappings.push(relativePath);
+                }
+                if (relativePath.endsWith("api-landing-page.html")) {
+                    assetMappings.push(relativePath);
+                }
+                assetMappings.push(relativePath);
+            } else if (relativePath.endsWith(".css")) {
+                assetMappings.push(relativePath);
+
+            } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
+                assetMappings.push(relativePath);
+
+            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
+            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
+                assetMappings.push(relativePath);
+            }
+        }
+    }
+    return assetMappings;
+}
+
+public function getContentForOrgTemplate(file:MetaData[] directories, string path, models:OrganizationAssets assetMappings, string templateName)
+returns models:OrganizationAssets|error {
+
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check getContentForOrgTemplate(meta, path, assetMappings, templateName);
+        } else {
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            if (relativePath.endsWith(".md")) {
+                assetMappings.orgAssets.push(relativePath);
+            }
+        }
+    }
+    return assetMappings;
+}
+
+function readAPIContent(file:MetaData[] directories, string path, models:APIAssets assetMappings) returns models:APIAssets|error {
+
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check readAPIContent(meta, path, assetMappings);
+        } else {
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            if (relativePath.endsWith(".html")) {
+                if (relativePath.endsWith("api-landing-page.html")) {
+                    assetMappings.landingPageUrl = relativePath;
+                }
+                assetMappings.apiAssets.push(relativePath);
+            } else if (relativePath.endsWith(".md")) {
+                assetMappings.apiAssets.push(relativePath);
+            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
+            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
+                assetMappings.apiAssets.push(relativePath);
+            }
+        }
+    }
+    return assetMappings;
+}
+
+public function getContentForAPITemplate(file:MetaData[] directories, string path, models:APIAssets assetMappings) returns models:APIAssets|error {
+
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check getContentForAPITemplate(meta, path, assetMappings);
+        } else {
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            if (relativePath.endsWith(".md")) {
+                assetMappings.apiAssets.push(relativePath);
+            }
+        }
+    }
+    return assetMappings;
 }

@@ -2,37 +2,87 @@ import devportal.models;
 import devportal.store;
 import devportal.utils;
 
+import ballerina/file;
 import ballerina/http;
 import ballerina/io;
-import ballerina/uuid;
+import ballerina/log;
+import ballerina/persist;
 import ballerina/time;
+import ballerina/uuid;
+
+import ballerinacentral/zip;
 
 service /apiMetadata on new http:Listener(9090) {
 
-    
     # Store API Content
     #
     # + request - compressed file containing the folder content  
     # + orgName - organization name
     # + apiName - API name
     # + return - return value description
-    resource function post apiContent(http:Request request, string orgName, string apiName) returns models:ContentResponse|http:InternalServerError|error {
-        var bodyParts = check request.getBodyParts();
-        string[] files = [];
+    resource function post apiContent(http:Request request, string orgName, string apiName, string templateName) returns models:APIContentResponse|http:InternalServerError|error {
 
-        foreach var part in bodyParts {
-            utils:handleContent(part);
-            string fileContent = check part.getText();
-            string fileName = part.getContentDisposition().fileName;
-            string filePath = "./files/" + orgName + "/APILandingPage/" + apiName;
-            files.push(fileName);
-            if (fileName.endsWith(".md")) {
-                check io:fileWriteString(filePath + "/content/" + fileName, fileContent);
-            } else if (fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".gif") || fileName.endsWith(".svg") || fileName.endsWith(".ico") || fileName.endsWith(".webp")) {
-                check io:fileWriteString(filePath + "/assets/images/" + fileName, fileContent);
-            } 
+        byte[] binaryPayload = check request.getBinaryPayload();
+        string path = "files/zip";
+        string targetPath = "./files/unzip";
+        check io:fileWriteBytes(path, binaryPayload);
+
+        check zip:extract(path, targetPath);
+
+        models:APIAssets assetMappings = {
+
+            landingPageUrl: "",
+            apiAssets: []
+        };
+
+        file:MetaData[] directories = check file:readDir(targetPath);
+        models:APIAssets readContentResult = check utils:getContentForAPITemplate(directories, file:getCurrentDir(), assetMappings);
+
+        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
+
+        //retrieve the organization id
+        store:Organization[] organization = check from var org in organizations
+            where org.organizationName == orgName
+            select org;
+
+        string orgId = "";
+        string apiId = "";
+
+        if (organization.length() == 0) {
+            log:printInfo("No organization found");
+        } else if (organization.length() == 1) {
+            orgId = organization[0].orgId;
         }
-        models:ContentResponse uploadedContent = {fileNames: files, timeUploaded: time:utcToString(time:utcNow(0))};
+
+        stream<store:ApiMetadata, persist:Error?> apis = adminClient->/apimetadata.get();
+
+        //retrieve the api id
+        store:ApiMetadata[] matchedAPI = check from var api in apis
+            where api.apiName == apiName && api.orgId == orgId
+            select api;
+
+        if (matchedAPI.length() == 0) {
+            log:printInfo("No api found");
+        } else if (matchedAPI.length() == 1) {
+            apiId = organization[0].orgId;
+        }
+
+        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName + "/api-landing-page.html");
+
+        //store the urls of the paths
+        store:APIAssets assets = {
+            assetId: uuid:createType1AsString(),
+            landingPageUrl: readDir[0].absPath,
+            apiAssets: readContentResult.apiAssets,
+            assetmappingsApiId: apiId
+        };
+
+        string[] listResult = check adminClient->/apiassets.post([assets]);
+
+        models:APIContentResponse uploadedContent = {
+            timeUploaded: time:utcToString(time:utcNow(0)),
+            assetMappings: readContentResult
+        };
         return uploadedContent;
     }
 
@@ -74,7 +124,18 @@ service /apiMetadata on new http:Listener(9090) {
             productionUrl: metadata.serverUrl.productionUrl,
             sandboxUrl: metadata.serverUrl.sandboxUrl
         };
+
         string[] apiIDs = check sClient->/apimetadata.post([metadataRecord]);
+
+        //store the url of the api landing page
+        store:APIAssets assets = {
+            assetId: uuid:createType1AsString(),
+            landingPageUrl: metadata.apiInfo.apiLandingPageURL ?: "",
+            apiAssets: [],
+            assetmappingsApiId: apiIDs[0]
+        };
+
+        string[] listResult = check adminClient->/apiassets.post([assets]);
 
         if (metadataRecord.length() > 0) {
             http:Response response = new;

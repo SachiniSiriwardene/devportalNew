@@ -2,12 +2,23 @@ public type ApiInfo record {
     string apiName;
     string[] apiCategory;
     string openApiDefinition;
+    string? apiLandingPageURL;
+    APIReview[]? reviews;
+    APIAssets? apiAssets;
     map<string> additionalProperties;
 };
 
+public type APIReview record {|
+    readonly string reviewId;
+    string apiComment;
+    int apiRating;
+    string apiReviewer;
+    string apiID;
+    string apiName;
+|};
+
 # Description.
 #
-# + policyId - field description  
 # + 'type - field description  
 # + policyName - field description  
 # + description - field description
@@ -39,10 +50,7 @@ public type ServerUrl record {
 #
 # + apiInfo - api information  
 # + throttlingPolicies - details about the throttling policies  
-# + serverUrl - Gateway server urls  
-# + feedback - feedback provided by each customer 
-# + keyManagerUrl - URLs exposed by the key manager
-# + apiDetailPageContentUrl - The url of the api detail page content
+# + serverUrl - Gateway server urls
 public type ApiMetadata record {
     ApiInfo apiInfo;
     ThrottlingPolicy[]? throttlingPolicies;

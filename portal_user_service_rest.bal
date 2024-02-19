@@ -1,5 +1,6 @@
 import ballerina/http;
 import ballerina/mime;
+import ballerina/file;
 
 service / on new http:Listener(9080) {
 
@@ -44,16 +45,29 @@ service / on new http:Listener(9080) {
     }
 
    # Retrieve organization template file.
-    #
-    # + orgId - parameter description  
-    # + fileName - parameter description
-    # + return - return value description
+   #
+   # + orgName - parameter description  
+   # + fileName - parameter description
+   # + return - return value description
     resource function get [string orgName]/template/[string fileName]() returns http:Response|error {
 
-        mime:Entity file = new;
-        file.setFileAsEntityBody("./files" + orgName + "/OrgLandingPage/template" + fileName);
+        mime:Entity requestedFile = new;
+        
+        boolean dirExists = check file:test(fileName, file:EXISTS);
+        if (!dirExists) {
+            http:Response res = new;
+        res.setTextPayload("Requested file not found");
+        // By default, the error response is set to 500 - Internal Server Error
+        // However, if the error is an internal error which has a different error
+        // status code (4XX or 5XX) then this 500 status code will be overwritten 
+        // by the original status code.
+        res.statusCode = 400;
+        return res;
+        }
+        
+        requestedFile.setFileAsEntityBody("./files" + orgName + "/OrgLandingPage/template" + fileName);
         http:Response response = new;
-        response.setEntity(file);
+        response.setEntity(requestedFile);
         check response.setContentType("application/octet-stream");
         response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Description", "File Transfer");

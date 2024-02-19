@@ -57,11 +57,14 @@ dependencies = [
 	{org = "ballerina", name = "os"},
 	{org = "ballerina", name = "time"}
 ]
+modules = [
+	{org = "ballerina", packageName = "file", moduleName = "file"}
+]
 
 [[package]]
 org = "ballerina"
 name = "graphql"
-version = "1.10.0"
+version = "1.10.1"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "file"},
@@ -90,7 +93,7 @@ modules = [
 [[package]]
 org = "ballerina"
 name = "http"
-version = "2.10.6"
+version = "2.10.7"
 dependencies = [
 	{org = "ballerina", name = "auth"},
 	{org = "ballerina", name = "cache"},
@@ -358,6 +361,20 @@ dependencies = [
 ]
 
 [[package]]
+org = "ballerinacentral"
+name = "zip"
+version = "1.0.0"
+dependencies = [
+	{org = "ballerina", name = "file"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerinai", name = "observe"}
+]
+modules = [
+	{org = "ballerinacentral", packageName = "zip", moduleName = "zip"},
+	{org = "ballerinacentral", packageName = "zip", moduleName = "zip.net.lingala.zip4j"}
+]
+
+[[package]]
 org = "ballerinai"
 name = "observe"
 version = "0.0.0"
@@ -386,6 +403,7 @@ org = "divya"
 name = "devportal"
 version = "0.1.0"
 dependencies = [
+	{org = "ballerina", name = "file"},
 	{org = "ballerina", name = "graphql"},
 	{org = "ballerina", name = "http"},
 	{org = "ballerina", name = "io"},
@@ -395,6 +413,7 @@ dependencies = [
 	{org = "ballerina", name = "persist"},
 	{org = "ballerina", name = "time"},
 	{org = "ballerina", name = "uuid"},
+	{org = "ballerinacentral", name = "zip"},
 	{org = "ballerinai", name = "observe"},
 	{org = "ballerinax", name = "persist.inmemory"}
 ]
