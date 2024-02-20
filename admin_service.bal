@@ -5,12 +5,12 @@ import devportal.utils;
 import ballerina/file;
 import ballerina/http;
 import ballerina/io;
+import ballerina/log;
 import ballerina/persist;
 import ballerina/time;
 import ballerina/uuid;
 
 import ballerinacentral/zip;
-import ballerina/log;
 
 // # A service representing a network-accessible API
 // # bound to port `8080`.
@@ -44,7 +44,6 @@ service /admin on new http:Listener(8080) {
     //     file:MetaData[] directories = check file:readDir(targetPath);
     //     string[] readContentResult = check utils:readOrganizationContent(directories, file:getCurrentDir(), []);
 
-       
     //     //store the urls of the paths
     //     store:OrganizationAssets assets = {
     //         assetId: uuid:createType1AsString(),
@@ -90,7 +89,7 @@ service /admin on new http:Listener(8080) {
             orgId: ""
         };
 
-        file:MetaData[] directories = check file:readDir(targetPath+ "/"+ orgName);
+        file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
         stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
@@ -102,20 +101,21 @@ service /admin on new http:Listener(8080) {
 
         if (organization.length() == 0) {
             //create an organization record
-           return error ("Organization doesnt exist");
+            return error("Organization doesnt exist");
         }
 
-        store:ThemeOptionalized[] theme = organization.pop().theme ?: [];
+        store:OrganizationWithRelations org = organization.pop();
+
+        store:ThemeOptionalized[] theme = org.theme ?: [];
 
         string templateName = theme.pop().templateId ?: "";
 
         file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
         string relativePath = check file:relativePath(file:getCurrentDir(), readDir[0].absPath);
 
-
         log:printInfo("Landing page content: " + relativePath);
         log:printInfo("Template name: " + templateName);
-        
+
         orgContent.landingPageUrl = relativePath;
 
         //store the urls of the paths in the database
@@ -123,7 +123,7 @@ service /admin on new http:Listener(8080) {
             assetId: uuid:createType1AsString(),
             orgLandingPage: relativePath + "org-landing-page.html",
             orgAssets: orgContent.orgAssets,
-            organizationassetsOrgId: orgContent.orgId
+            organizationassetsOrgId: org.orgId ?: ""
         };
 
         string[] listResult = check adminClient->/organizationassets.post([assets]);
@@ -134,6 +134,76 @@ service /admin on new http:Listener(8080) {
         };
         return uploadedContent;
 
+    }
+
+    # Get the asset paths for the org or api.
+    #
+    # + orgName - parameter description  
+    # + apiName - parameter description
+    # + return - return value description
+    resource function get assets(string orgName, string? apiName) returns models:OrganizationAssets|models:APIAssets|error {
+
+        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
+
+        //retrieve the organization id
+        store:OrganizationWithRelations[] organization = check from var org in organizations
+            where org.organizationName == orgName
+            select org;
+
+        if (organization.length() == 0) {
+            //create an organization record
+            return error("Organization doesnt exist");
+        }
+
+        string orgId = organization.pop().orgId ?: "";
+
+        log:printInfo("Org ID: " + orgId);
+        string apiID = "";
+        models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: ""};
+        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: ""};
+        if (apiName == null) {
+            stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
+
+            store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
+                where asset.organizationassetsOrgId == orgId
+                select asset;
+            
+            log:printInfo("Assets" + assets.toString());
+
+            foreach var asset in assets {
+                organizationAssets = {
+                    landingPageUrl: asset.orgLandingPage ?: "",
+                    orgAssets: asset?.orgAssets ?: [],
+                    orgId: asset.organizationassetsOrgId ?: ""
+                };
+            }
+            return organizationAssets;
+        } else {
+            stream<store:ApiMetadata, persist:Error?> apis = adminClient->/apimetadata.get();
+
+            store:ApiMetadata[] apiMetaData = check from var api in apis
+                where api.orgId == orgId && api.apiName == apiName
+                select api;
+
+            apiID = apiMetaData.pop().apiId;
+
+            stream<store:APIAssetsWithRelations, persist:Error?> apiAssets = adminClient->/apiassets.get();
+
+            store:APIAssetsWithRelations[] assets = check from var asset in apiAssets
+                where asset.assetmappingsApiId == apiID
+                select asset;
+
+            log:printInfo("API Assets" + assets.toString());
+
+
+            foreach var asset in assets {
+                apiAssetModel = {
+                    apiAssets: asset.apiAssets ?: [],
+                    landingPageUrl: asset.landingPageUrl ?: ""
+                };
+            }
+            return apiAssetModel;
+        }
     }
 
     # Store the theme for the developer portal.
@@ -149,10 +219,9 @@ service /admin on new http:Listener(8080) {
             where org.organizationName == theme.orgName
             select org;
 
-
         if (organization.length() != 0) {
             //create an organization record
-           return error ("Organization already exists");
+            return error("Organization already exists");
         }
 
         //TODO retrieve the organization id for the organization name
