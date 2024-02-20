@@ -13,26 +13,23 @@ service / on new http:Listener(3001) {
     # Retrieve organization template file.
     #
     # + orgName - parameter description  
-    # + folder - parameter description  
-    # + page - parameter description  
-    # + fileName - parameter description  
+    # + paths - parameter description  
     # + request - parameter description
-    # + return - return value description
-    resource function get [string orgName]/files/[string folder]/[string page]/[string fileName](http:Request request) returns http:Response {
+    # + return - return value descriptio
+    resource function get [string orgName]/files/[string ... paths](http:Request request) returns http:Response {
 
         mime:Entity file = new;
-        string filePath = "./files/" + "/" +orgName +"/"+ folder+ "/" + page+ "/" + fileName;
-        log:printInfo(filePath);
+        log:printInfo("./" + request.rawPath);
+
         do {
-            boolean dirExists = check file:test(filePath, file:EXISTS);
+            boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
             if (dirExists) {
-                file.setFileAsEntityBody(filePath);
+                file.setFileAsEntityBody("." + request.rawPath);
             }
         } on fail var e {
             log:printError("Error occurred while checking file existence: " + e.message());
         }
-
-        log:printInfo("Bingo");
+        
         http:Response response = new;
         response.setEntity(file);
         do {
@@ -43,7 +40,7 @@ service / on new http:Listener(3001) {
         response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
-        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        //response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         return response;
 
     }
