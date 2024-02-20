@@ -10,7 +10,7 @@ service / on new http:Listener(3001) {
     # + orgId - parameter description  
     # + fileName - parameter description
     # + return - return value description
-    resource function get [string orgName]/files/[string folder]/[string page]/[string fileName](http:Request request) returns http:Response {
+    resource function get [string orgName]/files (http:Request request) returns http:Response {
 
         mime:Entity file = new;
         log:printInfo("./" + request.rawPath);
@@ -23,8 +23,7 @@ service / on new http:Listener(3001) {
         } on fail var e {
             log:printError("Error occurred while checking file existence: " + e.message());
         }
-
-        log:printInfo("Bingo");
+        
         http:Response response = new;
         response.setEntity(file);
         do {
