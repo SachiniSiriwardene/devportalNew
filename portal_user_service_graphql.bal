@@ -18,8 +18,12 @@ service /apiUserPortal on new graphql:Listener(4000) {
         store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesOptionalized[] additionalProperties = apiMetaData.additionalProperties ?: [];
+        store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
+        store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
+        models:APIReview[] reviews = [];
+
         foreach var policy in policies {
             models:ThrottlingPolicy policyData = {
                 policyName: policy.policyName ?: "",
@@ -29,14 +33,25 @@ service /apiUserPortal on new graphql:Listener(4000) {
             throttlingPolicies.push(policyData);
         }
 
+        foreach var review in apiReviews {
+            models:APIReview reviewData = {
+                apiRating: review.rating ?: 0,
+                apiComment: review.comment ?: "",
+                apiReviewer: review.reviewedbyUserId ?: "",
+                reviewId: review.reviewId ?: "",
+                apiName: "",
+                apiID: review.apifeedbackApiId ?: ""
+            };
+            reviews.push(reviewData);
+        }
+
         map<string> properties = {};
         foreach var property in additionalProperties {
             properties[property.key ?: ""] = property.value ?: "";
         }
 
         models:ApiMetadata metaData = {
-            serverUrl:
-                            {
+            serverUrl: {
                 sandboxUrl: apiMetaData.sandboxUrl ?: "",
                 productionUrl: apiMetaData.productionUrl ?: ""
             },
@@ -45,8 +60,14 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 apiName: apiMetaData.apiName ?: "",
                 apiCategory: apiMetaData.apiCategory ?: [],
                 openApiDefinition: apiMetaData.openApiDefinition ?: "",
-                additionalProperties: properties
-            }
+                additionalProperties: properties,
+                reviews: reviews,
+                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
+                apiAssets: {
+                    apiAssets: apiAssets?.apiAssets ?: [],
+                    landingPageUrl: apiAssets.landingPageUrl ?: ""
+                }
+            ,orgName: apiMetaData.organizationName ?: ""}
         };
 
         return metaData;
@@ -64,12 +85,14 @@ service /apiUserPortal on new graphql:Listener(4000) {
         store:ApiMetadataWithRelations[] metaDataList = check from var apiMetadata in apiData
             select apiMetadata;
 
+        // Filter the APIs based on the category.
         foreach var api in metaDataList {
             foreach var item in api.apiCategory ?: [] {
                 if (category.equalsIgnoreCaseAscii(item)) {
-
                     store:ThrottlingPolicyOptionalized[] policies = api.throttlingPolicies ?: [];
                     models:ThrottlingPolicy[] throttlingPolicies = [];
+                    store:APIAssetsOptionalized apiAssets = api.assetMappings ?: {};
+
                     foreach var policy in policies {
                         models:ThrottlingPolicy policyData = {
                             policyName: policy.policyName ?: "",
@@ -77,7 +100,20 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             'type: policy.'type ?: ""
                         };
                         throttlingPolicies.push(policyData);
+                    }
+                    store:ReviewOptionalized[] apiReviews = api.reviews ?: [];
+                    models:APIReview[] reviews = [];
 
+                    foreach var review in apiReviews {
+                        models:APIReview reviewData = {
+                            apiRating: review.rating ?: 0,
+                            apiComment: review.comment ?: "",
+                            apiReviewer: review.reviewedbyUserId ?: "",
+                            reviewId: review.reviewId ?: "",
+                            apiName: "",
+                            apiID: review.apifeedbackApiId ?: ""
+                        };
+                        reviews.push(reviewData);
                     }
                     store:AdditionalPropertiesOptionalized[] additionalProperties = api.additionalProperties ?: [];
                     map<string> properties = {};
@@ -95,8 +131,14 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             apiName: api.apiName ?: "",
                             apiCategory: api.apiCategory ?: [],
                             openApiDefinition: api.openApiDefinition ?: "",
-                            additionalProperties: properties
-                        }
+                            additionalProperties: properties,
+                            reviews: reviews,
+                            apiLandingPageURL: apiAssets.landingPageUrl ?: "",
+                            apiAssets: {
+                                apiAssets: apiAssets?.apiAssets ?: [],
+                                landingPageUrl: apiAssets.landingPageUrl ?: ""
+                            }
+                        ,orgName:  api.organizationName ?: ""}
                     };
                     filteredData.push(metaData);
                 }
@@ -189,10 +231,11 @@ service /apiUserPortal on new graphql:Listener(4000) {
         string subscriptionId = uuid:createType1AsString();
 
         store:Subscription storeSubscription = {
-            apiId: subscription.apiId,
-            orgId: subscription.orgId,
             subscriptionId: subscriptionId,
-            userId: subscription.userId
+            organizationOrgId: subscription.orgId,
+            apiApiId: subscription.apiId,
+            userUserId: subscription.userId,
+            subscriptionPolicyId: subscription.policyID
         };
 
         string[] listResult = check userClient->/subscriptions.post([storeSubscription]);
@@ -205,12 +248,21 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + return - all subscribed APIs
     resource function get subscriptions(string userId) returns models:SubscriptionResponse[]|error {
 
-        stream<store:Subscription , persist:Error?>  subscription =   userClient->/subscriptions.get();
-          store:Subscription[] subscribedAPIs = check from var sub in subscription where sub.userId == userId select sub;
-            models:SubscriptionResponse[] subscriptionResponse = [];
-            foreach var sub in subscribedAPIs {
-                subscriptionResponse.push(new(sub));
-            }
+        stream<store:Subscription, persist:Error?> subscription = userClient->/subscriptions.get();
+        store:Subscription[] subscribedAPIs = check from var sub in subscription
+            where sub.userUserId == userId
+            select sub;
+        models:SubscriptionResponse[] subscriptionResponse = [];
+        foreach var sub in subscribedAPIs {
+            models:APISubscription subscriptions = {
+                subscriptionId: sub.subscriptionId,
+                policyID: sub.subscriptionPolicyId,
+                userId: sub.userUserId,
+                apiId: sub.apiApiId,
+                orgId: sub.organizationOrgId
+            };
+            subscriptionResponse.push(new (subscriptions));
+        }
         return subscriptionResponse;
     }
 
@@ -218,38 +270,47 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + review - parameter description
     # + return - return value description
-    remote function review(models:ConsumerReview review) returns models:ConsumerReviewResponse|error {
+    remote function review(models:Review review) returns models:ConsumerReviewResponse|error {
 
         string reviewId = uuid:createType1AsString();
 
-        store:ConsumerReview consumerReview = {
-            apiId: review.apiId,
-            userId: review.userId,
+        store:ReviewInsert reviewInsert = {
             rating: review.rating,
             comment: review.comment,
-            reviewId: reviewId
+            reviewId: reviewId,
+            reviewedbyUserId: review.reviewedBy,
+            apifeedbackApiId: review.apiId
         };
 
-        string[] listResult = check userClient->/consumerreviews.post([consumerReview]);
+        string[] listResult = check userClient->/reviews.post([reviewInsert]);
         return new (review);
     }
 
-    # Retrieve reviews.
+    # Retrieve reviews by userId.
     #
-    # + apiId - api identifier 
-    # + return - list of reviews for the api.
-    resource function get reviews(string apiId) returns models:ConsumerReviewResponse[]|error {
+    # + userId - review given by user
+    # + return - list of reviews for the user.
+    resource function get reviews(string userId) returns models:ConsumerReviewResponse[]|error {
 
-        stream<store:ConsumerReview, persist:Error?> reviews = userClient->/consumerreviews.get();
-        store:ConsumerReview[] selectedReviews = check from var review in reviews
-            where review.apiId == apiId
+        stream<store:ReviewOptionalized, persist:Error?> reviews = userClient->/reviews.get();
+        store:ReviewOptionalized[] selectedReviews = check from var review in reviews
+            where review.reviewedbyUserId == userId
             select review;
 
-        models:ConsumerReviewResponse[] reviewResponse = [];
+        models:ConsumerReviewResponse[] reviewResponses = [];
 
         foreach var review in selectedReviews {
-            reviewResponse.push(new (review));
+
+            models:Review reviewResponse = {
+                rating: review.rating ?: 0,
+                comment: review.comment ?: "",
+                reviewedBy: review.reviewedbyUserId ?: "",
+                apiId: review.apifeedbackApiId ?: "",
+                reviewId: review.reviewId ?: "",
+                apiName: ""
+            };
+            reviewResponses.push(new (reviewResponse));
         }
-        return reviewResponse;
+        return reviewResponses;
     }
 }

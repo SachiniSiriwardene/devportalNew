@@ -1,6 +1,8 @@
 public type Theme record {|
     readonly string themeId;   
-    string orgId;    
+    string orgName; 
+    string templateName;   
+    string orgLandingPageUrl?;
     APITilePalette palette;
     Typography typography;
     Assets assets;

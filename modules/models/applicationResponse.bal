@@ -32,7 +32,7 @@ public distinct service class ApplicationResponse {
 
         UserResponse[] users = [];
 
-         foreach var item in self.app.accessControl {
+        foreach var item in self.app.accessControl {
             users.push(new UserResponse(item));
         }
         return users;
@@ -66,12 +66,66 @@ public distinct service class UserResponse {
         self.user = entryRecord.cloneReadOnly();
     }
 
-    resource function get role() returns string{
-         return self.user.role;
+    resource function get role() returns string {
+        return self.user.role;
     }
 
-    resource function get userName() returns string{
-         return self.user.userName;
+    resource function get userName() returns string {
+        return self.user.userName;
     }
 
+}
+
+public distinct service class ConsumerReviewResponse {
+    private final readonly & Review comments;
+
+    public function init(Review entryRecord) {
+        self.comments = entryRecord.cloneReadOnly();
+    }
+
+    resource function get comment() returns string {
+        return self.comments.comment;
+    }
+
+    resource function get rating() returns int {
+        return self.comments.rating;
+    }
+
+    resource function get reviewedBy() returns string {
+        return self.comments.reviewedBy;
+    }
+
+    resource function get apiId() returns string {
+        return self.comments.apiId;
+    }
+
+    resource function get apiName() returns string {
+        return self.comments.apiName;
+    }
+
+}
+
+public distinct service class SubscriptionResponse {
+
+    private final readonly & APISubscription subscription;
+
+    public function init(APISubscription entryRecord) {
+        self.subscription = entryRecord.cloneReadOnly();
+    }
+
+    resource function get subscribedAPIs() returns string {
+        return self.subscription.apiId;
+    }
+
+    resource function get orgId() returns string {
+        return self.subscription.orgId;
+    }
+
+    resource function get userId() returns string {
+        return self.subscription.userId;
+    }
+
+    resource function get subscriptionId() returns string {
+        return self.subscription.subscriptionId;
+    }
 }

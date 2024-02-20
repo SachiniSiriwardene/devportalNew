@@ -22,6 +22,7 @@ public type ThrottlingPolicyOptionalized record {|
 public type ThrottlingPolicyWithRelations record {|
     *ThrottlingPolicyOptionalized;
     ApiMetadataOptionalized apimetadata?;
+    SubscriptionOptionalized subscription?;
 |};
 
 public type ThrottlingPolicyTargetType typedesc<ThrottlingPolicyWithRelations>;
@@ -56,55 +57,26 @@ public type RateLimitingPolicyUpdate record {|
     string policyInfo?;
 |};
 
-public type Feedback record {|
-    readonly string apiId;
-    int noOfRating;
-    int noOfComments;
-    string apimetadataApiId;
-|};
-
-public type FeedbackOptionalized record {|
-    string apiId?;
-    int noOfRating?;
-    int noOfComments?;
-    string apimetadataApiId?;
-|};
-
-public type FeedbackWithRelations record {|
-    *FeedbackOptionalized;
-    ReviewOptionalized[] reviews?;
-    ApiMetadataOptionalized apimetadata?;
-|};
-
-public type FeedbackTargetType typedesc<FeedbackWithRelations>;
-
-public type FeedbackInsert Feedback;
-
-public type FeedbackUpdate record {|
-    int noOfRating?;
-    int noOfComments?;
-    string apimetadataApiId?;
-|};
-
 public type Review record {|
     readonly string reviewId;
-    string reviewedBy;
     int rating;
     string comment;
-    string feedbackApiId;
+    string apifeedbackApiId;
+    string reviewedbyUserId;
 |};
 
 public type ReviewOptionalized record {|
     string reviewId?;
-    string reviewedBy?;
     int rating?;
     string comment?;
-    string feedbackApiId?;
+    string apifeedbackApiId?;
+    string reviewedbyUserId?;
 |};
 
 public type ReviewWithRelations record {|
     *ReviewOptionalized;
-    FeedbackOptionalized feedback?;
+    ApiMetadataOptionalized apiFeedback?;
+    UserOptionalized reviewedBy?;
 |};
 
 public type ReviewTargetType typedesc<ReviewWithRelations>;
@@ -112,16 +84,17 @@ public type ReviewTargetType typedesc<ReviewWithRelations>;
 public type ReviewInsert Review;
 
 public type ReviewUpdate record {|
-    string reviewedBy?;
     int rating?;
     string comment?;
-    string feedbackApiId?;
+    string apifeedbackApiId?;
+    string reviewedbyUserId?;
 |};
 
 public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
+    string organizationName;
     string[] apiCategory;
     string openApiDefinition;
     string productionUrl;
@@ -132,6 +105,7 @@ public type ApiMetadataOptionalized record {|
     string apiId?;
     string orgId?;
     string apiName?;
+    string organizationName?;
     string[] apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -142,7 +116,9 @@ public type ApiMetadataWithRelations record {|
     *ApiMetadataOptionalized;
     AdditionalPropertiesOptionalized[] additionalProperties?;
     ThrottlingPolicyOptionalized[] throttlingPolicies?;
-    FeedbackOptionalized feedback?;
+    ReviewOptionalized[] reviews?;
+    SubscriptionOptionalized[] subscriptions?;
+    APIAssetsOptionalized assetMappings?;
 |};
 
 public type ApiMetadataTargetType typedesc<ApiMetadataWithRelations>;
@@ -152,6 +128,7 @@ public type ApiMetadataInsert ApiMetadata;
 public type ApiMetadataUpdate record {|
     string orgId?;
     string apiName?;
+    string organizationName?;
     string[] apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -189,7 +166,6 @@ public type AdditionalPropertiesUpdate record {|
 
 public type IdentityProvider record {|
     readonly string idpID;
-    string orgId;
     string name;
     string wellKnownEndpoint;
     string introspectionEndpoint;
@@ -197,11 +173,11 @@ public type IdentityProvider record {|
     string jwksEndpoint;
     string authorizeEndpoint;
     string[] envrionments;
+    string organizationOrgId;
 |};
 
 public type IdentityProviderOptionalized record {|
     string idpID?;
-    string orgId?;
     string name?;
     string wellKnownEndpoint?;
     string introspectionEndpoint?;
@@ -209,14 +185,19 @@ public type IdentityProviderOptionalized record {|
     string jwksEndpoint?;
     string authorizeEndpoint?;
     string[] envrionments?;
+    string organizationOrgId?;
 |};
 
-public type IdentityProviderTargetType typedesc<IdentityProviderOptionalized>;
+public type IdentityProviderWithRelations record {|
+    *IdentityProviderOptionalized;
+    OrganizationOptionalized organization?;
+|};
+
+public type IdentityProviderTargetType typedesc<IdentityProviderWithRelations>;
 
 public type IdentityProviderInsert IdentityProvider;
 
 public type IdentityProviderUpdate record {|
-    string orgId?;
     string name?;
     string wellKnownEndpoint?;
     string introspectionEndpoint?;
@@ -224,27 +205,36 @@ public type IdentityProviderUpdate record {|
     string jwksEndpoint?;
     string authorizeEndpoint?;
     string[] envrionments?;
+    string organizationOrgId?;
 |};
 
 public type Theme record {|
     readonly string themeId;
-    string orgId;
+    string organizationOrgId;
     string theme;
+    string templateId;
 |};
 
 public type ThemeOptionalized record {|
     string themeId?;
-    string orgId?;
+    string organizationOrgId?;
     string theme?;
+    string templateId?;
 |};
 
-public type ThemeTargetType typedesc<ThemeOptionalized>;
+public type ThemeWithRelations record {|
+    *ThemeOptionalized;
+    OrganizationOptionalized organization?;
+|};
+
+public type ThemeTargetType typedesc<ThemeWithRelations>;
 
 public type ThemeInsert Theme;
 
 public type ThemeUpdate record {|
-    string orgId?;
+    string organizationOrgId?;
     string theme?;
+    string templateId?;
 |};
 
 public type Application record {|
@@ -285,20 +275,86 @@ public type ApplicationUpdate record {|
 
 public type Organization record {|
     readonly string orgId;
-    string[] subscribedAPIs;
+    string organizationName;
 |};
 
 public type OrganizationOptionalized record {|
     string orgId?;
-    string[] subscribedAPIs?;
+    string organizationName?;
 |};
 
-public type OrganizationTargetType typedesc<OrganizationOptionalized>;
+public type OrganizationWithRelations record {|
+    *OrganizationOptionalized;
+    OrganizationAssetsOptionalized organizationAssets?;
+    ThemeOptionalized[] theme?;
+    IdentityProviderOptionalized[] identityProvider?;
+    SubscriptionOptionalized[] subscriptions?;
+|};
+
+public type OrganizationTargetType typedesc<OrganizationWithRelations>;
 
 public type OrganizationInsert Organization;
 
 public type OrganizationUpdate record {|
-    string[] subscribedAPIs?;
+    string organizationName?;
+|};
+
+public type OrganizationAssets record {|
+    readonly string assetId;
+    string[]? orgAssets;
+    string orgLandingPage;
+    string organizationassetsOrgId;
+|};
+
+public type OrganizationAssetsOptionalized record {|
+    string assetId?;
+    string[]? orgAssets?;
+    string orgLandingPage?;
+    string organizationassetsOrgId?;
+|};
+
+public type OrganizationAssetsWithRelations record {|
+    *OrganizationAssetsOptionalized;
+    OrganizationOptionalized organization?;
+|};
+
+public type OrganizationAssetsTargetType typedesc<OrganizationAssetsWithRelations>;
+
+public type OrganizationAssetsInsert OrganizationAssets;
+
+public type OrganizationAssetsUpdate record {|
+    string[]? orgAssets?;
+    string orgLandingPage?;
+    string organizationassetsOrgId?;
+|};
+
+public type APIAssets record {|
+    readonly string assetId;
+    string[] apiAssets;
+    string landingPageUrl;
+    string assetmappingsApiId;
+|};
+
+public type APIAssetsOptionalized record {|
+    string assetId?;
+    string[] apiAssets?;
+    string landingPageUrl?;
+    string assetmappingsApiId?;
+|};
+
+public type APIAssetsWithRelations record {|
+    *APIAssetsOptionalized;
+    ApiMetadataOptionalized api?;
+|};
+
+public type APIAssetsTargetType typedesc<APIAssetsWithRelations>;
+
+public type APIAssetsInsert APIAssets;
+
+public type APIAssetsUpdate record {|
+    string[] apiAssets?;
+    string landingPageUrl?;
+    string assetmappingsApiId?;
 |};
 
 public type ApplicationProperties record {|
@@ -347,6 +403,8 @@ public type UserOptionalized record {|
 public type UserWithRelations record {|
     *UserOptionalized;
     ApplicationOptionalized application?;
+    ReviewOptionalized[] reviews?;
+    SubscriptionOptionalized[] subscriptions?;
 |};
 
 public type UserTargetType typedesc<UserWithRelations>;
@@ -361,52 +419,36 @@ public type UserUpdate record {|
 
 public type Subscription record {|
     readonly string subscriptionId;
-    string apiId;
-    string orgId;
-    string userId;
+    string apiApiId;
+    string userUserId;
+    string organizationOrgId;
+    string subscriptionPolicyId;
 |};
 
 public type SubscriptionOptionalized record {|
     string subscriptionId?;
-    string apiId?;
-    string orgId?;
-    string userId?;
+    string apiApiId?;
+    string userUserId?;
+    string organizationOrgId?;
+    string subscriptionPolicyId?;
 |};
 
-public type SubscriptionTargetType typedesc<SubscriptionOptionalized>;
+public type SubscriptionWithRelations record {|
+    *SubscriptionOptionalized;
+    ApiMetadataOptionalized api?;
+    UserOptionalized user?;
+    OrganizationOptionalized organization?;
+    ThrottlingPolicyOptionalized subscriptionPolicy?;
+|};
+
+public type SubscriptionTargetType typedesc<SubscriptionWithRelations>;
 
 public type SubscriptionInsert Subscription;
 
 public type SubscriptionUpdate record {|
-    string apiId?;
-    string orgId?;
-    string userId?;
-|};
-
-public type ConsumerReview record {|
-    readonly string reviewId;
-    string apiId;
-    string comment;
-    int rating;
-    string userId;
-|};
-
-public type ConsumerReviewOptionalized record {|
-    string reviewId?;
-    string apiId?;
-    string comment?;
-    int rating?;
-    string userId?;
-|};
-
-public type ConsumerReviewTargetType typedesc<ConsumerReviewOptionalized>;
-
-public type ConsumerReviewInsert ConsumerReview;
-
-public type ConsumerReviewUpdate record {|
-    string apiId?;
-    string comment?;
-    int rating?;
-    string userId?;
+    string apiApiId?;
+    string userUserId?;
+    string organizationOrgId?;
+    string subscriptionPolicyId?;
 |};
 

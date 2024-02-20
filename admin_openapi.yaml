@@ -10,14 +10,19 @@ servers:
     port:
       default: "8080"
 paths:
-  /orgTemplate:
+  /orgContent:
     post:
       summary: Store the content for landing pages.
-      operationId: postOrgtemplate
+      operationId: postOrgcontent
       parameters:
       - name: orgName
         in: query
         description: organization name
+        required: true
+        schema:
+          type: string
+      - name: templateName
+        in: query
         required: true
         schema:
           type: string
@@ -32,42 +37,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContentResponse'
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorPayload'
-  /apiTemplate:
-    post:
-      summary: Store the content for landing pages.
-      operationId: postApitemplate
-      parameters:
-      - name: orgName
-        in: query
-        description: organization name
-        required: true
-        schema:
-          type: string
-      - name: apiName
-        in: query
-        description: API name
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              description: Any type of entity body
-      responses:
-        "201":
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContentResponse'
+                $ref: '#/components/schemas/OrgContentResponse'
         "500":
           description: Internal server error
           content:
@@ -91,6 +61,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThemeResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
   /identityProvider:
     get:
       summary: Retrieve identity providers.
@@ -141,16 +117,30 @@ paths:
                 $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    ContentResponse:
+    OrganizationAssets:
       required:
-      - fileNames
-      - timeUploaded
+      - landingPageUrl
+      - orgAssets
+      - orgId
       type: object
       properties:
-        fileNames:
+        orgAssets:
           type: array
           items:
             type: string
+        landingPageUrl:
+          type: string
+        orgId:
+          type: string
+      description: Assets needed for the org landing page.
+    OrgContentResponse:
+      required:
+      - assetMappings
+      - timeUploaded
+      type: object
+      properties:
+        assetMappings:
+          $ref: '#/components/schemas/OrganizationAssets'
         timeUploaded:
           type: string
       description: Response for content storage.
@@ -321,16 +311,23 @@ components:
       required:
       - assets
       - footerLink
-      - orgId
+      - orgLandingPageUrl
+      - orgName
       - palette
+      - templateName
       - themeId
       - typography
       type: object
       properties:
         themeId:
           type: string
-        orgId:
+        orgName:
           type: string
+        templateName:
+          type: string
+        orgLandingPageUrl:
+          type: string
+          nullable: true
         palette:
           $ref: '#/components/schemas/APITilePalette'
         typography:
