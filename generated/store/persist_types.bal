@@ -94,6 +94,7 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
+    string organizationName;
     string[] apiCategory;
     string openApiDefinition;
     string productionUrl;
@@ -104,6 +105,7 @@ public type ApiMetadataOptionalized record {|
     string apiId?;
     string orgId?;
     string apiName?;
+    string organizationName?;
     string[] apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -126,6 +128,7 @@ public type ApiMetadataInsert ApiMetadata;
 public type ApiMetadataUpdate record {|
     string orgId?;
     string apiName?;
+    string organizationName?;
     string[] apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -327,14 +330,14 @@ public type OrganizationAssetsUpdate record {|
 
 public type APIAssets record {|
     readonly string assetId;
-    string[]? apiAssets;
+    string[] apiAssets;
     string landingPageUrl;
     string assetmappingsApiId;
 |};
 
 public type APIAssetsOptionalized record {|
     string assetId?;
-    string[]? apiAssets?;
+    string[] apiAssets?;
     string landingPageUrl?;
     string assetmappingsApiId?;
 |};
@@ -349,7 +352,7 @@ public type APIAssetsTargetType typedesc<APIAssetsWithRelations>;
 public type APIAssetsInsert APIAssets;
 
 public type APIAssetsUpdate record {|
-    string[]? apiAssets?;
+    string[] apiAssets?;
     string landingPageUrl?;
     string assetmappingsApiId?;
 |};

@@ -67,12 +67,15 @@ service /apiMetadata on new http:Listener(9090) {
             apiId = organization[0].orgId;
         }
 
-        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName + "/api-landing-page.html");
+        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
+
+        string relativePath = check file:relativePath(file:getCurrentDir(), readDir[0].absPath);
+
 
         //store the urls of the paths
         store:APIAssets assets = {
             assetId: uuid:createType1AsString(),
-            landingPageUrl: readDir[0].absPath,
+            landingPageUrl: relativePath + "/api-landing-page.html",
             apiAssets: readContentResult.apiAssets,
             assetmappingsApiId: apiId
         };
@@ -88,6 +91,15 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
         final store:Client sClient = check new ();
+
+        stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
+
+        //retrieve the organization id
+        store:OrganizationWithRelations[] organization = check from var org in organizations
+            where org.organizationName == metadata.apiInfo.orgName
+            select org;
+
+        string orgId = organization.pop().orgId ?: "";
 
         models:ThrottlingPolicy[] throttlingPolicies = metadata.throttlingPolicies ?: [];
         store:ThrottlingPolicyInsert[] throttlingPolicyRecords = [];
@@ -117,12 +129,13 @@ service /apiMetadata on new http:Listener(9090) {
 
         store:ApiMetadataInsert metadataRecord = {
             apiId: apiID,
-            orgId: uuid:createType1AsString(),
+            orgId: orgId,
             apiName: metadata.apiInfo.apiName,
             apiCategory: metadata.apiInfo.apiCategory,
             openApiDefinition: metadata.apiInfo.openApiDefinition,
             productionUrl: metadata.serverUrl.productionUrl,
-            sandboxUrl: metadata.serverUrl.sandboxUrl
+            sandboxUrl: metadata.serverUrl.sandboxUrl,
+            organizationName: metadata.apiInfo.orgName
         };
 
         string[] apiIDs = check sClient->/apimetadata.post([metadataRecord]);

@@ -66,16 +66,25 @@ public function readOrganizationContent(file:MetaData[] directories, string path
     return assetMappings;
 }
 
-public function getContentForOrgTemplate(file:MetaData[] directories, string path, models:OrganizationAssets assetMappings, string templateName)
+public function getContentForOrgTemplate(file:MetaData[] directories, string path, models:OrganizationAssets assetMappings)
 returns models:OrganizationAssets|error {
 
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getContentForOrgTemplate(meta, path, assetMappings, templateName);
+            _ = check getContentForOrgTemplate(meta, path, assetMappings);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
+                assetMappings.orgAssets.push(relativePath);
+            } else if (relativePath.endsWith(".css")) {
+                assetMappings.orgAssets.push(relativePath);
+
+            } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
+                assetMappings.orgAssets.push(relativePath);
+
+            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
+            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
                 assetMappings.orgAssets.push(relativePath);
             }
         }
@@ -116,6 +125,15 @@ public function getContentForAPITemplate(file:MetaData[] directories, string pat
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
+                assetMappings.apiAssets.push(relativePath);
+            } else if (relativePath.endsWith(".css")) {
+                assetMappings.apiAssets.push(relativePath);
+
+            } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
+                assetMappings.apiAssets.push(relativePath);
+
+            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
+            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
                 assetMappings.apiAssets.push(relativePath);
             }
         }

@@ -10,6 +10,7 @@ import ballerina/time;
 import ballerina/uuid;
 
 import ballerinacentral/zip;
+import ballerina/log;
 
 // # A service representing a network-accessible API
 // # bound to port `8080`.
@@ -73,7 +74,7 @@ service /admin on new http:Listener(8080) {
 
     # Store the organization landing page content.
     # + return - return value description
-    resource function post orgContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
+    resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "files/zip";
@@ -90,25 +91,37 @@ service /admin on new http:Listener(8080) {
         };
 
         file:MetaData[] directories = check file:readDir(targetPath);
-        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, file:getCurrentDir(), assetMappings, templateName);
+        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, file:getCurrentDir(), assetMappings);
 
-        //TODO retrieve the organization id for the organization name
-        store:OrganizationInsert org = {
-            orgId: uuid:createType1AsString(),
-            organizationName: orgName
-        };
+        stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
 
-        //create an organization record
-        string[] orgCreationResult = check adminClient->/organizations.post([org]);
+        //retrieve the organization id
+        store:OrganizationWithRelations[] organization = check from var org in organizations
+            where org.organizationName == orgName
+            select org;
 
-        orgContent.orgId = orgCreationResult[0];
+        if (organization.length() == 0) {
+            //create an organization record
+           return error ("Organization doesnt exist");
+        }
 
-        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName + "/org-landing-page.html");
+        store:ThemeOptionalized[] theme = organization.pop().theme ?: [];
+
+        string templateName = theme.pop().templateId ?: "";
+
+        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
+        string relativePath = check file:relativePath(file:getCurrentDir(), readDir[0].absPath);
+
+
+        log:printInfo("Landing page content: " + relativePath);
+        log:printInfo("Template name: " + templateName);
+        
+        orgContent.landingPageUrl = relativePath;
 
         //store the urls of the paths in the database
         store:OrganizationAssets assets = {
-            assetId: orgCreationResult[0],
-            orgLandingPage: readDir[0].absPath,
+            assetId: uuid:createType1AsString(),
+            orgLandingPage: relativePath + "org-landing-page.html",
             orgAssets: orgContent.orgAssets,
             organizationassetsOrgId: orgContent.orgId
         };
@@ -136,6 +149,12 @@ service /admin on new http:Listener(8080) {
             where org.organizationName == theme.orgName
             select org;
 
+
+        if (organization.length() != 0) {
+            //create an organization record
+           return error ("Organization already exists");
+        }
+
         //TODO retrieve the organization id for the organization name
         store:OrganizationInsert org = {
             orgId: uuid:createType1AsString(),
@@ -145,11 +164,14 @@ service /admin on new http:Listener(8080) {
         //create an organization record
         string[] orgCreationResult = check adminClient->/organizations.post([org]);
 
+        log:printInfo("Organization created with id: " + orgCreationResult[0]);
+
         if (theme.templateName.equalsIgnoreCaseAscii("custom")) {
+            log:printInfo("Custom theme selected");
             //store the url of tbe org landing page in the database
             store:OrganizationAssetsInsert assets = {
                 assetId: orgCreationResult[0],
-                orgLandingPage: theme.orgLandingPageUrl,
+                orgLandingPage: theme.orgLandingPageUrl ?: "",
                 organizationassetsOrgId: orgCreationResult[0],
                 orgAssets: ()
             };
@@ -162,7 +184,7 @@ service /admin on new http:Listener(8080) {
         store:ThemeInsert insertTheme = {
             themeId: uuid:createType1AsString(),
             templateId: theme.templateName,
-            organizationOrgId: organization[0].orgId,
+            organizationOrgId: orgCreationResult[0],
             theme: theme.toJsonString()
         };
 

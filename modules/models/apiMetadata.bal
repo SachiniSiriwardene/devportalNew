@@ -1,10 +1,11 @@
 public type ApiInfo record {
+    string orgName;
     string apiName;
     string[] apiCategory;
     string openApiDefinition;
-    string? apiLandingPageURL;
-    APIReview[]? reviews;
-    APIAssets? apiAssets;
+    string apiLandingPageURL?;
+    APIReview[] reviews?;
+    APIAssets apiAssets?;
     map<string> additionalProperties;
 };
 

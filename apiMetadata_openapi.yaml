@@ -27,6 +27,11 @@ paths:
         required: true
         schema:
           type: string
+      - name: templateName
+        in: query
+        required: true
+        schema:
+          type: string
       requestBody:
         content:
           '*/*':
@@ -38,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ContentResponse'
+                $ref: '#/components/schemas/APIContentResponse'
         "500":
           description: InternalServerError
           content:
@@ -68,19 +73,30 @@ paths:
                 $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    ContentResponse:
+    APIAssets:
       required:
-      - fileNames
-      - timeUploaded
+      - apiAssets
+      - landingPageUrl
       type: object
       properties:
-        fileNames:
+        apiAssets:
           type: array
           items:
             type: string
+        landingPageUrl:
+          type: string
+      description: Assets needed for the api landing page.
+    APIContentResponse:
+      required:
+      - assetMappings
+      - timeUploaded
+      type: object
+      properties:
+        assetMappings:
+          $ref: '#/components/schemas/APIAssets'
         timeUploaded:
           type: string
-      description: Response for content storage.
+      description: Response for API content storage.
     ErrorPayload:
       type: object
       properties:
@@ -103,12 +119,38 @@ components:
           type: integer
           description: Relevant HTTP status code
           format: int32
+    APIReview:
+      required:
+      - apiComment
+      - apiID
+      - apiName
+      - apiRating
+      - apiReviewer
+      - reviewId
+      type: object
+      properties:
+        reviewId:
+          type: string
+        apiComment:
+          type: string
+        apiRating:
+          type: integer
+          format: int64
+        apiReviewer:
+          type: string
+        apiID:
+          type: string
+        apiName:
+          type: string
     ApiInfo:
       required:
       - additionalProperties
+      - apiAssets
       - apiCategory
+      - apiLandingPageURL
       - apiName
       - openApiDefinition
+      - reviews
       type: object
       properties:
         apiName:
@@ -119,6 +161,18 @@ components:
             type: string
         openApiDefinition:
           type: string
+        apiLandingPageURL:
+          type: string
+          nullable: true
+        reviews:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/APIReview'
+        apiAssets:
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/APIAssets'
         additionalProperties:
           type: object
           additionalProperties:
