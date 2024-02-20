@@ -3,6 +3,7 @@ import devportal.models;
 import ballerina/file;
 import ballerina/log;
 import ballerina/mime;
+import ballerina/regex;
 
 public function handleContent(mime:Entity bodyPart) {
     // Get the media type from the body part retrieved from the request.
@@ -66,15 +67,18 @@ public function readOrganizationContent(file:MetaData[] directories, string path
     return assetMappings;
 }
 
-public function getContentForOrgTemplate(file:MetaData[] directories, string path, models:OrganizationAssets assetMappings)
+public function getContentForOrgTemplate(file:MetaData[] directories, string orgName, models:OrganizationAssets assetMappings)
 returns models:OrganizationAssets|error {
 
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getContentForOrgTemplate(meta, path, assetMappings);
+            _ = check getContentForOrgTemplate(meta, orgName, assetMappings);
         } else {
-            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            
+            //string relativePath = check file:relativePath(orgName, item.absPath);
+            string[] names = regex:split(item.absPath, orgName);
+            string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
                 assetMappings.orgAssets.push(relativePath);
             } else if (relativePath.endsWith(".css")) {
