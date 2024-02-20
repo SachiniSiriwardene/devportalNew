@@ -77,8 +77,8 @@ service /admin on new http:Listener(8080) {
     resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "files/zip";
-        string targetPath = "./files/unzip";
+        string path = "./zip";
+        string targetPath = "./files";
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
