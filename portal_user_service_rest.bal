@@ -124,10 +124,11 @@ service / on new http:Listener(3001) {
         store:ApiMetadataWithRelations[] apiMetaData = check from var api in apis
             where api.apiName == apiName && api.orgId == orgId
             select api;
-
+        store:ApiMetadataWithRelations api =  apiMetaData.pop();
+        log:printInfo("API data"+ api.toString());
         //retrieve the organization id
         store:APIAssetsWithRelations[] assets = check from var asset in apiAssets
-            where asset.assetmappingsApiId == apiMetaData.pop().apiId
+            where asset.assetmappingsApiId == api.apiId
             select asset;
 
         if (templateName.equalsIgnoreCaseAscii("custom")) {
