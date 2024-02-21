@@ -16,7 +16,7 @@ service / on new http:Listener(3001) {
     # + paths - parameter description  
     # + request - parameter description
     # + return - return value descriptio
-    resource function get [string orgName]/files/[string ... paths](http:Request request) returns http:Response {
+    resource function get [string orgName]/files/[string... paths](http:Request request) returns http:Response {
 
         mime:Entity file = new;
         log:printInfo("./" + request.rawPath);
@@ -29,7 +29,7 @@ service / on new http:Listener(3001) {
         } on fail var e {
             log:printError("Error occurred while checking file existence: " + e.message());
         }
-        
+
         http:Response response = new;
         response.setEntity(file);
         do {
@@ -66,21 +66,12 @@ service / on new http:Listener(3001) {
 
         string templateName = theme.pop().templateId ?: "";
 
+        string landingPage = storedAsset.pop().orgLandingPage ?: "";
+        log:printInfo("Landing page URL: " + landingPage);
         if (templateName.equalsIgnoreCaseAscii("custom")) {
-            string landingPage = storedAsset.pop().orgLandingPage ?: "";
-            http:Client content = check new (landingPage);
-            http:Response customOrgLandingPage = check content->get("");
-            string orgLandingPage = check customOrgLandingPage.getTextPayload();
-            file.setBody(orgLandingPage);
+            file.setFileAsEntityBody(orgName + "/" + landingPage);
         } else {
-            do {
-                boolean dirExists = check file:test("./templates/" + templateName, file:EXISTS);
-                if (dirExists) {
-                    file.setFileAsEntityBody("./templates/" + templateName + "/org-landing-page.html");
-                }
-            } on fail var e {
-                log:printError("Error occurred while checking file existence: " + e.message());
-            }
+            file.setFileAsEntityBody(landingPage);
         }
 
         http:Response response = new;
@@ -124,8 +115,8 @@ service / on new http:Listener(3001) {
         store:ApiMetadataWithRelations[] apiMetaData = check from var api in apis
             where api.apiName == apiName && api.orgId == orgId
             select api;
-        store:ApiMetadataWithRelations api =  apiMetaData.pop();
-        log:printInfo("API data"+ api.toString());
+        store:ApiMetadataWithRelations api = apiMetaData.pop();
+        log:printInfo("API data" + api.toString());
         //retrieve the organization id
         store:APIAssetsWithRelations[] assets = check from var asset in apiAssets
             where asset.assetmappingsApiId == api.apiId

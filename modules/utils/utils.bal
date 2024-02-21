@@ -75,7 +75,7 @@ returns models:OrganizationAssets|error {
             file:MetaData[] meta = check file:readDir(item.absPath);
             _ = check getContentForOrgTemplate(meta, orgName, assetMappings);
         } else {
-            
+
             //string relativePath = check file:relativePath(orgName, item.absPath);
             string[] names = regex:split(item.absPath, orgName);
             string relativePath = names[1];
@@ -90,10 +90,14 @@ returns models:OrganizationAssets|error {
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
                 assetMappings.orgAssets.push(relativePath);
+            } else if (relativePath.endsWith("org-landing-page.html")) {
+                assetMappings.landingPageUrl = relativePath;
             }
+
         }
     }
     return assetMappings;
+
 }
 
 function readAPIContent(file:MetaData[] directories, string path, models:APIAssets assetMappings) returns models:APIAssets|error {
@@ -127,7 +131,7 @@ public function getContentForAPITemplate(file:MetaData[] directories, string pat
             file:MetaData[] meta = check file:readDir(item.absPath);
             _ = check getContentForAPITemplate(meta, path, assetMappings);
         } else {
-              string[] names = regex:split(item.absPath, path);
+            string[] names = regex:split(item.absPath, path);
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
                 assetMappings.apiAssets.push(relativePath);

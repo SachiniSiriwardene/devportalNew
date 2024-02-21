@@ -109,19 +109,26 @@ service /admin on new http:Listener(8080) {
         store:ThemeOptionalized[] theme = org.theme ?: [];
 
         string templateName = theme.pop().templateId ?: "";
+        string landingPage = "";
 
-        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
-        string relativePath = check file:relativePath(file:getCurrentDir(), readDir[0].absPath);
+        if (!templateName.equalsIgnoreCaseAscii("custom")) {
+            file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
+            foreach var file in readDir {
+                if (file.absPath.endsWith("org-landing-page.html")) {
+                    landingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
+                }
+            }
+            orgContent.landingPageUrl = landingPage;
+        } else {
+            landingPage = orgContent.landingPageUrl;
+        }
 
-        log:printInfo("Landing page content: " + relativePath);
+        log:printInfo("Landing page content: " + landingPage);
         log:printInfo("Template name: " + templateName);
 
-        orgContent.landingPageUrl = relativePath;
-
-        //store the urls of the paths in the database
         store:OrganizationAssets assets = {
             assetId: uuid:createType1AsString(),
-            orgLandingPage: relativePath + "org-landing-page.html",
+            orgLandingPage: landingPage,
             orgAssets: orgContent.orgAssets,
             organizationassetsOrgId: org.orgId ?: ""
         };
@@ -167,7 +174,7 @@ service /admin on new http:Listener(8080) {
             store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
                 where asset.organizationassetsOrgId == orgId
                 select asset;
-            
+
             log:printInfo("Assets" + assets.toString());
 
             foreach var asset in assets {
@@ -194,7 +201,6 @@ service /admin on new http:Listener(8080) {
                 select asset;
 
             log:printInfo("API Assets" + assets.toString());
-
 
             foreach var asset in assets {
                 apiAssetModel = {
