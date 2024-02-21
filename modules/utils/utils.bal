@@ -144,6 +144,8 @@ public function getContentForAPITemplate(file:MetaData[] directories, string pat
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
                 assetMappings.apiAssets.push(relativePath);
+            } else if (relativePath.endsWith("api-landing-page.html")) {
+                assetMappings.landingPageUrl = relativePath;
             }
         }
     }

@@ -20,7 +20,7 @@ service /apiMetadata on new http:Listener(9090) {
     # + orgName - organization name
     # + apiName - API name
     # + return - return value description
-    resource function post apiContent(http:Request request, string orgName, string apiName, string templateName) returns models:APIContentResponse|http:InternalServerError|error {
+    resource function post apiContent(http:Request request, string orgName, string apiName) returns models:APIContentResponse|http:InternalServerError|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
@@ -36,23 +36,29 @@ service /apiMetadata on new http:Listener(9090) {
         };
 
         file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
-        models:APIAssets readContentResult = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
+        models:APIAssets apiContent = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
 
-        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
+        stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
 
         //retrieve the organization id
-        store:Organization[] organization = check from var org in organizations
+        store:OrganizationWithRelations[] organization = check from var org in organizations
             where org.organizationName == orgName
             select org;
-
-        string orgId = "";
-        string apiId = "";
-
-        if (organization.length() == 0) {
+         if (organization.length() == 0) {
             log:printInfo("No organization found");
         } else if (organization.length() == 1) {
-            orgId = organization[0].orgId;
         }
+        store:OrganizationWithRelations org = organization.pop();
+        string templateName = "";
+        store:ThemeOptionalized[] theme = org.theme ?: [];
+
+        templateName = theme.pop().templateId ?: "";
+        string orgId = "";
+        string apiId = "";
+        orgId = org.orgId ?: "";
+
+
+       
 
         stream<store:ApiMetadata, persist:Error?> apis = adminClient->/apimetadata.get();
 
@@ -68,26 +74,33 @@ service /apiMetadata on new http:Listener(9090) {
             log:printInfo("API found" + apiId);
         }
 
-        file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
-
-        string relativePath = check file:relativePath(file:getCurrentDir(), readDir[0].absPath);
-
+        string apiLandingPage = "";
+        if (!templateName.equalsIgnoreCaseAscii("custom")) {
+            file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
+            foreach var file in readDir {
+                if (file.absPath.endsWith("api-landing-page.html")) {
+                    apiLandingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
+                }
+            }
+        } else {
+            apiLandingPage = apiContent.landingPageUrl;
+        }
 
         //store the urls of the paths
         store:APIAssets assets = {
             assetId: uuid:createType1AsString(),
-            landingPageUrl: relativePath ,
-            apiAssets: readContentResult.apiAssets,
+            landingPageUrl: apiLandingPage,
+            apiAssets: apiContent.apiAssets,
             assetmappingsApiId: apiId
         };
 
-        log:printInfo("API Assets: "+ readContentResult.apiAssets.toString());
+        log:printInfo("API Assets: " + apiContent.apiAssets.toString());
 
         string[] listResult = check adminClient->/apiassets.post([assets]);
 
         models:APIContentResponse uploadedContent = {
             timeUploaded: time:utcToString(time:utcNow(0)),
-            assetMappings: readContentResult
+            assetMappings: apiContent
         };
         return uploadedContent;
     }

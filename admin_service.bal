@@ -118,7 +118,6 @@ service /admin on new http:Listener(8080) {
                     landingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
                 }
             }
-            orgContent.landingPageUrl = landingPage;
         } else {
             landingPage = orgContent.landingPageUrl;
         }

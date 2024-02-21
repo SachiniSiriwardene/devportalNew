@@ -122,23 +122,15 @@ service / on new http:Listener(3001) {
             where asset.assetmappingsApiId == api.apiId
             select asset;
 
+        log:printInfo("API Assets: " + assets.toString());
+        string landingPage = assets.pop().landingPageUrl?: "";
+        log:printInfo("Landing page URL: " + landingPage);
         if (templateName.equalsIgnoreCaseAscii("custom")) {
-            string landingPage = assets.pop().landingPageUrl ?: "";
-            log:printInfo("Landing page URL: " + landingPage);
-            http:Client content = check new (landingPage);
-            http:Response customAPILandingPage = check content->get("");
-            string apiLandingPage = check customAPILandingPage.getTextPayload();
-            file.setBody(apiLandingPage);
+            file.setFileAsEntityBody(orgName + "/" + landingPage);
         } else {
-            do {
-                boolean dirExists = check file:test("./templates/" + templateName, file:EXISTS);
-                if (dirExists) {
-                    file.setFileAsEntityBody("./templates/" + templateName + "/api-landing-page.html");
-                }
-            } on fail var e {
-                log:printError("Error occurred while checking file existence: " + e.message());
-            }
+            file.setFileAsEntityBody(landingPage);
         }
+       
 
         http:Response response = new;
         response.setEntity(file);
@@ -150,7 +142,7 @@ service / on new http:Listener(3001) {
         response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
-        response.setHeader("Content-Disposition", "attachment; filename=" + templateName + "/org-landing-page.html");
+        response.setHeader("Content-Disposition", "attachment; filename=" + landingPage);
         return response;
     }
 }
