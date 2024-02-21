@@ -70,6 +70,7 @@ public function readOrganizationContent(file:MetaData[] directories, string path
 public function getContentForOrgTemplate(file:MetaData[] directories, string orgName, models:OrganizationAssets assetMappings)
 returns models:OrganizationAssets|error {
 
+    
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
@@ -80,9 +81,9 @@ returns models:OrganizationAssets|error {
             string[] names = regex:split(item.absPath, orgName);
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
-                assetMappings.orgAssets.push(relativePath);
+                assetMappings.markdown.push(relativePath);
             } else if (relativePath.endsWith(".css")) {
-                assetMappings.orgAssets.push(relativePath);
+                assetMappings.stylesheets.push(relativePath);
 
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
                 assetMappings.orgAssets.push(relativePath);

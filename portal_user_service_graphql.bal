@@ -66,8 +66,13 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 apiAssets: {
                     apiAssets: apiAssets?.apiAssets ?: [],
                     landingPageUrl: apiAssets.landingPageUrl ?: ""
+                ,
+                    stylesheets: [],
+                    markdown: []
                 }
-            ,orgName: apiMetaData.organizationName ?: ""}
+            ,
+                orgName: apiMetaData.organizationName ?: ""
+            }
         };
 
         return metaData;
@@ -136,9 +141,13 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             apiLandingPageURL: apiAssets.landingPageUrl ?: "",
                             apiAssets: {
                                 apiAssets: apiAssets?.apiAssets ?: [],
-                                landingPageUrl: apiAssets.landingPageUrl ?: ""
+                                landingPageUrl: apiAssets.landingPageUrl ?: "",
+                                stylesheets: [],
+                                markdown: []
                             }
-                        ,orgName:  api.organizationName ?: ""}
+                        ,
+                            orgName: api.organizationName ?: ""
+                        }
                     };
                     filteredData.push(metaData);
                 }

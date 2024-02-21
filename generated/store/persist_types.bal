@@ -302,6 +302,8 @@ public type OrganizationUpdate record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string[]? orgAssets;
+    string[] markdown;
+    string[] stylesheets;
     string orgLandingPage;
     string organizationassetsOrgId;
 |};
@@ -309,6 +311,8 @@ public type OrganizationAssets record {|
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
     string[]? orgAssets?;
+    string[] markdown?;
+    string[] stylesheets?;
     string orgLandingPage?;
     string organizationassetsOrgId?;
 |};
@@ -324,6 +328,8 @@ public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
     string[]? orgAssets?;
+    string[] markdown?;
+    string[] stylesheets?;
     string orgLandingPage?;
     string organizationassetsOrgId?;
 |};
@@ -331,6 +337,8 @@ public type OrganizationAssetsUpdate record {|
 public type APIAssets record {|
     readonly string assetId;
     string[] apiAssets;
+    string[] markdown;
+    string[] stylesheets;
     string landingPageUrl;
     string assetmappingsApiId;
 |};
@@ -338,6 +346,8 @@ public type APIAssets record {|
 public type APIAssetsOptionalized record {|
     string assetId?;
     string[] apiAssets?;
+    string[] markdown?;
+    string[] stylesheets?;
     string landingPageUrl?;
     string assetmappingsApiId?;
 |};
@@ -353,6 +363,8 @@ public type APIAssetsInsert APIAssets;
 
 public type APIAssetsUpdate record {|
     string[] apiAssets?;
+    string[] markdown?;
+    string[] stylesheets?;
     string landingPageUrl?;
     string assetmappingsApiId?;
 |};

@@ -149,6 +149,8 @@ public type Organization record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string[]? orgAssets;
+    string[] markdown;
+    string[] stylesheets;
     string orgLandingPage;
     Organization organization;
 |};
@@ -162,6 +164,8 @@ public type OrganizationAssets record {|
 public type APIAssets record {|
     readonly string assetId;
     string[] apiAssets;
+    string[] markdown;
+    string[] stylesheets;
     string landingPageUrl;
     ApiMetadata api;
 |};

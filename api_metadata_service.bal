@@ -32,7 +32,9 @@ service /apiMetadata on new http:Listener(9090) {
         models:APIAssets assetMappings = {
 
             landingPageUrl: "",
-            apiAssets: []
+            apiAssets: [],
+            stylesheets: [],
+            markdown: []
         };
 
         file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
@@ -44,7 +46,7 @@ service /apiMetadata on new http:Listener(9090) {
         store:OrganizationWithRelations[] organization = check from var org in organizations
             where org.organizationName == orgName
             select org;
-         if (organization.length() == 0) {
+        if (organization.length() == 0) {
             log:printInfo("No organization found");
         } else if (organization.length() == 1) {
         }
@@ -56,9 +58,6 @@ service /apiMetadata on new http:Listener(9090) {
         string orgId = "";
         string apiId = "";
         orgId = org.orgId ?: "";
-
-
-       
 
         stream<store:ApiMetadata, persist:Error?> apis = adminClient->/apimetadata.get();
 
@@ -91,7 +90,9 @@ service /apiMetadata on new http:Listener(9090) {
             assetId: uuid:createType1AsString(),
             landingPageUrl: apiLandingPage,
             apiAssets: apiContent.apiAssets,
-            assetmappingsApiId: apiId
+            assetmappingsApiId: apiId,
+            stylesheets: apiContent.stylesheets,
+            markdown: apiContent.markdown
         };
 
         log:printInfo("API Assets: " + apiContent.apiAssets.toString());
@@ -156,15 +157,15 @@ service /apiMetadata on new http:Listener(9090) {
 
         string[] apiIDs = check sClient->/apimetadata.post([metadataRecord]);
 
-        //store the url of the api landing page
-        store:APIAssets assets = {
-            assetId: uuid:createType1AsString(),
-            landingPageUrl: metadata.apiInfo.apiLandingPageURL ?: "",
-            apiAssets: [],
-            assetmappingsApiId: apiIDs[0]
-        };
+        // //store the url of the api landing page
+        // store:APIAssets assets = {
+        //     assetId: uuid:createType1AsString(),
+        //     landingPageUrl: metadata.apiInfo.apiLandingPageURL ?: "",
+        //     apiAssets: [],
+        //     assetmappingsApiId: apiIDs[0]
+        // ,stylesheets: [], markdown: []};
 
-        string[] listResult = check adminClient->/apiassets.post([assets]);
+        // string[] listResult = check adminClient->/apiassets.post([assets]);
 
         if (metadataRecord.length() > 0) {
             http:Response response = new;

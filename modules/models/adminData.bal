@@ -21,10 +21,14 @@ public type APIContentResponse record {
 # Assets needed for the org landing page.
 #
 # + orgAssets - field description  
+# + markdown - field description  
+# + stylesheets - field description  
 # + landingPageUrl - field description  
 # + orgId - field description
 public type OrganizationAssets record {|
     string[] orgAssets;
+    string[] markdown;
+    string[] stylesheets;
     string landingPageUrl;
     string orgId;
 |};
@@ -32,9 +36,13 @@ public type OrganizationAssets record {|
 # Assets needed for the api landing page.
 #
 # + apiAssets - field description  
+# + markdown - field description  
+# + stylesheets - field description  
 # + landingPageUrl - field description
 public type APIAssets record {|
     string[] apiAssets;
+    string[] markdown;
+    string[] stylesheets;
     string landingPageUrl;
 |};
 

@@ -86,7 +86,9 @@ service /admin on new http:Listener(8080) {
 
             landingPageUrl: "",
             orgAssets: [],
-            orgId: ""
+            orgId: "",
+            stylesheets: [],
+            markdown: []
         };
 
         file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
@@ -129,7 +131,9 @@ service /admin on new http:Listener(8080) {
             assetId: uuid:createType1AsString(),
             orgLandingPage: landingPage,
             orgAssets: orgContent.orgAssets,
-            organizationassetsOrgId: org.orgId ?: ""
+            organizationassetsOrgId: org.orgId ?: "",
+            stylesheets: orgContent.stylesheets,
+            markdown: orgContent.markdown
         };
 
         string[] listResult = check adminClient->/organizationassets.post([assets]);
@@ -165,8 +169,8 @@ service /admin on new http:Listener(8080) {
 
         log:printInfo("Org ID: " + orgId);
         string apiID = "";
-        models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: ""};
-        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: ""};
+        models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: "", stylesheets: [], markdown: []};
+        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheets: [], markdown: []};
         if (apiName == null) {
             stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
 
@@ -180,7 +184,9 @@ service /admin on new http:Listener(8080) {
                 organizationAssets = {
                     landingPageUrl: asset.orgLandingPage ?: "",
                     orgAssets: asset?.orgAssets ?: [],
-                    orgId: asset.organizationassetsOrgId ?: ""
+                    orgId: asset.organizationassetsOrgId ?: "",
+                    stylesheets: asset.stylesheets ?: [],
+                    markdown: asset.markdown ?: []
                 };
             }
             return organizationAssets;
@@ -204,7 +210,9 @@ service /admin on new http:Listener(8080) {
             foreach var asset in assets {
                 apiAssetModel = {
                     apiAssets: asset.apiAssets ?: [],
-                    landingPageUrl: asset.landingPageUrl ?: ""
+                    landingPageUrl: asset.landingPageUrl ?: "",
+                    stylesheets: asset.stylesheets ?: [],
+                    markdown:  asset.markdown ?: []
                 };
             }
             return apiAssetModel;
@@ -248,6 +256,9 @@ service /admin on new http:Listener(8080) {
                 orgLandingPage: theme.orgLandingPageUrl ?: "",
                 organizationassetsOrgId: orgCreationResult[0],
                 orgAssets: ()
+            ,
+                stylesheets: [],
+                markdown: []
             };
 
             string[] listResult = check adminClient->/organizationassets.post([assets]);
