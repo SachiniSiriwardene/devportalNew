@@ -127,7 +127,8 @@ public function getContentForAPITemplate(file:MetaData[] directories, string pat
             file:MetaData[] meta = check file:readDir(item.absPath);
             _ = check getContentForAPITemplate(meta, path, assetMappings);
         } else {
-            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+              string[] names = regex:split(item.absPath, path);
+            string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
                 assetMappings.apiAssets.push(relativePath);
             } else if (relativePath.endsWith(".css")) {

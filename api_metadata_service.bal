@@ -23,8 +23,8 @@ service /apiMetadata on new http:Listener(9090) {
     resource function post apiContent(http:Request request, string orgName, string apiName, string templateName) returns models:APIContentResponse|http:InternalServerError|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "files/zip";
-        string targetPath = "./files/unzip";
+        string path = "./zip";
+        string targetPath = "./";
         check io:fileWriteBytes(path, binaryPayload);
 
         check zip:extract(path, targetPath);
@@ -35,8 +35,8 @@ service /apiMetadata on new http:Listener(9090) {
             apiAssets: []
         };
 
-        file:MetaData[] directories = check file:readDir(targetPath);
-        models:APIAssets readContentResult = check utils:getContentForAPITemplate(directories, file:getCurrentDir(), assetMappings);
+        file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
+        models:APIAssets readContentResult = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
 
         stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
 
@@ -64,7 +64,8 @@ service /apiMetadata on new http:Listener(9090) {
         if (matchedAPI.length() == 0) {
             log:printInfo("No api found");
         } else if (matchedAPI.length() == 1) {
-            apiId = organization[0].orgId;
+            apiId = matchedAPI[0].apiId;
+            log:printInfo("API found" + apiId);
         }
 
         file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
@@ -75,10 +76,12 @@ service /apiMetadata on new http:Listener(9090) {
         //store the urls of the paths
         store:APIAssets assets = {
             assetId: uuid:createType1AsString(),
-            landingPageUrl: relativePath + "/api-landing-page.html",
+            landingPageUrl: relativePath ,
             apiAssets: readContentResult.apiAssets,
             assetmappingsApiId: apiId
         };
+
+        log:printInfo("API Assets: "+ readContentResult.apiAssets.toString());
 
         string[] listResult = check adminClient->/apiassets.post([assets]);
 
