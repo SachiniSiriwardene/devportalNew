@@ -37,13 +37,15 @@ public type OrganizationAssets record {|
 #
 # + apiAssets - field description  
 # + markdown - field description  
-# + stylesheets - field description  
-# + landingPageUrl - field description
+# + stylesheet - field description  
+# + landingPageUrl - field description  
+# + apiId - field description
 public type APIAssets record {|
     string[] apiAssets;
     string[] markdown;
     string stylesheet;
     string landingPageUrl;
+    string apiId;
 |};
 
 

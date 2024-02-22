@@ -274,12 +274,14 @@ public type Organization record {|
     readonly string orgId;
     string organizationName;
     string templateName;
+    boolean isDefault;
 |};
 
 public type OrganizationOptionalized record {|
     string orgId?;
     string organizationName?;
     string templateName?;
+    boolean isDefault?;
 |};
 
 public type OrganizationWithRelations record {|
@@ -297,6 +299,7 @@ public type OrganizationInsert Organization;
 public type OrganizationUpdate record {|
     string organizationName?;
     string templateName?;
+    boolean isDefault?;
 |};
 
 public type OrganizationAssets record {|

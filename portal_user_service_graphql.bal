@@ -66,10 +66,10 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 apiAssets: {
                     apiAssets: apiAssets?.apiAssets ?: [],
                     landingPageUrl: apiAssets.landingPageUrl ?: "",
-                    stylesheet: "",
-                    markdown: []
-                }
-            ,
+                    stylesheet: apiAssets.stylesheet ?: "",
+                    markdown: apiAssets.markdown ?: [],
+                    apiId: apiAssets.assetmappingsApiId ?: ""
+                },
                 orgName: apiMetaData.organizationName ?: ""
             }
         };
@@ -141,10 +141,10 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             apiAssets: {
                                 apiAssets: apiAssets?.apiAssets ?: [],
                                 landingPageUrl: apiAssets.landingPageUrl ?: "",
-                                stylesheet: "",
-                                markdown: []
-                            }
-                        ,
+                                stylesheet: apiAssets.stylesheet ?: "",
+                                markdown: apiAssets.markdown ?: [],
+                                apiId: apiAssets.assetmappingsApiId ?: ""
+                            },
                             orgName: api.organizationName ?: ""
                         }
                     };

@@ -132,6 +132,7 @@ public type Organization record {|
     readonly string orgId;
     string organizationName;
     string templateName;
+    boolean isDefault; 
     OrganizationAssets? organizationAssets;
     Theme[] theme;
     IdentityProvider[] identityProvider;

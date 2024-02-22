@@ -19,61 +19,46 @@ final store:Client adminClient = check new ();
 
 service /admin on new http:Listener(8080) {
 
-    # Store the content for landing pages.
+    # Description.
     #
-    # + request - compressed file containing the folder content  
-    # + orgName - organization name
-    # + return - return value description
-    // resource function post orgTemplate(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    # + request - parameter description  
+    # + orgName - parameter description  
+    # + templateName - parameter description
+    resource function post orgContent(string orgName) returns models:OrgContentResponse|error {
 
-    //     byte[] binaryPayload = check request.getBinaryPayload();
-    //     string path = "files/zip";
-    //     string targetPath = "./files/unzip";
-    //     check io:fileWriteBytes(path, binaryPayload);
+        string orgId = check utils:createOrg(orgName, "template1");
+        models:OrganizationAssets assetMappings = {
 
-    //     error? result = check zip:extract(path, targetPath);
+            landingPageUrl: "templates/template1/org-landing-page.html",
+            orgAssets: [ orgName +"/files/OrgLandingPage/content/org-landing-page-section-one.md", 
+                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-three.md",
+                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-two.md"],
+            orgId: orgId,
+            markdown: [orgName +"/files/OrgLandingPage/content/org-landing-page-section-one.md", 
+                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-three.md",
+                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-two.md"],
+            stylesheet: ""
+        };
 
-    //     models:OrganizationAssets assetMappings = {
+        string orgAssets = check utils:createOrgAssets(assetMappings);
 
-    //         landingPageUrl: "",
-    //         orgAssets: [],
-    //         orgId: ""
-    //     };
-    //     models:APIAssets[] apiAssets = [];
+        log:printInfo("Org assets created: " + orgAssets);
 
-    //     file:MetaData[] directories = check file:readDir(targetPath);
-    //     string[] readContentResult = check utils:readOrganizationContent(directories, file:getCurrentDir(), []);
+        models:OrgContentResponse uploadedContent = {
+            timeUploaded: time:utcToString(time:utcNow(0)),
+            assetMappings: assetMappings
+        };
+        return uploadedContent;
 
-    //     //store the urls of the paths
-    //     store:OrganizationAssets assets = {
-    //         assetId: uuid:createType1AsString(),
-    //         orgLandingPage: assetMappings.landingPageUrl,
-    //         orgAssets: readContentResult,
-    //         organizationassetsOrgId: ""};
-
-    //     string[] listResult = check adminClient->/organizationassets.post([assets]);
-
-    //     assetMappings.orgId = listResult[0];
-    //     assetMappings.orgAssets = readContentResult;
-    //     store:OrganizationInsert org = {
-    //         orgId: uuid:createType1AsString(),
-    //         organizationName: orgName
-    //     };
-
-    //     string[] orgCreationResult = check adminClient->/organizations.post([org]);
-
-    //     assetMappings.orgId = orgCreationResult[0];
-
-    //     models:OrgContentResponse uploadedContent = {
-    //         timeUploaded: time:utcToString(time:utcNow(0)),
-    //         assetMappings: assetMappings
-    //     };
-    //     return uploadedContent;
-    // }
+    }
 
     # Store the organization landing page content.
+    #
+    # + request - parameter description  
+    # + orgName - parameter description  
+    # + templateName - parameter description
     # + return - return value description
-    resource function post orgContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
+    resource function put orgContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
@@ -88,68 +73,39 @@ service /admin on new http:Listener(8080) {
             orgAssets: [],
             orgId: "",
             markdown: [],
-            stylesheet: ""};
-
-        file:MetaData[] directories = check file:readDir( "./" + orgName + "/files/OrgLandingPage");
-        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
-
-        stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
-
-
-        //retrieve the organization id
-        store:OrganizationWithRelations[] organization = check from var org in organizations
-            where org.organizationName == orgName
-            select org;
-
-        if (organization.length() != 0) {
-            //create an organization record
-            return error("Organization already exists");
-        }
-
-        //TODO retrieve the organization id for the organization name
-        store:OrganizationInsert org = {
-            orgId: uuid:createType1AsString(),
-            organizationName: orgName,
-            templateName: templateName
+            stylesheet: ""
         };
 
-        //create an organization record
-        string[] orgCreationResult = check adminClient->/organizations.post([org]);
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/files/OrgLandingPage");
+        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
-    
+        //check whether org exists
+        string|error orgId = utils:getOrgId(orgName);
+       
+        string org = check utils:updateOrg(orgName, templateName);
+
         string landingPage = "";
-
         if (!templateName.equalsIgnoreCaseAscii("custom")) {
             file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
             foreach var file in readDir {
                 if (file.absPath.endsWith("org-landing-page.html")) {
-                    landingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
+                    orgContent.landingPageUrl = check file:relativePath(file:getCurrentDir(), file.absPath);
                 }
             }
-        } else {
-            landingPage = orgContent.landingPageUrl;
         }
 
         log:printInfo("Landing page content: " + landingPage);
         log:printInfo("Template name: " + templateName);
 
-        store:OrganizationAssets assets = {
-            assetId: uuid:createType1AsString(),
-            orgLandingPage: landingPage,
-            orgAssets: orgContent.orgAssets,
-            organizationassetsOrgId: orgCreationResult[0],
-            stylesheet: orgContent.stylesheet,
-            markdown: orgContent.markdown
-        };
+        string orgAssets = check utils:updateOrgAssets(orgContent, orgName);
 
-        string[] listResult = check adminClient->/organizationassets.post([assets]);
+        log:printInfo("Org assets created: " + orgAssets);
 
         models:OrgContentResponse uploadedContent = {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: orgContent
         };
         return uploadedContent;
-
     }
 
     # Get the asset paths for the org or api.
@@ -159,24 +115,10 @@ service /admin on new http:Listener(8080) {
     # + return - return value description
     resource function get assets(string orgName, string? apiName) returns models:OrganizationAssets|models:APIAssets|error {
 
-        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
-
-        //retrieve the organization id
-        store:OrganizationWithRelations[] organization = check from var org in organizations
-            where org.organizationName == orgName
-            select org;
-
-        if (organization.length() == 0) {
-            //create an organization record
-            return error("Organization doesnt exist");
-        }
-
-        string orgId = organization.pop().orgId ?: "";
-
+        string orgId = check utils:getOrgId(orgName);
         log:printInfo("Org ID: " + orgId);
-        string apiID = "";
         models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: "", stylesheet: "", markdown: []};
-        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheet: "", markdown: []};
+        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheet: "", markdown: [], apiId: ""};
         if (apiName == null) {
             stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
 
@@ -197,13 +139,7 @@ service /admin on new http:Listener(8080) {
             }
             return organizationAssets;
         } else {
-            stream<store:ApiMetadata, persist:Error?> apis = adminClient->/apimetadata.get();
-
-            store:ApiMetadata[] apiMetaData = check from var api in apis
-                where api.orgId == orgId && api.apiName == apiName
-                select api;
-
-            apiID = apiMetaData.pop().apiId;
+            string apiID = check utils:getAPIId(orgName, apiName);
 
             stream<store:APIAssetsWithRelations, persist:Error?> apiAssets = adminClient->/apiassets.get();
 
@@ -218,7 +154,8 @@ service /admin on new http:Listener(8080) {
                     apiAssets: asset.apiAssets ?: [],
                     landingPageUrl: asset.landingPageUrl ?: "",
                     stylesheet: asset.stylesheet ?: "",
-                    markdown:  asset.markdown ?: []
+                    markdown: asset.markdown ?: [],
+                    apiId: asset.assetmappingsApiId ?: ""
                 };
             }
             return apiAssetModel;
@@ -234,27 +171,18 @@ service /admin on new http:Listener(8080) {
         stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
 
         //retrieve the organization id
-        store:Organization[] organization = check from var org in organizations
-            where org.organizationName == theme.orgName
-            select org;
-
-        if (organization.length() != 0) {
-            //create an organization record
-            return error("Organization already exists");
-        }
-
+        string orgId = check utils:getOrgId(theme.orgName);
         if (theme.templateName.equalsIgnoreCaseAscii("custom")) {
             log:printInfo("Custom theme selected");
             //store the url of tbe org landing page in the database
             store:OrganizationAssetsInsert assets = {
-                assetId: organization[0].orgId,
+                assetId: uuid:createType1AsString(),
                 orgLandingPage: theme.orgLandingPageUrl ?: "",
-                organizationassetsOrgId: organization[0].orgId,
+                organizationassetsOrgId: orgId,
                 orgAssets: (),
                 stylesheet: "",
                 markdown: []
             };
-
             string[] listResult = check adminClient->/organizationassets.post([assets]);
         }
 
@@ -262,7 +190,7 @@ service /admin on new http:Listener(8080) {
 
         store:ThemeInsert insertTheme = {
             themeId: uuid:createType1AsString(),
-            organizationOrgId: organization[0].orgId,
+            organizationOrgId: orgId,
             theme: theme.toJsonString()
         };
 
@@ -271,7 +199,7 @@ service /admin on new http:Listener(8080) {
         models:ThemeResponse createdTheme = {
             createdAt: time:utcToString(time:utcNow(0)),
             themeId: listResult[0],
-            orgId: organization[0].orgId
+            orgId: orgId
         };
         return createdTheme;
     }

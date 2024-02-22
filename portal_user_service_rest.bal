@@ -1,10 +1,12 @@
 import devportal.store;
+import devportal.utils;
 
 import ballerina/file;
 import ballerina/http;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
+import ballerina/regex;
 
 final store:Client retrieveContent = check new ();
 
@@ -16,15 +18,25 @@ service / on new http:Listener(3001) {
     # + paths - parameter description  
     # + request - parameter description
     # + return - return value descriptio
-    resource function get [string orgName]/files/[string... paths](http:Request request) returns http:Response {
+    resource function get [string orgName]/files/[string... paths](http:Request request) returns http:Response|error {
+
+        store:OrganizationWithRelations orgDetails = check utils:getOrgDetails(orgName);
+
+        store:OrganizationAssetsWithRelations orgAssets = orgDetails.organizationAssets ?: {};
 
         mime:Entity file = new;
         log:printInfo("./" + request.rawPath);
 
         do {
-            boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
-            if (dirExists) {
-                file.setFileAsEntityBody("." + request.rawPath);
+            if (orgDetails.isDefault ?: false) {
+                log:printInfo(regex:split(request.rawPath, "/files")[1]);
+                file.setFileAsEntityBody("DefaultOrg/files" + regex:split(request.rawPath, "/files")[1]);
+            } else {
+
+                boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+                if (dirExists) {
+                    file.setFileAsEntityBody("." + request.rawPath);
+                }
             }
         } on fail var e {
             log:printError("Error occurred while checking file existence: " + e.message());
@@ -123,14 +135,13 @@ service / on new http:Listener(3001) {
             select asset;
 
         log:printInfo("API Assets: " + assets.toString());
-        string landingPage = assets.pop().landingPageUrl?: "";
+        string landingPage = assets.pop().landingPageUrl ?: "";
         log:printInfo("Landing page URL: " + landingPage);
         if (templateName.equalsIgnoreCaseAscii("custom")) {
             file.setFileAsEntityBody(orgName + "/" + landingPage);
         } else {
             file.setFileAsEntityBody(landingPage);
         }
-       
 
         http:Response response = new;
         response.setEntity(file);
