@@ -65,9 +65,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 apiLandingPageURL: apiAssets.landingPageUrl ?: "",
                 apiAssets: {
                     apiAssets: apiAssets?.apiAssets ?: [],
-                    landingPageUrl: apiAssets.landingPageUrl ?: ""
-                ,
-                    stylesheets: [],
+                    landingPageUrl: apiAssets.landingPageUrl ?: "",
+                    stylesheet: "",
                     markdown: []
                 }
             ,
@@ -142,7 +141,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             apiAssets: {
                                 apiAssets: apiAssets?.apiAssets ?: [],
                                 landingPageUrl: apiAssets.landingPageUrl ?: "",
-                                stylesheets: [],
+                                stylesheet: "",
                                 markdown: []
                             }
                         ,

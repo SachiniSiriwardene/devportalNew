@@ -83,7 +83,7 @@ returns models:OrganizationAssets|error {
             if (relativePath.endsWith(".md")) {
                 assetMappings.markdown.push(relativePath);
             } else if (relativePath.endsWith(".css")) {
-                assetMappings.stylesheets.push(relativePath);
+                assetMappings.stylesheet = relativePath;
 
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
                 assetMappings.orgAssets.push(relativePath);

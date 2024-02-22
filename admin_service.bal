@@ -87,9 +87,8 @@ service /admin on new http:Listener(8080) {
             landingPageUrl: "",
             orgAssets: [],
             orgId: "",
-            stylesheets: [],
-            markdown: []
-        };
+            markdown: [],
+            stylesheet: ""};
 
         file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
@@ -132,7 +131,7 @@ service /admin on new http:Listener(8080) {
             orgLandingPage: landingPage,
             orgAssets: orgContent.orgAssets,
             organizationassetsOrgId: org.orgId ?: "",
-            stylesheets: orgContent.stylesheets,
+            stylesheet: orgContent.stylesheet,
             markdown: orgContent.markdown
         };
 
@@ -169,8 +168,8 @@ service /admin on new http:Listener(8080) {
 
         log:printInfo("Org ID: " + orgId);
         string apiID = "";
-        models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: "", stylesheets: [], markdown: []};
-        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheets: [], markdown: []};
+        models:OrganizationAssets organizationAssets = {landingPageUrl: "", orgAssets: [], orgId: "", stylesheet: "", markdown: []};
+        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheet: "", markdown: []};
         if (apiName == null) {
             stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
 
@@ -185,7 +184,7 @@ service /admin on new http:Listener(8080) {
                     landingPageUrl: asset.orgLandingPage ?: "",
                     orgAssets: asset?.orgAssets ?: [],
                     orgId: asset.organizationassetsOrgId ?: "",
-                    stylesheets: asset.stylesheets ?: [],
+                    stylesheet: asset.stylesheet ?: "",
                     markdown: asset.markdown ?: []
                 };
             }
@@ -211,7 +210,7 @@ service /admin on new http:Listener(8080) {
                 apiAssetModel = {
                     apiAssets: asset.apiAssets ?: [],
                     landingPageUrl: asset.landingPageUrl ?: "",
-                    stylesheets: asset.stylesheets ?: [],
+                    stylesheet: asset.stylesheet ?: "",
                     markdown:  asset.markdown ?: []
                 };
             }
@@ -255,9 +254,8 @@ service /admin on new http:Listener(8080) {
                 assetId: orgCreationResult[0],
                 orgLandingPage: theme.orgLandingPageUrl ?: "",
                 organizationassetsOrgId: orgCreationResult[0],
-                orgAssets: ()
-            ,
-                stylesheets: [],
+                orgAssets: (),
+                stylesheet: "",
                 markdown: []
             };
 

@@ -33,7 +33,7 @@ service /apiMetadata on new http:Listener(9090) {
 
             landingPageUrl: "",
             apiAssets: [],
-            stylesheets: [],
+            stylesheet: "",
             markdown: []
         };
 
@@ -91,7 +91,7 @@ service /apiMetadata on new http:Listener(9090) {
             landingPageUrl: apiLandingPage,
             apiAssets: apiContent.apiAssets,
             assetmappingsApiId: apiId,
-            stylesheets: apiContent.stylesheets,
+            stylesheet: apiContent.stylesheet,
             markdown: apiContent.markdown
         };
 

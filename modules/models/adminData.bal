@@ -28,7 +28,7 @@ public type APIContentResponse record {
 public type OrganizationAssets record {|
     string[] orgAssets;
     string[] markdown;
-    string[] stylesheets;
+    string stylesheet;
     string landingPageUrl;
     string orgId;
 |};
@@ -42,7 +42,7 @@ public type OrganizationAssets record {|
 public type APIAssets record {|
     string[] apiAssets;
     string[] markdown;
-    string[] stylesheets;
+    string stylesheet;
     string landingPageUrl;
 |};
 
