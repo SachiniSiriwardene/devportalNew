@@ -90,7 +90,7 @@ service /admin on new http:Listener(8080) {
             markdown: [],
             stylesheet: ""};
 
-        file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
+        file:MetaData[] directories = check file:readDir( "./" + orgName + "/files/OrgLandingPage");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
         stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();

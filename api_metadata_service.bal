@@ -37,7 +37,7 @@ service /apiMetadata on new http:Listener(9090) {
             markdown: []
         };
 
-        file:MetaData[] directories = check file:readDir(targetPath + "/" + orgName);
+        file:MetaData[] directories = check file:readDir( "./" + orgName + "/files/APILandingPage");
         models:APIAssets apiContent = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
 
         stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
