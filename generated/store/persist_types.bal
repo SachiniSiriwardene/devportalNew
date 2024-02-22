@@ -212,14 +212,12 @@ public type Theme record {|
     readonly string themeId;
     string organizationOrgId;
     string theme;
-    string templateId;
 |};
 
 public type ThemeOptionalized record {|
     string themeId?;
     string organizationOrgId?;
     string theme?;
-    string templateId?;
 |};
 
 public type ThemeWithRelations record {|
@@ -234,7 +232,6 @@ public type ThemeInsert Theme;
 public type ThemeUpdate record {|
     string organizationOrgId?;
     string theme?;
-    string templateId?;
 |};
 
 public type Application record {|
@@ -276,11 +273,13 @@ public type ApplicationUpdate record {|
 public type Organization record {|
     readonly string orgId;
     string organizationName;
+    string templateName;
 |};
 
 public type OrganizationOptionalized record {|
     string orgId?;
     string organizationName?;
+    string templateName?;
 |};
 
 public type OrganizationWithRelations record {|
@@ -297,6 +296,7 @@ public type OrganizationInsert Organization;
 
 public type OrganizationUpdate record {|
     string organizationName?;
+    string templateName?;
 |};
 
 public type OrganizationAssets record {|

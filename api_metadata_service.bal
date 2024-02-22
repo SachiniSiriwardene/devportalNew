@@ -37,7 +37,7 @@ service /apiMetadata on new http:Listener(9090) {
             markdown: []
         };
 
-        file:MetaData[] directories = check file:readDir( "./" + orgName + "/files/APILandingPage");
+        file:MetaData[] directories = check file:readDir( "./" + orgName + "/files/APILandingPage/" + apiName);
         models:APIAssets apiContent = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
 
         stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
@@ -54,7 +54,7 @@ service /apiMetadata on new http:Listener(9090) {
         string templateName = "";
         store:ThemeOptionalized[] theme = org.theme ?: [];
 
-        templateName = theme.pop().templateId ?: "";
+        templateName = org.templateName ?: "";
         string orgId = "";
         string apiId = "";
         orgId = org.orgId ?: "";

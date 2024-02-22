@@ -73,7 +73,7 @@ service /admin on new http:Listener(8080) {
 
     # Store the organization landing page content.
     # + return - return value description
-    resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    resource function post orgContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
@@ -95,21 +95,28 @@ service /admin on new http:Listener(8080) {
 
         stream<store:OrganizationWithRelations, persist:Error?> organizations = adminClient->/organizations.get();
 
+
         //retrieve the organization id
         store:OrganizationWithRelations[] organization = check from var org in organizations
             where org.organizationName == orgName
             select org;
 
-        if (organization.length() == 0) {
+        if (organization.length() != 0) {
             //create an organization record
-            return error("Organization doesnt exist");
+            return error("Organization already exists");
         }
 
-        store:OrganizationWithRelations org = organization.pop();
+        //TODO retrieve the organization id for the organization name
+        store:OrganizationInsert org = {
+            orgId: uuid:createType1AsString(),
+            organizationName: orgName,
+            templateName: templateName
+        };
 
-        store:ThemeOptionalized[] theme = org.theme ?: [];
+        //create an organization record
+        string[] orgCreationResult = check adminClient->/organizations.post([org]);
 
-        string templateName = theme.pop().templateId ?: "";
+    
         string landingPage = "";
 
         if (!templateName.equalsIgnoreCaseAscii("custom")) {
@@ -130,7 +137,7 @@ service /admin on new http:Listener(8080) {
             assetId: uuid:createType1AsString(),
             orgLandingPage: landingPage,
             orgAssets: orgContent.orgAssets,
-            organizationassetsOrgId: org.orgId ?: "",
+            organizationassetsOrgId: orgCreationResult[0],
             stylesheet: orgContent.stylesheet,
             markdown: orgContent.markdown
         };
@@ -236,24 +243,13 @@ service /admin on new http:Listener(8080) {
             return error("Organization already exists");
         }
 
-        //TODO retrieve the organization id for the organization name
-        store:OrganizationInsert org = {
-            orgId: uuid:createType1AsString(),
-            organizationName: theme.orgName
-        };
-
-        //create an organization record
-        string[] orgCreationResult = check adminClient->/organizations.post([org]);
-
-        log:printInfo("Organization created with id: " + orgCreationResult[0]);
-
         if (theme.templateName.equalsIgnoreCaseAscii("custom")) {
             log:printInfo("Custom theme selected");
             //store the url of tbe org landing page in the database
             store:OrganizationAssetsInsert assets = {
-                assetId: orgCreationResult[0],
+                assetId: organization[0].orgId,
                 orgLandingPage: theme.orgLandingPageUrl ?: "",
-                organizationassetsOrgId: orgCreationResult[0],
+                organizationassetsOrgId: organization[0].orgId,
                 orgAssets: (),
                 stylesheet: "",
                 markdown: []
@@ -266,8 +262,7 @@ service /admin on new http:Listener(8080) {
 
         store:ThemeInsert insertTheme = {
             themeId: uuid:createType1AsString(),
-            templateId: theme.templateName,
-            organizationOrgId: orgCreationResult[0],
+            organizationOrgId: organization[0].orgId,
             theme: theme.toJsonString()
         };
 
@@ -276,7 +271,7 @@ service /admin on new http:Listener(8080) {
         models:ThemeResponse createdTheme = {
             createdAt: time:utcToString(time:utcNow(0)),
             themeId: listResult[0],
-            orgId: orgCreationResult[0]
+            orgId: organization[0].orgId
         };
         return createdTheme;
     }

@@ -105,7 +105,6 @@ public type Theme record {|
     readonly string themeId;
     Organization organization;
     string theme;
-    string templateId;
 |};
 
 # Represents content to be included in the application section.
@@ -132,6 +131,7 @@ public type Application record {|
 public type Organization record {|
     readonly string orgId;
     string organizationName;
+    string templateName;
     OrganizationAssets? organizationAssets;
     Theme[] theme;
     IdentityProvider[] identityProvider;

@@ -64,7 +64,7 @@ service / on new http:Listener(3001) {
 
         store:ThemeOptionalized[] theme = org.theme ?: [];
 
-        string templateName = theme.pop().templateId ?: "";
+        string templateName = org.templateName ?: "";
 
         string landingPage = storedAsset.pop().orgLandingPage ?: "";
         log:printInfo("Landing page URL: " + landingPage);
@@ -103,7 +103,7 @@ service / on new http:Listener(3001) {
 
         store:ThemeOptionalized[] theme = org.theme ?: [];
 
-        string templateName = theme.pop().templateId ?: "";
+        string templateName = org.templateName ?: "";
 
         string orgId = org.orgId ?: "";
 
