@@ -41,8 +41,9 @@ public function getOrgDetails(string orgName) returns store:OrganizationWithRela
 
 }
 
-public function getAPIId(string orgId, string apiName) returns string|error {
+public function getAPIId(string orgName, string apiName) returns string|error {
 
+    string orgId = check getOrgId(orgName);
     stream<store:ApiMetadata, persist:Error?> apis = dbClient->/apimetadata.get();
 
     //retrieve the api id
@@ -51,7 +52,7 @@ public function getAPIId(string orgId, string apiName) returns string|error {
         select api;
 
     if (matchedAPI.length() == 0) {
-        return "API not found";
+        return error("API not found");
     }
     return matchedAPI[0].apiId;
 }
@@ -134,9 +135,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 }
 
 
-
-
-
 public function createAPIAssets(models:APIAssets apiContent) returns string|error {
 
     store:APIAssets assets = {
@@ -147,6 +145,8 @@ public function createAPIAssets(models:APIAssets apiContent) returns string|erro
         markdown: apiContent.markdown,
         landingPageUrl: apiContent.landingPageUrl
     };
+
+    log:printInfo("Stored API asset ID "+apiContent.apiId);
 
     string[] listResult = check dbClient->/apiassets.post([assets]);
 

@@ -42,8 +42,10 @@ service /apiMetadata on new http:Listener(9090) {
 
         string templateName = organizationWithRelations.templateName ?: "";
 
-        string orgId = organizationWithRelations.orgId ?: "";
-        string apiId = check utils:getAPIId(orgId, apiName);
+        string apiId = check utils:getAPIId(orgName, apiName);
+
+        apiContent.apiId = apiId;
+        
 
         string apiLandingPage = "";
         if (!templateName.equalsIgnoreCaseAscii("custom")) {

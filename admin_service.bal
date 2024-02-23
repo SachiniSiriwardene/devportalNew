@@ -139,10 +139,12 @@ service /admin on new http:Listener(8080) {
         } else {
             string apiID = check utils:getAPIId(orgName, apiName);
 
+            log:printInfo("Retireved API Id "+ apiID);
+
             stream<store:APIAssetsWithRelations, persist:Error?> apiAssets = adminClient->/apiassets.get();
 
             store:APIAssetsWithRelations[] assets = check from var asset in apiAssets
-                where asset.assetmappingsApiId == apiID
+                //where asset.assetmappingsApiId == apiID
                 select asset;
 
             log:printInfo("API Assets" + assets.toString());
