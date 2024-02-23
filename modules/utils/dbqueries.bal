@@ -3,6 +3,7 @@ import devportal.store;
 
 import ballerina/persist;
 import ballerina/uuid;
+import ballerina/log;
 
 final store:Client dbClient = check new ();
 
@@ -98,6 +99,9 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
+        log:printInfo("Asset ID update: " + listResult[0]);
+
+
     if (listResult.length() == 0) {
         return error("Organization assets creation failed");
     }
@@ -115,11 +119,13 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
         where orgAsset.organizationassetsOrgId == orgId
         select orgAsset;
 
+    string assetID = asset.pop().assetId;
+    log:printInfo("Asset ID update: " + assetID);
 
-     store:OrganizationAssets org = check  dbClient->/organizationassets/[asset.pop().assetId].put({
+     store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
         orgLandingPage: orgContent.landingPageUrl,
         orgAssets: orgContent.orgAssets,
-        organizationassetsOrgId: orgContent.orgId,
+        organizationassetsOrgId: orgId,
         stylesheet: orgContent.stylesheet,
         markdown: orgContent.markdown
     });

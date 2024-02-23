@@ -21,9 +21,8 @@ service /admin on new http:Listener(8080) {
 
     # Description.
     #
-    # + request - parameter description  
-    # + orgName - parameter description  
-    # + templateName - parameter description
+    # + orgName - parameter description
+    # + return - return value description
     resource function post orgContent(string orgName) returns models:OrgContentResponse|error {
 
         string orgId = check utils:createOrg(orgName, "template1");
@@ -121,7 +120,6 @@ service /admin on new http:Listener(8080) {
         models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheet: "", markdown: [], apiId: ""};
         if (apiName == null) {
             stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-
             store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
                 where asset.organizationassetsOrgId == orgId
                 select asset;
