@@ -29,13 +29,13 @@ service /admin on new http:Listener(8080) {
         models:OrganizationAssets assetMappings = {
 
             landingPageUrl: "templates/template1/org-landing-page.html",
-            orgAssets: [ orgName +"/files/OrgLandingPage/content/org-landing-page-section-one.md", 
-                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-three.md",
-                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-two.md"],
+            orgAssets: ["/files/OrgLandingPage/content/org-landing-page-section-one.md", 
+                        "/files/OrgLandingPage/content/org-landing-page-section-three.md",
+                        "/files/OrgLandingPage/content/org-landing-page-section-two.md"],
             orgId: orgId,
-            markdown: [orgName +"/files/OrgLandingPage/content/org-landing-page-section-one.md", 
-                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-three.md",
-                        orgName +"/files/OrgLandingPage/content/org-landing-page-section-two.md"],
+            markdown: ["/files/OrgLandingPage/content/org-landing-page-section-one.md", 
+                        "/files/OrgLandingPage/content/org-landing-page-section-three.md",
+                        "/files/OrgLandingPage/content/org-landing-page-section-two.md"],
             stylesheet: ""
         };
 
