@@ -46,6 +46,7 @@ public type Review record {|
 # + apiId - api id  
 # + orgId - organization id  
 # + apiName - field description  
+# + organizationName - field description  
 # + apiCategory - field description  
 # + openApiDefinition - field description  
 # + additionalProperties - field description  
@@ -53,8 +54,7 @@ public type Review record {|
 # + productionUrl - field description  
 # + sandboxUrl - field description  
 # + reviews - field description  
-# + subscriptions - field description  
-# + assetMappings - field description
+# + subscriptions - field description
 public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
@@ -68,7 +68,6 @@ public type ApiMetadata record {|
     string sandboxUrl;
     Review[] reviews;
     Subscription[] subscriptions;
-    APIAssets?  assetMappings;
 |};
 
 public type AdditionalProperties record {|
@@ -76,7 +75,7 @@ public type AdditionalProperties record {|
     string key;
     string value;
     ApiMetadata apimetadata;
-    
+
 |};
 
 # Identity Provider configured for dev portal.
@@ -163,18 +162,6 @@ public type OrganizationAssets record {|
     Organization organization;
 |};
 
-# Assets needed for the api landing page.
-#
-# + assetId - field description  
-# + apiAssets - field description  
-# + markdown - field description  
-# + api - field description
-public type APIAssets record {|
-    readonly string assetId;
-    string[] apiAssets;
-    string[] markdown;
-    ApiMetadata api;
-|};
 
 public type ApplicationProperties record {|
     readonly string propertyId;

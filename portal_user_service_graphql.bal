@@ -19,7 +19,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesOptionalized[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
-        store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
         models:APIReview[] reviews = [];
@@ -87,8 +86,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 if (category.equalsIgnoreCaseAscii(item)) {
                     store:ThrottlingPolicyOptionalized[] policies = api.throttlingPolicies ?: [];
                     models:ThrottlingPolicy[] throttlingPolicies = [];
-                    store:APIAssetsOptionalized apiAssets = api.assetMappings ?: {};
-
+                    
                     foreach var policy in policies {
                         models:ThrottlingPolicy policyData = {
                             policyName: policy.policyName ?: "",

@@ -136,24 +136,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     return org.assetId;
 }
 
-public function createAPIAssets(models:APIAssets apiContent) returns string|error {
-
-    store:APIAssets assets = {
-        assetId: uuid:createType1AsString(),
-        apiAssets: apiContent.apiAssets,
-        assetmappingsApiId: apiContent.apiId,
-        markdown: apiContent.markdown
-    };
-
-    log:printInfo("Stored API asset ID " + apiContent.apiId);
-
-    string[] listResult = check dbClient->/apiassets.post([assets]);
-
-    if (listResult.length() == 0) {
-        return error("API assets creation failed");
-    }
-    return listResult[0];
-}
 
 public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
 

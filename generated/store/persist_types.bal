@@ -118,7 +118,6 @@ public type ApiMetadataWithRelations record {|
     ThrottlingPolicyOptionalized[] throttlingPolicies?;
     ReviewOptionalized[] reviews?;
     SubscriptionOptionalized[] subscriptions?;
-    APIAssetsOptionalized assetMappings?;
 |};
 
 public type ApiMetadataTargetType typedesc<ApiMetadataWithRelations>;
@@ -341,35 +340,6 @@ public type OrganizationAssetsUpdate record {|
     string orgLandingPage?;
     string apiLandingPage?;
     string organizationassetsOrgId?;
-|};
-
-public type APIAssets record {|
-    readonly string assetId;
-    string[] apiAssets;
-    string[] markdown;
-    string assetmappingsApiId;
-|};
-
-public type APIAssetsOptionalized record {|
-    string assetId?;
-    string[] apiAssets?;
-    string[] markdown?;
-    string assetmappingsApiId?;
-|};
-
-public type APIAssetsWithRelations record {|
-    *APIAssetsOptionalized;
-    ApiMetadataOptionalized api?;
-|};
-
-public type APIAssetsTargetType typedesc<APIAssetsWithRelations>;
-
-public type APIAssetsInsert APIAssets;
-
-public type APIAssetsUpdate record {|
-    string[] apiAssets?;
-    string[] markdown?;
-    string assetmappingsApiId?;
 |};
 
 public type ApplicationProperties record {|

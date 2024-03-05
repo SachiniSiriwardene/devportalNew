@@ -22,13 +22,12 @@ service /admin on new http:Listener(8080) {
     resource function post organisation(string orgName) returns models:OrgCreationResponse|error {
 
         string orgId = check utils:createOrg(orgName, "template1");
-         models:OrgCreationResponse org = {
+        models:OrgCreationResponse org = {
             orgName: orgName,
             orgId: orgId
         };
         return org;
     }
-
 
     # Description.
     #
@@ -37,11 +36,10 @@ service /admin on new http:Listener(8080) {
     resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
 
         string orgId = check utils:getOrgId(orgName);
-      
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./"+orgName;
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
@@ -63,7 +61,7 @@ service /admin on new http:Listener(8080) {
             apiLandingPage: ""
         };
 
-       // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
+        // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
@@ -89,7 +87,7 @@ service /admin on new http:Listener(8080) {
     resource function put orgContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip"+orgName;
+        string path = "./zip" + orgName;
         string targetPath = "./";
         check io:fileWriteBytes(path, binaryPayload);
 
@@ -115,15 +113,13 @@ service /admin on new http:Listener(8080) {
             apiLandingPage: ""
         };
 
-       // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
+        // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
         // directories = check file:readDir("./" + orgName + "/files/APILandingPage");
         // models:APIAssets apiPageContent = check utils:getContentForAPITemplate(directories, orgName, apiAssets);
-
-        
 
         string org = check utils:updateOrg(orgName, templateName);
 
@@ -160,63 +156,32 @@ service /admin on new http:Listener(8080) {
     # + orgName - parameter description  
     # + apiName - parameter description
     # + return - return value description
-    resource function get assets(string orgName, string? apiName) returns models:OrganizationAssets|models:APIAssets|error {
+    resource function get assets(string orgName) returns models:OrganizationAssets|models:APIAssets|error {
 
         string orgId = check utils:getOrgId(orgName);
         log:printInfo("Org ID: " + orgId);
         models:OrganizationAssets organizationAssets = {orgLandingPage: "", orgAssets: [], orgId: "", markdown: [], apiStyleSheet: "", orgStyleSheet: "", apiLandingPage: ""};
-        models:APIAssets apiAssetModel = {apiAssets: [], landingPageUrl: "", stylesheet: "", markdown: [], apiId: ""};
-        if (apiName == null) {
-            stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-            store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
-                where asset.organizationassetsOrgId == orgId
-                select asset;
 
-            log:printInfo("Org Assets" + assets.toString());
+        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
+        store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
+            where asset.organizationassetsOrgId == orgId
+            select asset;
 
-            foreach var asset in assets {
-                organizationAssets = {
-                    orgLandingPage: asset.orgLandingPage ?: "",
-                    orgAssets: asset?.orgAssets ?: [],
-                    orgId: asset.organizationassetsOrgId ?: "",
-                    markdown: asset.markdown ?: [],
-                    apiStyleSheet: asset.apiStyleSheet ?: "",
-                    orgStyleSheet: asset.orgStyleSheet ?: "",
-                    apiLandingPage: asset.apiLandingPage ?: ""
-                };
-            }
-            return organizationAssets;
-        } else {
-            stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-            store:OrganizationAssetsWithRelations[] orgAssetSelected = check from var asset in orgAssets
-                where asset.organizationassetsOrgId == orgId
-                select asset;
+        log:printInfo("Org Assets" + assets.toString());
 
-            log:printInfo("Org Assets" + orgAssetSelected.toString());
-
-            string apiID = check utils:getAPIId(orgName, apiName);
-
-            log:printInfo("Retireved API Id " + apiID);
-
-            stream<store:APIAssetsWithRelations, persist:Error?> apiAssets = adminClient->/apiassets.get();
-
-            store:APIAssetsWithRelations[] assets = check from var asset in apiAssets
-                //where asset.assetmappingsApiId == apiID
-                select asset;
-
-            log:printInfo("API Assets" + assets.toString());
-
-            foreach var asset in assets {
-                apiAssetModel = {
-                    apiAssets: asset.apiAssets ?: [],
-                    landingPageUrl: orgAssetSelected[0].apiLandingPage ?: "",
-                    stylesheet: orgAssetSelected[0].apiStyleSheet ?: "",
-                    markdown: asset.markdown ?: [],
-                    apiId: asset.assetmappingsApiId ?: ""
-                };
-            }
-            return apiAssetModel;
+        foreach var asset in assets {
+            organizationAssets = {
+                orgLandingPage: asset.orgLandingPage ?: "",
+                orgAssets: asset?.orgAssets ?: [],
+                orgId: asset.organizationassetsOrgId ?: "",
+                markdown: asset.markdown ?: [],
+                apiStyleSheet: asset.apiStyleSheet ?: "",
+                orgStyleSheet: asset.orgStyleSheet ?: "",
+                apiLandingPage: asset.apiLandingPage ?: ""
+            };
         }
+        return organizationAssets;
+
     }
 
     # Store the theme for the developer portal.
