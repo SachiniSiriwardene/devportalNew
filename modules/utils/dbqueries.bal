@@ -1,9 +1,9 @@
 import devportal.models;
 import devportal.store;
 
+import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
-import ballerina/log;
 
 final store:Client dbClient = check new ();
 
@@ -83,7 +83,7 @@ public function updateOrg(string orgName, string template) returns string|error 
         templateName: template,
         isDefault: false
     });
-    
+
     return org.orgId;
 }
 
@@ -100,8 +100,7 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
-        log:printInfo("Asset ID update: " + listResult[0]);
-
+    log:printInfo("Asset ID update: " + listResult[0]);
 
     if (listResult.length() == 0) {
         return error("Organization assets creation failed");
@@ -113,7 +112,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 
     string orgId = check getOrgId(orgName);
 
-   stream<store:OrganizationAssets, persist:Error?> orgAssets = dbClient->/organizationassets.get();
+    stream<store:OrganizationAssets, persist:Error?> orgAssets = dbClient->/organizationassets.get();
 
     //retrieve the api id
     store:OrganizationAssets[] asset = check from var orgAsset in orgAssets
@@ -123,7 +122,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
-     store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
+    store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
         orgLandingPage: orgContent.landingPageUrl,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
@@ -133,7 +132,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 
     return org.assetId;
 }
-
 
 public function createAPIAssets(models:APIAssets apiContent) returns string|error {
 
@@ -146,7 +144,7 @@ public function createAPIAssets(models:APIAssets apiContent) returns string|erro
         landingPageUrl: apiContent.landingPageUrl
     };
 
-    log:printInfo("Stored API asset ID "+apiContent.apiId);
+    log:printInfo("Stored API asset ID " + apiContent.apiId);
 
     string[] listResult = check dbClient->/apiassets.post([assets]);
 
@@ -159,8 +157,8 @@ public function createAPIAssets(models:APIAssets apiContent) returns string|erro
 public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
 
     models:ThrottlingPolicy[] throttlingPolicies = apiMetaData.throttlingPolicies ?: [];
-    store:ThrottlingPolicyInsert[] throttlingPolicyRecords = [];
-    string apiID = uuid:createType1AsString();
+    store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+    string apiID = apiMetaData.apiInfo.apiName;
 
     foreach var policy in throttlingPolicies {
         throttlingPolicyRecords.push({
@@ -172,6 +170,10 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
         });
     }
 
+    if (throttlingPolicyRecords.length() != 0) {
+        string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
+    }
+
     map<string> additionalProperties = apiMetaData.apiInfo.additionalProperties;
     store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
 
@@ -180,12 +182,50 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
             apimetadataApiId: apiID,
             propertyId: uuid:createType1AsString(),
             'key: propertyKey,
-            value: additionalProperties.get(propertyKey)
+            value: <string>additionalProperties.get(propertyKey)
+            });
+    }
+    
+
+    if (additionalPropertiesRecords.length() != 0) {
+        string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
+    }
+
+    map<string> apiContents = apiMetaData.apiInfo.apiArtifacts.apiContent;
+    store:ApiContentInsert[] apiContent = [];
+
+    foreach var propertyKey in apiContents.keys() {
+        apiContent.push({
+            apimetadataApiId: apiID,
+            contentId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiContents.get(propertyKey)
         });
     }
 
+    if (apiContent.length() != 0) {
+        string[] contentResults = check dbClient->/apicontents.post(apiContent);
+    }
+
+    map<string> apiImages = apiMetaData.apiInfo.apiArtifacts.apiImages;
+    store:ApiImagesInsert[] apiImagesRecord = [];
+
+    foreach var propertyKey in apiImages.keys() {
+        apiImagesRecord.push({
+            apimetadataApiId: apiID,
+            imageId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiImages.get(propertyKey)
+        });
+    }
+
+    if (apiImages.length() != 0) {
+        string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+    }
+
+
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
-    store:ApiMetadataInsert metadataRecord = {
+    store:ApiMetadata metadataRecord = {
         apiId: apiID,
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,

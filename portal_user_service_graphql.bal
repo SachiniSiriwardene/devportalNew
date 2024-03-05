@@ -13,69 +13,69 @@ service /apiUserPortal on new graphql:Listener(4000) {
     #
     # + apiID - parameter description
     # + return - meta data related to the API
-    resource function get apiMetaData(string apiID) returns models:ApiMetadata|error {
+    // resource function get apiMetaData(string apiID) returns models:ApiMetadata|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
-        store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
-        store:AdditionalPropertiesOptionalized[] additionalProperties = apiMetaData.additionalProperties ?: [];
-        store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
-        store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
+    //     store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
+    //     store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+    //     store:AdditionalPropertiesOptionalized[] additionalProperties = apiMetaData.additionalProperties ?: [];
+    //     store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
+    //     store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
 
-        models:ThrottlingPolicy[] throttlingPolicies = [];
-        models:APIReview[] reviews = [];
+    //     models:ThrottlingPolicy[] throttlingPolicies = [];
+    //     models:APIReview[] reviews = [];
 
-        foreach var policy in policies {
-            models:ThrottlingPolicy policyData = {
-                policyName: policy.policyName ?: "",
-                description: policy.description ?: "",
-                'type: policy.'type ?: ""
-            };
-            throttlingPolicies.push(policyData);
-        }
+    //     foreach var policy in policies {
+    //         models:ThrottlingPolicy policyData = {
+    //             policyName: policy.policyName ?: "",
+    //             description: policy.description ?: "",
+    //             'type: policy.'type ?: ""
+    //         };
+    //         throttlingPolicies.push(policyData);
+    //     }
 
-        foreach var review in apiReviews {
-            models:APIReview reviewData = {
-                apiRating: review.rating ?: 0,
-                apiComment: review.comment ?: "",
-                apiReviewer: review.reviewedbyUserId ?: "",
-                reviewId: review.reviewId ?: "",
-                apiName: "",
-                apiID: review.apifeedbackApiId ?: ""
-            };
-            reviews.push(reviewData);
-        }
+    //     foreach var review in apiReviews {
+    //         models:APIReview reviewData = {
+    //             apiRating: review.rating ?: 0,
+    //             apiComment: review.comment ?: "",
+    //             apiReviewer: review.reviewedbyUserId ?: "",
+    //             reviewId: review.reviewId ?: "",
+    //             apiName: "",
+    //             apiID: review.apifeedbackApiId ?: ""
+    //         };
+    //         reviews.push(reviewData);
+    //     }
 
-        map<string> properties = {};
-        foreach var property in additionalProperties {
-            properties[property.key ?: ""] = property.value ?: "";
-        }
+    //     models:AdditionalProperties properties = {apiContent: {'key: "", value: ""}, 'key: "", value: "", apiImages: {'key: "", value: ""}};
+    //     foreach var property in additionalProperties {
+    //         properties[property.key ?: ""] = property.value ?: "";
+    //     }
 
-        models:ApiMetadata metaData = {
-            serverUrl: {
-                sandboxUrl: apiMetaData.sandboxUrl ?: "",
-                productionUrl: apiMetaData.productionUrl ?: ""
-            },
-            throttlingPolicies: throttlingPolicies,
-            apiInfo: {
-                apiName: apiMetaData.apiName ?: "",
-                apiCategory: apiMetaData.apiCategory ?: [],
-                openApiDefinition: apiMetaData.openApiDefinition ?: "",
-                additionalProperties: properties,
-                reviews: reviews,
-                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                apiAssets: {
-                    apiAssets: apiAssets?.apiAssets ?: [],
-                    landingPageUrl: apiAssets.landingPageUrl ?: "",
-                    stylesheet: apiAssets.stylesheet ?: "",
-                    markdown: apiAssets.markdown ?: [],
-                    apiId: apiAssets.assetmappingsApiId ?: ""
-                },
-                orgName: apiMetaData.organizationName ?: ""
-            }
-        };
+    //     models:ApiMetadata metaData = {
+    //         serverUrl: {
+    //             sandboxUrl: apiMetaData.sandboxUrl ?: "",
+    //             productionUrl: apiMetaData.productionUrl ?: ""
+    //         },
+    //         throttlingPolicies: throttlingPolicies,
+    //         apiInfo: {
+    //             apiName: apiMetaData.apiName ?: "",
+    //             apiCategory: apiMetaData.apiCategory ?: [],
+    //             openApiDefinition: apiMetaData.openApiDefinition ?: "",
+    //             additionalProperties: properties,
+    //             reviews: reviews,
+    //             apiLandingPageURL: apiAssets.landingPageUrl ?: "",
+    //             apiAssets: {
+    //                 apiAssets: apiAssets?.apiAssets ?: [],
+    //                 landingPageUrl: apiAssets.landingPageUrl ?: "",
+    //                 stylesheet: apiAssets.stylesheet ?: "",
+    //                 markdown: apiAssets.markdown ?: [],
+    //                 apiId: apiAssets.assetmappingsApiId ?: ""
+    //             },
+    //             orgName: apiMetaData.organizationName ?: ""
+    //         }
+    //     };
 
-        return metaData;
-    }
+    //     return metaData;
+    // }
 
     # Filter the APIs using category or a keyword/s.
     #
@@ -145,7 +145,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
                                 markdown: apiAssets.markdown ?: [],
                                 apiId: apiAssets.assetmappingsApiId ?: ""
                             },
-                            orgName: api.organizationName ?: ""
+                            orgName: api.organizationName ?: "",
+                            apiArtifacts: {apiContent: {}, apiImages: {}}
                         }
                     };
                     filteredData.push(metaData);

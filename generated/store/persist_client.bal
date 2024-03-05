@@ -9,6 +9,8 @@ const THROTTLING_POLICY = "throttlingpolicies";
 const RATE_LIMITING_POLICY = "ratelimitingpolicies";
 const REVIEW = "reviews";
 const API_METADATA = "apimetadata";
+const API_CONTENT = "apicontents";
+const API_IMAGES = "apiimages";
 const ADDITIONAL_PROPERTIES = "additionalproperties";
 const IDENTITY_PROVIDER = "identityproviders";
 const THEME = "themes";
@@ -23,6 +25,8 @@ final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = t
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
 final isolated table<Review> key(reviewId) reviewsTable = table [];
 final isolated table<ApiMetadata> key(apiId) apimetadataTable = table [];
+final isolated table<ApiContent> key(contentId) apicontentsTable = table [];
+final isolated table<ApiImages> key(imageId) apiimagesTable = table [];
 final isolated table<AdditionalProperties> key(propertyId) additionalpropertiesTable = table [];
 final isolated table<IdentityProvider> key(idpID) identityprovidersTable = table [];
 final isolated table<Theme> key(themeId) themesTable = table [];
@@ -64,8 +68,20 @@ public isolated client class Client {
                     "additionalProperties": queryApiMetadataAdditionalproperties,
                     "throttlingPolicies": queryApiMetadataThrottlingpolicies,
                     "reviews": queryApiMetadataReviews,
-                    "subscriptions": queryApiMetadataSubscriptions
+                    "subscriptions": queryApiMetadataSubscriptions,
+                    "apiContent": queryApiMetadataApicontent,
+                    "apiImages": queryApiMetadataApiimages
                 }
+            },
+            [API_CONTENT] : {
+                keyFields: ["contentId"],
+                query: queryApicontents,
+                queryOne: queryOneApicontents
+            },
+            [API_IMAGES] : {
+                keyFields: ["imageId"],
+                query: queryApiimages,
+                queryOne: queryOneApiimages
             },
             [ADDITIONAL_PROPERTIES] : {
                 keyFields: ["propertyId"],
@@ -136,6 +152,8 @@ public isolated client class Client {
             [RATE_LIMITING_POLICY] : check new (metadata.get(RATE_LIMITING_POLICY).cloneReadOnly()),
             [REVIEW] : check new (metadata.get(REVIEW).cloneReadOnly()),
             [API_METADATA] : check new (metadata.get(API_METADATA).cloneReadOnly()),
+            [API_CONTENT] : check new (metadata.get(API_CONTENT).cloneReadOnly()),
+            [API_IMAGES] : check new (metadata.get(API_IMAGES).cloneReadOnly()),
             [ADDITIONAL_PROPERTIES] : check new (metadata.get(ADDITIONAL_PROPERTIES).cloneReadOnly()),
             [IDENTITY_PROVIDER] : check new (metadata.get(IDENTITY_PROVIDER).cloneReadOnly()),
             [THEME] : check new (metadata.get(THEME).cloneReadOnly()),
@@ -334,6 +352,100 @@ public isolated client class Client {
                 return persist:getNotFoundError("ApiMetadata", apiId);
             }
             return apimetadataTable.remove(apiId).clone();
+        }
+    }
+
+    isolated resource function get apicontents(ApiContentTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get apicontents/[string contentId](ApiContentTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post apicontents(ApiContentInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ApiContentInsert value in data {
+            lock {
+                if apicontentsTable.hasKey(value.contentId) {
+                    return persist:getAlreadyExistsError("ApiContent", value.contentId);
+                }
+                apicontentsTable.put(value.clone());
+            }
+            keys.push(value.contentId);
+        }
+        return keys;
+    }
+
+    isolated resource function put apicontents/[string contentId](ApiContentUpdate value) returns ApiContent|persist:Error {
+        lock {
+            if !apicontentsTable.hasKey(contentId) {
+                return persist:getNotFoundError("ApiContent", contentId);
+            }
+            ApiContent apicontent = apicontentsTable.get(contentId);
+            foreach var [k, v] in value.clone().entries() {
+                apicontent[k] = v;
+            }
+            apicontentsTable.put(apicontent);
+            return apicontent.clone();
+        }
+    }
+
+    isolated resource function delete apicontents/[string contentId]() returns ApiContent|persist:Error {
+        lock {
+            if !apicontentsTable.hasKey(contentId) {
+                return persist:getNotFoundError("ApiContent", contentId);
+            }
+            return apicontentsTable.remove(contentId).clone();
+        }
+    }
+
+    isolated resource function get apiimages(ApiImagesTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get apiimages/[string imageId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post apiimages(ApiImagesInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach ApiImagesInsert value in data {
+            lock {
+                if apiimagesTable.hasKey(value.imageId) {
+                    return persist:getAlreadyExistsError("ApiImages", value.imageId);
+                }
+                apiimagesTable.put(value.clone());
+            }
+            keys.push(value.imageId);
+        }
+        return keys;
+    }
+
+    isolated resource function put apiimages/[string imageId](ApiImagesUpdate value) returns ApiImages|persist:Error {
+        lock {
+            if !apiimagesTable.hasKey(imageId) {
+                return persist:getNotFoundError("ApiImages", imageId);
+            }
+            ApiImages apiimages = apiimagesTable.get(imageId);
+            foreach var [k, v] in value.clone().entries() {
+                apiimages[k] = v;
+            }
+            apiimagesTable.put(apiimages);
+            return apiimages.clone();
+        }
+    }
+
+    isolated resource function delete apiimages/[string imageId]() returns ApiImages|persist:Error {
+        lock {
+            if !apiimagesTable.hasKey(imageId) {
+                return persist:getNotFoundError("ApiImages", imageId);
+            }
+            return apiimagesTable.remove(imageId).clone();
         }
     }
 
@@ -952,6 +1064,82 @@ isolated function queryOneApimetadata(anydata key) returns record {}|persist:Not
     return persist:getNotFoundError("ApiMetadata", key);
 }
 
+isolated function queryApicontents(string[] fields) returns stream<record {}, persist:Error?> {
+    table<ApiContent> key(contentId) apicontentsClonedTable;
+    lock {
+        apicontentsClonedTable = apicontentsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    return from record {} 'object in apicontentsClonedTable
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        select persist:filterRecord({
+            ...'object,
+            "apimetadata": apimetadata
+        }, fields);
+}
+
+isolated function queryOneApicontents(anydata key) returns record {}|persist:NotFoundError {
+    table<ApiContent> key(contentId) apicontentsClonedTable;
+    lock {
+        apicontentsClonedTable = apicontentsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    from record {} 'object in apicontentsClonedTable
+    where persist:getKey('object, ["contentId"]) == key
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    do {
+        return {
+            ...'object,
+            "apimetadata": apimetadata
+        };
+    };
+    return persist:getNotFoundError("ApiContent", key);
+}
+
+isolated function queryApiimages(string[] fields) returns stream<record {}, persist:Error?> {
+    table<ApiImages> key(imageId) apiimagesClonedTable;
+    lock {
+        apiimagesClonedTable = apiimagesTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    return from record {} 'object in apiimagesClonedTable
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        select persist:filterRecord({
+            ...'object,
+            "apimetadata": apimetadata
+        }, fields);
+}
+
+isolated function queryOneApiimages(anydata key) returns record {}|persist:NotFoundError {
+    table<ApiImages> key(imageId) apiimagesClonedTable;
+    lock {
+        apiimagesClonedTable = apiimagesTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    from record {} 'object in apiimagesClonedTable
+    where persist:getKey('object, ["imageId"]) == key
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    do {
+        return {
+            ...'object,
+            "apimetadata": apimetadata
+        };
+    };
+    return persist:getNotFoundError("ApiImages", key);
+}
+
 isolated function queryAdditionalproperties(string[] fields) returns stream<record {}, persist:Error?> {
     table<AdditionalProperties> key(propertyId) additionalpropertiesClonedTable;
     lock {
@@ -1387,6 +1575,30 @@ isolated function queryApiMetadataSubscriptions(record {} value, string[] fields
     }
     return from record {} 'object in subscriptionsClonedTable
         where 'object.apiApiId == value["apiId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryApiMetadataApicontent(record {} value, string[] fields) returns record {}[] {
+    table<ApiContent> key(contentId) apicontentsClonedTable;
+    lock {
+        apicontentsClonedTable = apicontentsTable.clone();
+    }
+    return from record {} 'object in apicontentsClonedTable
+        where 'object.apimetadataApiId == value["apiId"]
+        select persist:filterRecord({
+            ...'object
+        }, fields);
+}
+
+isolated function queryApiMetadataApiimages(record {} value, string[] fields) returns record {}[] {
+    table<ApiImages> key(imageId) apiimagesClonedTable;
+    lock {
+        apiimagesClonedTable = apiimagesTable.clone();
+    }
+    return from record {} 'object in apiimagesClonedTable
+        where 'object.apimetadataApiId == value["apiId"]
         select persist:filterRecord({
             ...'object
         }, fields);

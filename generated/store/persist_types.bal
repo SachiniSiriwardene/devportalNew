@@ -119,6 +119,8 @@ public type ApiMetadataWithRelations record {|
     ReviewOptionalized[] reviews?;
     SubscriptionOptionalized[] subscriptions?;
     APIAssetsOptionalized assetMappings?;
+    ApiContentOptionalized[] apiContent?;
+    ApiImagesOptionalized[] apiImages?;
 |};
 
 public type ApiMetadataTargetType typedesc<ApiMetadataWithRelations>;
@@ -133,6 +135,64 @@ public type ApiMetadataUpdate record {|
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
+|};
+
+public type ApiContent record {|
+    readonly string contentId;
+    string key;
+    string value;
+    string apimetadataApiId;
+|};
+
+public type ApiContentOptionalized record {|
+    string contentId?;
+    string key?;
+    string value?;
+    string apimetadataApiId?;
+|};
+
+public type ApiContentWithRelations record {|
+    *ApiContentOptionalized;
+    ApiMetadataOptionalized apimetadata?;
+|};
+
+public type ApiContentTargetType typedesc<ApiContentWithRelations>;
+
+public type ApiContentInsert ApiContent;
+
+public type ApiContentUpdate record {|
+    string key?;
+    string value?;
+    string apimetadataApiId?;
+|};
+
+public type ApiImages record {|
+    readonly string imageId;
+    string key;
+    string value;
+    string apimetadataApiId;
+|};
+
+public type ApiImagesOptionalized record {|
+    string imageId?;
+    string key?;
+    string value?;
+    string apimetadataApiId?;
+|};
+
+public type ApiImagesWithRelations record {|
+    *ApiImagesOptionalized;
+    ApiMetadataOptionalized apimetadata?;
+|};
+
+public type ApiImagesTargetType typedesc<ApiImagesWithRelations>;
+
+public type ApiImagesInsert ApiImages;
+
+public type ApiImagesUpdate record {|
+    string key?;
+    string value?;
+    string apimetadataApiId?;
 |};
 
 public type AdditionalProperties record {|

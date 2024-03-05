@@ -44,7 +44,7 @@ service /apiMetadata on new http:Listener(9090) {
 
         string apiId = check utils:getAPIId(orgName, apiName);
 
-        apiContent.apiId = apiId;
+        apiContent.apiId = apiName;
         
 
         string apiLandingPage = "";
@@ -76,6 +76,87 @@ service /apiMetadata on new http:Listener(9090) {
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
+    }
+
+    resource function get api(string apiID, string orgName) returns models:ApiMetadata|error {
+
+        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
+
+        store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
+        store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
+        store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
+        store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
+        store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
+        store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
+
+        models:ThrottlingPolicy[] throttlingPolicies = [];
+        models:APIReview[] reviews = [];
+
+        foreach var policy in policies {
+            models:ThrottlingPolicy policyData = {
+                policyName: policy.policyName ?: "",
+                description: policy.description ?: "",
+                'type: policy.'type ?: ""
+            };
+            throttlingPolicies.push(policyData);
+        }
+
+        foreach var review in apiReviews {
+            models:APIReview reviewData = {
+                apiRating: review.rating ?: 0,
+                apiComment: review.comment ?: "",
+                apiReviewer: review.reviewedbyUserId ?: "",
+                reviewId: review.reviewId ?: "",
+                apiName: "",
+                apiID: review.apifeedbackApiId ?: ""
+            };
+            reviews.push(reviewData);
+        }
+
+        map<string> properties = {};
+
+        foreach var property in additionalProperties {
+            properties[property.key ?: ""] = property.value ?: "";
+        }
+
+        map<string> apiContentRecord = {};
+
+        foreach var property in apiContent {
+            apiContentRecord[property.key ?: ""] = property.value ?: "";
+        }
+
+        map<string> apiImagesRecord = {};  
+
+        foreach var property in apiImages {
+            apiImagesRecord[property.key ?: ""] = property.value ?: "";
+        }
+
+        models:ApiMetadata metaData = {
+            serverUrl: {
+                sandboxUrl: apiMetaData.sandboxUrl ?: "",
+                productionUrl: apiMetaData.productionUrl ?: ""
+            },
+            throttlingPolicies: throttlingPolicies,
+            apiInfo: {
+                apiName: apiMetaData.apiName ?: "",
+                apiCategory: apiMetaData.apiCategory ?: [],
+                openApiDefinition: apiMetaData.openApiDefinition ?: "",
+                additionalProperties: properties,
+                reviews: reviews,
+                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
+                apiAssets: {
+                    apiAssets: apiAssets?.apiAssets ?: [],
+                    landingPageUrl: apiAssets.landingPageUrl ?: "",
+                    stylesheet: apiAssets.stylesheet ?: "",
+                    markdown: apiAssets.markdown ?: [],
+                    apiId: apiAssets.assetmappingsApiId ?: ""
+                },
+                orgName: apiMetaData.organizationName ?: "",
+                apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord}
+            }
+        };
+        
+        return metaData;
     }
 }
 

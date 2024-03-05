@@ -1,3 +1,7 @@
+public type ApiArtifacts record {
+    map<string> apiContent;
+    map<string> apiImages;
+};
 public type ApiInfo record {
     string orgName;
     string apiName;
@@ -7,6 +11,7 @@ public type ApiInfo record {
     APIReview[] reviews?;
     APIAssets apiAssets?;
     map<string> additionalProperties;
+    ApiArtifacts apiArtifacts;
 };
 
 public type APIReview record {|

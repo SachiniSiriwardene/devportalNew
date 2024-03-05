@@ -69,6 +69,22 @@ public type ApiMetadata record {|
     Review[] reviews;
     Subscription[] subscriptions;
     APIAssets?  assetMappings;
+    ApiContent[] apiContent;
+    ApiImages[] apiImages;
+|};
+
+public type ApiContent record {|
+    readonly string contentId;
+    string key;
+    string value;
+	ApiMetadata apimetadata;
+|};
+
+public type ApiImages record {|
+    readonly string imageId;
+    string key;
+    string value;
+	ApiMetadata apimetadata;
 |};
 
 public type AdditionalProperties record {|
