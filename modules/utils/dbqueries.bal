@@ -1,9 +1,9 @@
 import devportal.models;
 import devportal.store;
 
+import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
-import ballerina/log;
 
 final store:Client dbClient = check new ();
 
@@ -83,7 +83,7 @@ public function updateOrg(string orgName, string template) returns string|error 
         templateName: template,
         isDefault: false
     });
-    
+
     return org.orgId;
 }
 
@@ -91,17 +91,18 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
 
     store:OrganizationAssets assets = {
         assetId: uuid:createType1AsString(),
-        orgLandingPage: orgContent.landingPageUrl,
+        orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgContent.orgId,
-        stylesheet: orgContent.stylesheet,
-        markdown: orgContent.markdown
+        markdown: orgContent.markdown,
+        apiStyleSheet: orgContent.apiStyleSheet,
+        orgStyleSheet: orgContent.orgStyleSheet,
+        apiLandingPage: orgContent.apiLandingPage
     };
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
-        log:printInfo("Asset ID update: " + listResult[0]);
-
+    log:printInfo("Asset ID update: " + listResult[0]);
 
     if (listResult.length() == 0) {
         return error("Organization assets creation failed");
@@ -113,7 +114,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 
     string orgId = check getOrgId(orgName);
 
-   stream<store:OrganizationAssets, persist:Error?> orgAssets = dbClient->/organizationassets.get();
+    stream<store:OrganizationAssets, persist:Error?> orgAssets = dbClient->/organizationassets.get();
 
     //retrieve the api id
     store:OrganizationAssets[] asset = check from var orgAsset in orgAssets
@@ -123,17 +124,17 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
-     store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
-        orgLandingPage: orgContent.landingPageUrl,
+    store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
+        orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
-        stylesheet: orgContent.stylesheet,
-        markdown: orgContent.markdown
+        apiStyleSheet: orgContent.apiStyleSheet,
+        orgStyleSheet: orgContent.orgStyleSheet,
+        apiLandingPage: orgContent.apiLandingPage
     });
 
     return org.assetId;
 }
-
 
 public function createAPIAssets(models:APIAssets apiContent) returns string|error {
 
@@ -141,12 +142,10 @@ public function createAPIAssets(models:APIAssets apiContent) returns string|erro
         assetId: uuid:createType1AsString(),
         apiAssets: apiContent.apiAssets,
         assetmappingsApiId: apiContent.apiId,
-        stylesheet: apiContent.stylesheet,
-        markdown: apiContent.markdown,
-        landingPageUrl: apiContent.landingPageUrl
+        markdown: apiContent.markdown
     };
 
-    log:printInfo("Stored API asset ID "+apiContent.apiId);
+    log:printInfo("Stored API asset ID " + apiContent.apiId);
 
     string[] listResult = check dbClient->/apiassets.post([assets]);
 
@@ -197,6 +196,7 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
     };
 
     string[] listResult = check dbClient->/apimetadata.post([metadataRecord]);
+
 
     if (listResult.length() == 0) {
         return error("API creation failed");

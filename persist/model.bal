@@ -76,6 +76,7 @@ public type AdditionalProperties record {|
     string key;
     string value;
     ApiMetadata apimetadata;
+    
 |};
 
 # Identity Provider configured for dev portal.
@@ -145,14 +146,20 @@ public type Organization record {|
 #
 # + assetId - field description  
 # + orgAssets - field description  
+# + markdown - field description  
+# + orgStyleSheet - field description  
+# + apiStyleSheet - field description  
 # + orgLandingPage - field description  
+# + apiLandingPage - field description  
 # + organization - field description
 public type OrganizationAssets record {|
     readonly string assetId;
     string[]? orgAssets;
     string[] markdown;
-    string stylesheet;
+    string orgStyleSheet;
+    string apiStyleSheet;
     string orgLandingPage;
+    string apiLandingPage;
     Organization organization;
 |};
 
@@ -160,14 +167,12 @@ public type OrganizationAssets record {|
 #
 # + assetId - field description  
 # + apiAssets - field description  
-# + landingPageUrl - field description  
+# + markdown - field description  
 # + api - field description
 public type APIAssets record {|
     readonly string assetId;
     string[] apiAssets;
     string[] markdown;
-    string stylesheet;
-    string landingPageUrl;
     ApiMetadata api;
 |};
 

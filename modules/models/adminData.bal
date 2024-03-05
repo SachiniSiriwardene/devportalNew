@@ -7,6 +7,16 @@ public type OrgContentResponse record {
     string timeUploaded;
 };
 
+# Response for organization creation.
+#
+# + assetMappings - field description  
+# + timeUploaded - field description
+public type OrgCreationResponse record {
+    
+    string orgName;
+    string orgId;
+};
+
 # Response for API content storage.
 #
 # + assetMappings - field description  
@@ -22,14 +32,18 @@ public type APIContentResponse record {
 #
 # + orgAssets - field description  
 # + markdown - field description  
-# + stylesheets - field description  
-# + landingPageUrl - field description  
+# + orgStyleSheet - field description  
+# + apiStyleSheet - field description  
+# + orgLandingPage - field description  
+# + apiLandingPage - field description  
 # + orgId - field description
 public type OrganizationAssets record {|
     string[] orgAssets;
     string[] markdown;
-    string stylesheet;
-    string landingPageUrl;
+    string orgStyleSheet;
+    string apiStyleSheet;
+    string orgLandingPage;
+    string apiLandingPage;
     string orgId;
 |};
 

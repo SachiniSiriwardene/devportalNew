@@ -70,7 +70,6 @@ public function readOrganizationContent(file:MetaData[] directories, string path
 public function getContentForOrgTemplate(file:MetaData[] directories, string orgName, models:OrganizationAssets assetMappings)
 returns models:OrganizationAssets|error {
 
-    
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
@@ -82,17 +81,25 @@ returns models:OrganizationAssets|error {
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
                 assetMappings.markdown.push(relativePath);
-            } else if (relativePath.endsWith(".css")) {
-                assetMappings.stylesheet = relativePath;
+            } else if (relativePath.endsWith("org-landing-page.css")) {
+                assetMappings.orgStyleSheet = relativePath;
+
+            } else if (relativePath.endsWith("api-landing-page.css")) {
+                assetMappings.apiStyleSheet = relativePath;
 
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
                 assetMappings.orgAssets.push(relativePath);
 
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
+
                 assetMappings.orgAssets.push(relativePath);
             } else if (relativePath.endsWith("org-landing-page.html")) {
-                assetMappings.landingPageUrl = relativePath;
+
+                assetMappings.orgLandingPage = relativePath;
+            } else if (relativePath.endsWith("api-landing-page.html")) {
+
+                assetMappings.apiLandingPage = relativePath;
             }
 
         }

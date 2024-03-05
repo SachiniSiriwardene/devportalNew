@@ -135,7 +135,7 @@ service / on new http:Listener(3001) {
             select asset;
 
         log:printInfo("API Assets: " + assets.toString());
-        string landingPage = assets.pop().landingPageUrl ?: "";
+        string landingPage = org?.organizationAssets?.apiLandingPage ?: "";
         log:printInfo("Landing page URL: " + landingPage);
         if (templateName.equalsIgnoreCaseAscii("custom")) {
             file.setFileAsEntityBody(orgName + "/" + landingPage);

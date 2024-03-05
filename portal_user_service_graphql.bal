@@ -62,14 +62,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 openApiDefinition: apiMetaData.openApiDefinition ?: "",
                 additionalProperties: properties,
                 reviews: reviews,
-                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                apiAssets: {
-                    apiAssets: apiAssets?.apiAssets ?: [],
-                    landingPageUrl: apiAssets.landingPageUrl ?: "",
-                    stylesheet: apiAssets.stylesheet ?: "",
-                    markdown: apiAssets.markdown ?: [],
-                    apiId: apiAssets.assetmappingsApiId ?: ""
-                },
                 orgName: apiMetaData.organizationName ?: ""
             }
         };
@@ -137,14 +129,6 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             openApiDefinition: api.openApiDefinition ?: "",
                             additionalProperties: properties,
                             reviews: reviews,
-                            apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                            apiAssets: {
-                                apiAssets: apiAssets?.apiAssets ?: [],
-                                landingPageUrl: apiAssets.landingPageUrl ?: "",
-                                stylesheet: apiAssets.stylesheet ?: "",
-                                markdown: apiAssets.markdown ?: [],
-                                apiId: apiAssets.assetmappingsApiId ?: ""
-                            },
                             orgName: api.organizationName ?: ""
                         }
                     };

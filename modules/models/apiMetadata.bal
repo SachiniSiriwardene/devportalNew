@@ -3,9 +3,7 @@ public type ApiInfo record {
     string apiName;
     string[] apiCategory;
     string openApiDefinition;
-    string apiLandingPageURL?;
     APIReview[] reviews?;
-    APIAssets apiAssets?;
     map<string> additionalProperties;
 };
 

@@ -24,6 +24,13 @@ service /apiMetadata on new http:Listener(9090) {
         string targetPath = "./";
         check io:fileWriteBytes(path, binaryPayload);
 
+        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+
+        if (dirExists) {
+            file:Error? remove = check file:remove(orgName);
+
+        }
+
         check zip:extract(path, targetPath);
 
         models:APIAssets assetMappings = {
@@ -45,7 +52,6 @@ service /apiMetadata on new http:Listener(9090) {
         string apiId = check utils:getAPIId(orgName, apiName);
 
         apiContent.apiId = apiId;
-        
 
         string apiLandingPage = "";
         if (!templateName.equalsIgnoreCaseAscii("custom")) {
