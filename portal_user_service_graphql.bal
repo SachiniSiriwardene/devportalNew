@@ -245,7 +245,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
             organizationOrgId: subscription.orgId,
             apiApiId: subscription.apiId,
             userUserId: subscription.userId,
-            subscriptionPolicyId: subscription.policyID
+            subscriptionPolicyId: subscription.policyID,
+            apiOrganizationName: subscription.orgName
         };
 
         string[] listResult = check userClient->/subscriptions.post([storeSubscription]);
@@ -269,7 +270,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 policyID: sub.subscriptionPolicyId,
                 userId: sub.userUserId,
                 apiId: sub.apiApiId,
-                orgId: sub.organizationOrgId
+                orgId: sub.organizationOrgId,
+                orgName: sub.apiOrganizationName
             };
             subscriptionResponse.push(new (subscriptions));
         }
@@ -289,7 +291,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
             comment: review.comment,
             reviewId: reviewId,
             reviewedbyUserId: review.reviewedBy,
-            apifeedbackApiId: review.apiId
+            apifeedbackApiId: review.apiId,
+            apifeedbackOrganizationName: review.orgName
         };
 
         string[] listResult = check userClient->/reviews.post([reviewInsert]);
@@ -317,7 +320,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
                 reviewedBy: review.reviewedbyUserId ?: "",
                 apiId: review.apifeedbackApiId ?: "",
                 reviewId: review.reviewId ?: "",
-                apiName: ""
+                apiName: "",
+                orgName: review.apifeedbackOrganizationName ?: ""
             };
             reviewResponses.push(new (reviewResponse));
         }

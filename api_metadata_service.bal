@@ -1,8 +1,10 @@
 import devportal.models;
+import devportal.store;
 import devportal.utils;
 
 import ballerina/http;
-import devportal.store;
+
+final store:Client dbClient = check new ();
 
 service /apiMetadata on new http:Listener(9090) {
 
@@ -12,7 +14,15 @@ service /apiMetadata on new http:Listener(9090) {
     # + return - api Id
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
 
-        string apiId = check utils:createAPI(metadata);
+        string apiId = check utils:createAPIMetadata(metadata);
+        http:Response response = new;
+        response.setPayload({apiId: apiId});
+        return response;
+    }
+
+    resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
+
+        string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -20,7 +30,7 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get api(string apiID, string orgName) returns models:ApiMetadata|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
+        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID]/[orgName].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
@@ -63,7 +73,7 @@ service /apiMetadata on new http:Listener(9090) {
             apiContentRecord[property.key ?: ""] = property.value ?: "";
         }
 
-        map<string> apiImagesRecord = {};  
+        map<string> apiImagesRecord = {};
 
         foreach var property in apiImages {
             apiImagesRecord[property.key ?: ""] = property.value ?: "";
@@ -85,7 +95,7 @@ service /apiMetadata on new http:Listener(9090) {
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord}
             }
         };
-        
+
         return metaData;
     }
 }

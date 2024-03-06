@@ -124,7 +124,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
-     store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
+    store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
         orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
@@ -136,75 +136,13 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     return org.assetId;
 }
 
-public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
-
-    models:ThrottlingPolicy[] throttlingPolicies = apiMetaData.throttlingPolicies ?: [];
-    store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
     string apiID = apiMetaData.apiInfo.apiName;
-
-    foreach var policy in throttlingPolicies {
-        throttlingPolicyRecords.push({
-            apimetadataApiId: apiID,
-            policyId: uuid:createType1AsString(),
-            'type: policy.'type,
-            policyName: policy.policyName,
-            description: policy.description
-        });
-    }
-
-    if (throttlingPolicyRecords.length() != 0) {
-        string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
-    }
-
-    map<string> additionalProperties = apiMetaData.apiInfo.additionalProperties;
-    store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
-
-    foreach var propertyKey in additionalProperties.keys() {
-        additionalPropertiesRecords.push({
-            apimetadataApiId: apiID,
-            propertyId: uuid:createType1AsString(),
-            'key: propertyKey,
-            value: <string>additionalProperties.get(propertyKey)
-            });
-    }
-    
-
-    if (additionalPropertiesRecords.length() != 0) {
-        string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
-    }
-
-    map<string> apiContents = apiMetaData.apiInfo.apiArtifacts.apiContent;
-    store:ApiContentInsert[] apiContent = [];
-
-    foreach var propertyKey in apiContents.keys() {
-        apiContent.push({
-            apimetadataApiId: apiID,
-            contentId: uuid:createType1AsString(),
-            'key: propertyKey,
-            value: <string>apiContents.get(propertyKey)
-        });
-    }
-
-    if (apiContent.length() != 0) {
-        string[] contentResults = check dbClient->/apicontents.post(apiContent);
-    }
-
-    map<string> apiImages = apiMetaData.apiInfo.apiArtifacts.apiImages;
-    store:ApiImagesInsert[] apiImagesRecord = [];
-
-    foreach var propertyKey in apiImages.keys() {
-        apiImagesRecord.push({
-            apimetadataApiId: apiID,
-            imageId: uuid:createType1AsString(),
-            'key: propertyKey,
-            value: <string>apiImages.get(propertyKey)
-        });
-    }
-
-    if (apiImages.length() != 0) {
-        string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
-    }
-
+    string orgName = apiMetaData.apiInfo.orgName;
+    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
+    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    addApiContent(apiMetaData.apiInfo.apiArtifacts.apiContent, apiID, orgName);
+    addApiImages(apiMetaData.apiInfo.apiArtifacts.apiImages, apiID, orgName);
 
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadata metadataRecord = {
@@ -218,11 +156,120 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
         organizationName: apiMetaData.apiInfo.orgName
     };
 
-    string[] listResult = check dbClient->/apimetadata.post([metadataRecord]);
-
+    string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
     }
-    return listResult[0];
+    return listResult[0][0];
+}
+
+public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, string orgName) returns string|error {
+    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
+    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    addApiContent(apiMetaData.apiInfo.apiArtifacts.apiContent, apiID, orgName);
+    addApiImages(apiMetaData.apiInfo.apiArtifacts.apiImages, apiID, orgName);
+
+    string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
+    store:ApiMetadataUpdate metadataRecord = {
+        orgId: orgId,
+        apiName: apiMetaData.apiInfo.apiName,
+        apiCategory: apiMetaData.apiInfo.apiCategory,
+        openApiDefinition: apiMetaData.apiInfo.openApiDefinition,
+        productionUrl: apiMetaData.serverUrl.productionUrl,
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
+    };
+
+    store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgName].put(metadataRecord);
+
+    if (listResult.length() == 0) {
+        return error("API metadata update failed");
+    }
+    return listResult.apiId;
+}
+
+public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) {
+    store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+    foreach var policy in throttlingPolicies {
+        throttlingPolicyRecords.push({
+            apimetadataApiId: apiID,
+            policyId: uuid:createType1AsString(),
+            'type: policy.'type,
+            policyName: policy.policyName,
+            description: policy.description,
+            apimetadataOrganizationName: orgName
+        });
+    }
+
+    if (throttlingPolicyRecords.length() != 0) {
+        do {
+	        string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
+        } on fail var e {
+            log:printError("Error occurred while adding throttling policies: " + e.message());
+        }
+    }
+}
+
+public function addAdditionalProperties(map<string> additionalProperties, string apiID, string orgName) {
+    store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
+
+    foreach var propertyKey in additionalProperties.keys() {
+        additionalPropertiesRecords.push({
+            apimetadataApiId: apiID,
+            propertyId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>additionalProperties.get(propertyKey),
+            apimetadataOrganizationName: orgName
+        });
+    }
+    if (additionalPropertiesRecords.length() != 0) {
+        do {
+	        string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
+        } on fail var e {
+            log:printError("Error occurred while adding additional properties: " + e.message());
+        }
+    }
+}
+
+public function addApiContent(map<string> apiContents, string apiID, string orgName) {
+    store:ApiContentInsert[] apiContentRecord = [];
+
+    foreach var propertyKey in apiContents.keys() {
+        apiContentRecord.push({
+            apimetadataApiId: apiID,
+            contentId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiContents.get(propertyKey),
+            apimetadataOrganizationName: orgName
+        });
+    }
+
+    if (apiContentRecord.length() != 0) {
+        do {
+	        string[] contentResults = check dbClient->/apicontents.post(apiContentRecord);
+        } on fail var e {
+            log:printError("Error occurred while adding API content: " + e.message());
+        }
+    }
+}
+
+public function addApiImages(map<string> apiImages, string apiID, string orgName) {
+    store:ApiImagesInsert[] apiImagesRecord = [];
+
+    foreach var propertyKey in apiImages.keys() {
+        apiImagesRecord.push({
+            apimetadataApiId: apiID,
+            imageId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiImages.get(propertyKey),
+            apimetadataOrganizationName: orgName
+        });
+    }
+    if (apiImagesRecord.length() != 0) {
+        do {
+	        string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+        } on fail var e {
+            log:printError("Error occurred while adding API images: " + e.message());
+        }
+    }
 }

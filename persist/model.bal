@@ -59,7 +59,7 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
-    string organizationName;
+    readonly string organizationName;
     string[] apiCategory;
     string openApiDefinition;
     AdditionalProperties[] additionalProperties;

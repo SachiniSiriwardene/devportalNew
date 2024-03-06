@@ -23,7 +23,7 @@ const SUBSCRIPTION = "subscriptions";
 final isolated table<ThrottlingPolicy> key(policyId) throttlingpoliciesTable = table [];
 final isolated table<RateLimitingPolicy> key(policyId) ratelimitingpoliciesTable = table [];
 final isolated table<Review> key(reviewId) reviewsTable = table [];
-final isolated table<ApiMetadata> key(apiId) apimetadataTable = table [];
+final isolated table<ApiMetadata> key(apiId, organizationName) apimetadataTable = table [];
 final isolated table<ApiContent> key(contentId) apicontentsTable = table [];
 final isolated table<ApiImages> key(imageId) apiimagesTable = table [];
 final isolated table<AdditionalProperties> key(propertyId) additionalpropertiesTable = table [];
@@ -59,7 +59,7 @@ public isolated client class Client {
                 queryOne: queryOneReviews
             },
             [API_METADATA] : {
-                keyFields: ["apiId"],
+                keyFields: ["apiId", "organizationName"],
                 query: queryApimetadata,
                 queryOne: queryOneApimetadata,
                 associationsMethods: {
@@ -305,31 +305,31 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get apimetadata/[string apiId](ApiMetadataTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get apimetadata/[string apiId]/[string organizationName](ApiMetadataTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post apimetadata(ApiMetadataInsert[] data) returns string[]|persist:Error {
-        string[] keys = [];
+    isolated resource function post apimetadata(ApiMetadataInsert[] data) returns [string, string][]|persist:Error {
+        [string, string][] keys = [];
         foreach ApiMetadataInsert value in data {
             lock {
-                if apimetadataTable.hasKey(value.apiId) {
-                    return persist:getAlreadyExistsError("ApiMetadata", value.apiId);
+                if apimetadataTable.hasKey([value.apiId, value.organizationName]) {
+                    return persist:getAlreadyExistsError("ApiMetadata", {apiId: value.apiId, organizationName: value.organizationName});
                 }
                 apimetadataTable.put(value.clone());
             }
-            keys.push(value.apiId);
+            keys.push([value.apiId, value.organizationName]);
         }
         return keys;
     }
 
-    isolated resource function put apimetadata/[string apiId](ApiMetadataUpdate value) returns ApiMetadata|persist:Error {
+    isolated resource function put apimetadata/[string apiId]/[string organizationName](ApiMetadataUpdate value) returns ApiMetadata|persist:Error {
         lock {
-            if !apimetadataTable.hasKey(apiId) {
-                return persist:getNotFoundError("ApiMetadata", apiId);
+            if !apimetadataTable.hasKey([apiId, organizationName]) {
+                return persist:getNotFoundError("ApiMetadata", {apiId: apiId, organizationName: organizationName});
             }
-            ApiMetadata apimetadata = apimetadataTable.get(apiId);
+            ApiMetadata apimetadata = apimetadataTable.get([apiId, organizationName]);
             foreach var [k, v] in value.clone().entries() {
                 apimetadata[k] = v;
             }
@@ -338,12 +338,12 @@ public isolated client class Client {
         }
     }
 
-    isolated resource function delete apimetadata/[string apiId]() returns ApiMetadata|persist:Error {
+    isolated resource function delete apimetadata/[string apiId]/[string organizationName]() returns ApiMetadata|persist:Error {
         lock {
-            if !apimetadataTable.hasKey(apiId) {
-                return persist:getNotFoundError("ApiMetadata", apiId);
+            if !apimetadataTable.hasKey([apiId, organizationName]) {
+                return persist:getNotFoundError("ApiMetadata", {apiId: apiId, organizationName: organizationName});
             }
-            return apimetadataTable.remove(apiId).clone();
+            return apimetadataTable.remove([apiId, organizationName]).clone();
         }
     }
 
@@ -874,12 +874,12 @@ isolated function queryThrottlingpolicies(string[] fields) returns stream<record
     lock {
         throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     return from record {} 'object in throttlingpoliciesClonedTable
-        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
         select persist:filterRecord({
             ...'object,
             "apimetadata": apimetadata
@@ -891,13 +891,13 @@ isolated function queryOneThrottlingpolicies(anydata key) returns record {}|pers
     lock {
         throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     from record {} 'object in throttlingpoliciesClonedTable
     where persist:getKey('object, ["policyId"]) == key
-    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
     do {
         return {
             ...'object,
@@ -938,7 +938,7 @@ isolated function queryReviews(string[] fields) returns stream<record {}, persis
     lock {
         reviewsClonedTable = reviewsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
@@ -947,7 +947,7 @@ isolated function queryReviews(string[] fields) returns stream<record {}, persis
         usersClonedTable = usersTable.clone();
     }
     return from record {} 'object in reviewsClonedTable
-        outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId] equals [apifeedback?.apiId]
+        outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId, 'object.apifeedbackOrganizationName] equals [apifeedback?.apiId, apifeedback?.organizationName]
         outer join var reviewedby in usersClonedTable on ['object.reviewedbyUserId] equals [reviewedby?.userId]
         select persist:filterRecord({
             ...'object,
@@ -961,7 +961,7 @@ isolated function queryOneReviews(anydata key) returns record {}|persist:NotFoun
     lock {
         reviewsClonedTable = reviewsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
@@ -971,7 +971,7 @@ isolated function queryOneReviews(anydata key) returns record {}|persist:NotFoun
     }
     from record {} 'object in reviewsClonedTable
     where persist:getKey('object, ["reviewId"]) == key
-    outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId] equals [apifeedback?.apiId]
+    outer join var apifeedback in apimetadataClonedTable on ['object.apifeedbackApiId, 'object.apifeedbackOrganizationName] equals [apifeedback?.apiId, apifeedback?.organizationName]
     outer join var reviewedby in usersClonedTable on ['object.reviewedbyUserId] equals [reviewedby?.userId]
     do {
         return {
@@ -984,7 +984,7 @@ isolated function queryOneReviews(anydata key) returns record {}|persist:NotFoun
 }
 
 isolated function queryApimetadata(string[] fields) returns stream<record {}, persist:Error?> {
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
@@ -995,12 +995,12 @@ isolated function queryApimetadata(string[] fields) returns stream<record {}, pe
 }
 
 isolated function queryOneApimetadata(anydata key) returns record {}|persist:NotFoundError {
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     from record {} 'object in apimetadataClonedTable
-    where persist:getKey('object, ["apiId"]) == key
+    where persist:getKey('object, ["apiId", "organizationName"]) == key
     do {
         return {
             ...'object
@@ -1014,12 +1014,12 @@ isolated function queryApicontents(string[] fields) returns stream<record {}, pe
     lock {
         apicontentsClonedTable = apicontentsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     return from record {} 'object in apicontentsClonedTable
-        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
         select persist:filterRecord({
             ...'object,
             "apimetadata": apimetadata
@@ -1031,13 +1031,13 @@ isolated function queryOneApicontents(anydata key) returns record {}|persist:Not
     lock {
         apicontentsClonedTable = apicontentsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     from record {} 'object in apicontentsClonedTable
     where persist:getKey('object, ["contentId"]) == key
-    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
     do {
         return {
             ...'object,
@@ -1052,12 +1052,12 @@ isolated function queryApiimages(string[] fields) returns stream<record {}, pers
     lock {
         apiimagesClonedTable = apiimagesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     return from record {} 'object in apiimagesClonedTable
-        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
         select persist:filterRecord({
             ...'object,
             "apimetadata": apimetadata
@@ -1069,13 +1069,13 @@ isolated function queryOneApiimages(anydata key) returns record {}|persist:NotFo
     lock {
         apiimagesClonedTable = apiimagesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     from record {} 'object in apiimagesClonedTable
     where persist:getKey('object, ["imageId"]) == key
-    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
     do {
         return {
             ...'object,
@@ -1090,12 +1090,12 @@ isolated function queryAdditionalproperties(string[] fields) returns stream<reco
     lock {
         additionalpropertiesClonedTable = additionalpropertiesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     return from record {} 'object in additionalpropertiesClonedTable
-        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+        outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
         select persist:filterRecord({
             ...'object,
             "apimetadata": apimetadata
@@ -1107,13 +1107,13 @@ isolated function queryOneAdditionalproperties(anydata key) returns record {}|pe
     lock {
         additionalpropertiesClonedTable = additionalpropertiesTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
     from record {} 'object in additionalpropertiesClonedTable
     where persist:getKey('object, ["propertyId"]) == key
-    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId] equals [apimetadata?.apiId]
+    outer join var apimetadata in apimetadataClonedTable on ['object.apimetadataApiId, 'object.apimetadataOrganizationName] equals [apimetadata?.apiId, apimetadata?.organizationName]
     do {
         return {
             ...'object,
@@ -1370,7 +1370,7 @@ isolated function querySubscriptions(string[] fields) returns stream<record {}, 
     lock {
         subscriptionsClonedTable = subscriptionsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
@@ -1387,7 +1387,7 @@ isolated function querySubscriptions(string[] fields) returns stream<record {}, 
         throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
     }
     return from record {} 'object in subscriptionsClonedTable
-        outer join var api in apimetadataClonedTable on ['object.apiApiId] equals [api?.apiId]
+        outer join var api in apimetadataClonedTable on ['object.apiApiId, 'object.apiOrganizationName] equals [api?.apiId, api?.organizationName]
         outer join var user in usersClonedTable on ['object.userUserId] equals [user?.userId]
         outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
         outer join var subscriptionpolicy in throttlingpoliciesClonedTable on ['object.subscriptionPolicyId] equals [subscriptionpolicy?.policyId]
@@ -1405,7 +1405,7 @@ isolated function queryOneSubscriptions(anydata key) returns record {}|persist:N
     lock {
         subscriptionsClonedTable = subscriptionsTable.clone();
     }
-    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    table<ApiMetadata> key(apiId, organizationName) apimetadataClonedTable;
     lock {
         apimetadataClonedTable = apimetadataTable.clone();
     }
@@ -1423,7 +1423,7 @@ isolated function queryOneSubscriptions(anydata key) returns record {}|persist:N
     }
     from record {} 'object in subscriptionsClonedTable
     where persist:getKey('object, ["subscriptionId"]) == key
-    outer join var api in apimetadataClonedTable on ['object.apiApiId] equals [api?.apiId]
+    outer join var api in apimetadataClonedTable on ['object.apiApiId, 'object.apiOrganizationName] equals [api?.apiId, api?.organizationName]
     outer join var user in usersClonedTable on ['object.userUserId] equals [user?.userId]
     outer join var organization in organizationsClonedTable on ['object.organizationOrgId] equals [organization?.orgId]
     outer join var subscriptionpolicy in throttlingpoliciesClonedTable on ['object.subscriptionPolicyId] equals [subscriptionpolicy?.policyId]
@@ -1445,7 +1445,7 @@ isolated function queryApiMetadataAdditionalproperties(record {} value, string[]
         additionalpropertiesClonedTable = additionalpropertiesTable.clone();
     }
     return from record {} 'object in additionalpropertiesClonedTable
-        where 'object.apimetadataApiId == value["apiId"]
+        where 'object.apimetadataApiId == value["apiId"] && 'object.apimetadataOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);
@@ -1457,7 +1457,7 @@ isolated function queryApiMetadataThrottlingpolicies(record {} value, string[] f
         throttlingpoliciesClonedTable = throttlingpoliciesTable.clone();
     }
     return from record {} 'object in throttlingpoliciesClonedTable
-        where 'object.apimetadataApiId == value["apiId"]
+        where 'object.apimetadataApiId == value["apiId"] && 'object.apimetadataOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);
@@ -1469,7 +1469,7 @@ isolated function queryApiMetadataReviews(record {} value, string[] fields) retu
         reviewsClonedTable = reviewsTable.clone();
     }
     return from record {} 'object in reviewsClonedTable
-        where 'object.apifeedbackApiId == value["apiId"]
+        where 'object.apifeedbackApiId == value["apiId"] && 'object.apifeedbackOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);
@@ -1481,7 +1481,7 @@ isolated function queryApiMetadataSubscriptions(record {} value, string[] fields
         subscriptionsClonedTable = subscriptionsTable.clone();
     }
     return from record {} 'object in subscriptionsClonedTable
-        where 'object.apiApiId == value["apiId"]
+        where 'object.apiApiId == value["apiId"] && 'object.apiOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);
@@ -1493,7 +1493,7 @@ isolated function queryApiMetadataApicontent(record {} value, string[] fields) r
         apicontentsClonedTable = apicontentsTable.clone();
     }
     return from record {} 'object in apicontentsClonedTable
-        where 'object.apimetadataApiId == value["apiId"]
+        where 'object.apimetadataApiId == value["apiId"] && 'object.apimetadataOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);
@@ -1505,7 +1505,7 @@ isolated function queryApiMetadataApiimages(record {} value, string[] fields) re
         apiimagesClonedTable = apiimagesTable.clone();
     }
     return from record {} 'object in apiimagesClonedTable
-        where 'object.apimetadataApiId == value["apiId"]
+        where 'object.apimetadataApiId == value["apiId"] && 'object.apimetadataOrganizationName == value["organizationName"]
         select persist:filterRecord({
             ...'object
         }, fields);

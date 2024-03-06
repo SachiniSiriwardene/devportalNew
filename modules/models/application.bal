@@ -25,6 +25,7 @@ public type APISubscription record {|
     string orgId;
     string userId;
     string policyID;
+    string orgName;
 |};
 
 public type Organization record {|
@@ -51,8 +52,9 @@ public type API record {|
 
 public type Review record {|
     readonly string reviewId;
+    string orgName;
     string comment;
-    int rating;
+   int rating;
     string reviewedBy;
     string apiId;
     string apiName;
