@@ -68,6 +68,22 @@ public type ApiMetadata record {|
     string sandboxUrl;
     Review[] reviews;
     Subscription[] subscriptions;
+    ApiContent[] apiContent;
+    ApiImages[] apiImages;
+|};
+
+public type ApiContent record {|
+    readonly string contentId;
+    string key;
+    string value;
+	ApiMetadata apimetadata;
+|};
+
+public type ApiImages record {|
+    readonly string imageId;
+    string key;
+    string value;
+	ApiMetadata apimetadata;
 |};
 
 public type AdditionalProperties record {|

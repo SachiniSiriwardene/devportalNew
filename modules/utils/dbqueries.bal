@@ -2,6 +2,7 @@ import devportal.models;
 import devportal.store;
 
 import ballerina/log;
+import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
 
@@ -124,8 +125,8 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
-    store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
-        orgLandingPage: orgContent.orgLandingPage,
+     store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
+        orgLandingPage: orgContent.landingPageUrl,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
         apiStyleSheet: orgContent.apiStyleSheet,
@@ -137,11 +138,32 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 }
 
 
+public function createAPIAssets(models:APIAssets apiContent) returns string|error {
+
+    store:APIAssets assets = {
+        assetId: uuid:createType1AsString(),
+        apiAssets: apiContent.apiAssets,
+        assetmappingsApiId: apiContent.apiId,
+        stylesheet: apiContent.stylesheet,
+        markdown: apiContent.markdown,
+        landingPageUrl: apiContent.landingPageUrl
+    };
+
+    log:printInfo("Stored API asset ID "+apiContent.apiId);
+
+    string[] listResult = check dbClient->/apiassets.post([assets]);
+
+    if (listResult.length() == 0) {
+        return error("API assets creation failed");
+    }
+    return listResult[0];
+}
+
 public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
 
     models:ThrottlingPolicy[] throttlingPolicies = apiMetaData.throttlingPolicies ?: [];
-    store:ThrottlingPolicyInsert[] throttlingPolicyRecords = [];
-    string apiID = uuid:createType1AsString();
+    store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+    string apiID = apiMetaData.apiInfo.apiName;
 
     foreach var policy in throttlingPolicies {
         throttlingPolicyRecords.push({
@@ -153,6 +175,10 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
         });
     }
 
+    if (throttlingPolicyRecords.length() != 0) {
+        string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
+    }
+
     map<string> additionalProperties = apiMetaData.apiInfo.additionalProperties;
     store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
 
@@ -161,12 +187,50 @@ public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
             apimetadataApiId: apiID,
             propertyId: uuid:createType1AsString(),
             'key: propertyKey,
-            value: additionalProperties.get(propertyKey)
+            value: <string>additionalProperties.get(propertyKey)
+            });
+    }
+    
+
+    if (additionalPropertiesRecords.length() != 0) {
+        string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
+    }
+
+    map<string> apiContents = apiMetaData.apiInfo.apiArtifacts.apiContent;
+    store:ApiContentInsert[] apiContent = [];
+
+    foreach var propertyKey in apiContents.keys() {
+        apiContent.push({
+            apimetadataApiId: apiID,
+            contentId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiContents.get(propertyKey)
         });
     }
 
+    if (apiContent.length() != 0) {
+        string[] contentResults = check dbClient->/apicontents.post(apiContent);
+    }
+
+    map<string> apiImages = apiMetaData.apiInfo.apiArtifacts.apiImages;
+    store:ApiImagesInsert[] apiImagesRecord = [];
+
+    foreach var propertyKey in apiImages.keys() {
+        apiImagesRecord.push({
+            apimetadataApiId: apiID,
+            imageId: uuid:createType1AsString(),
+            'key: propertyKey,
+            value: <string>apiImages.get(propertyKey)
+        });
+    }
+
+    if (apiImages.length() != 0) {
+        string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+    }
+
+
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
-    store:ApiMetadataInsert metadataRecord = {
+    store:ApiMetadata metadataRecord = {
         apiId: apiID,
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
