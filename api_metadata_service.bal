@@ -2,63 +2,9 @@ import devportal.models;
 import devportal.utils;
 
 import ballerina/http;
+import devportal.store;
 
 service /apiMetadata on new http:Listener(9090) {
-
-    # Store API Content
-    #
-    # + request - compressed file containing the folder content  
-    # + orgName - organization name
-    # + apiName - API name
-    # + return - return value description
-    resource function post apiContent(http:Request request, string orgName, string apiName) returns models:APIContentResponse|http:InternalServerError|error {
-
-        byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip";
-        string targetPath = "./";
-        check io:fileWriteBytes(path, binaryPayload);
-
-        check zip:extract(path, targetPath);
-
-        models:APIAssets assetMappings = {
-
-            landingPageUrl: "",
-            apiAssets: [],
-            stylesheet: "",
-            markdown: [],
-            apiId: ""
-        };
-
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/files/APILandingPage/" + apiName);
-        models:APIAssets apiContent = check utils:getContentForAPITemplate(directories, orgName, assetMappings);
-
-        store:OrganizationWithRelations organizationWithRelations = check utils:getOrgDetails(orgName);
-
-        string templateName = organizationWithRelations.templateName ?: "";
-
-        string apiId = check utils:getAPIId(orgName, apiName);
-
-        apiContent.apiId = apiName;
-        
-
-        string apiLandingPage = "";
-        if (!templateName.equalsIgnoreCaseAscii("custom")) {
-            file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
-            foreach var file in readDir {
-                if (file.absPath.endsWith("api-landing-page.html")) {
-                    apiLandingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
-                }
-            }
-        } else {
-            apiLandingPage = apiContent.landingPageUrl;
-        }
-        string aPIAssets = check utils:createAPIAssets(apiContent);
-        models:APIContentResponse uploadedContent = {
-            timeUploaded: time:utcToString(time:utcNow(0)),
-            assetMappings: apiContent
-        };
-        return uploadedContent;
-    }
 
     # Create an API.
     #
@@ -75,13 +21,11 @@ service /apiMetadata on new http:Listener(9090) {
     resource function get api(string apiID, string orgName) returns models:ApiMetadata|error {
 
         store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID].get();
-
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
         store:ApiImagesOptionalized[] apiImages = apiMetaData.apiImages ?: [];
         store:ReviewOptionalized[] apiReviews = apiMetaData.reviews ?: [];
-        store:APIAssetsOptionalized apiAssets = apiMetaData.assetMappings ?: {};
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
         models:APIReview[] reviews = [];
@@ -137,14 +81,6 @@ service /apiMetadata on new http:Listener(9090) {
                 openApiDefinition: apiMetaData.openApiDefinition ?: "",
                 additionalProperties: properties,
                 reviews: reviews,
-                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                apiAssets: {
-                    apiAssets: apiAssets?.apiAssets ?: [],
-                    landingPageUrl: apiAssets.landingPageUrl ?: "",
-                    stylesheet: apiAssets.stylesheet ?: "",
-                    markdown: apiAssets.markdown ?: [],
-                    apiId: apiAssets.assetmappingsApiId ?: ""
-                },
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord}
             }

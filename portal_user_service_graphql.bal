@@ -50,29 +50,29 @@ service /apiUserPortal on new graphql:Listener(4000) {
     //         properties[property.key ?: ""] = property.value ?: "";
     //     }
 
-        models:ApiMetadata metaData = {
-            serverUrl: {
-                sandboxUrl: apiMetaData.sandboxUrl ?: "",
-                productionUrl: apiMetaData.productionUrl ?: ""
-            },
-            throttlingPolicies: throttlingPolicies,
-            apiInfo: {
-                apiName: apiMetaData.apiName ?: "",
-                apiCategory: apiMetaData.apiCategory ?: [],
-                openApiDefinition: apiMetaData.openApiDefinition ?: "",
-                additionalProperties: properties,
-                reviews: reviews,
-                apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                apiAssets: {
-                    apiAssets: apiAssets?.apiAssets ?: [],
-                    landingPageUrl: apiAssets.landingPageUrl ?: "",
-                    stylesheet: apiAssets.stylesheet ?: "",
-                    markdown: apiAssets.markdown ?: [],
-                    apiId: apiAssets.assetmappingsApiId ?: ""
-                },
-                orgName: apiMetaData.organizationName ?: ""
-            }
-        };
+        // models:ApiMetadata metaData = {
+        //     serverUrl: {
+        //         sandboxUrl: apiMetaData.sandboxUrl ?: "",
+        //         productionUrl: apiMetaData.productionUrl ?: ""
+        //     },
+        //     throttlingPolicies: throttlingPolicies,
+        //     apiInfo: {
+        //         apiName: apiMetaData.apiName ?: "",
+        //         apiCategory: apiMetaData.apiCategory ?: [],
+        //         openApiDefinition: apiMetaData.openApiDefinition ?: "",
+        //         additionalProperties: properties,
+        //         reviews: reviews,
+        //         apiLandingPageURL: apiAssets.landingPageUrl ?: "",
+        //         apiAssets: {
+        //             apiAssets: apiAssets?.apiAssets ?: [],
+        //             landingPageUrl: apiAssets.landingPageUrl ?: "",
+        //             stylesheet: apiAssets.stylesheet ?: "",
+        //             markdown: apiAssets.markdown ?: [],
+        //             apiId: apiAssets.assetmappingsApiId ?: ""
+        //         },
+        //         orgName: apiMetaData.organizationName ?: ""
+        //     }
+        // };
 
     //     return metaData;
     // }
@@ -88,6 +88,17 @@ service /apiUserPortal on new graphql:Listener(4000) {
         models:ApiMetadata[] filteredData = [];
         store:ApiMetadataWithRelations[] metaDataList = check from var apiMetadata in apiData
             select apiMetadata;
+
+        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = userClient->/organizationassets.get();
+        
+        store:OrganizationAssetsWithRelations[] storedAsset = check from var asset in orgAssets
+            where asset.organizationassetsOrgId ==orgId
+            select asset;
+        string apiLandingPage = "";
+        if(storedAsset.length() == 1) {
+            apiLandingPage = storedAsset.pop().apiLandingPage ?: "";
+        }
+
 
         // Filter the APIs based on the category.
         foreach var api in metaDataList {
@@ -136,16 +147,8 @@ service /apiUserPortal on new graphql:Listener(4000) {
                             openApiDefinition: api.openApiDefinition ?: "",
                             additionalProperties: properties,
                             reviews: reviews,
-                            apiLandingPageURL: apiAssets.landingPageUrl ?: "",
-                            apiAssets: {
-                                apiAssets: apiAssets?.apiAssets ?: [],
-                                landingPageUrl: apiAssets.landingPageUrl ?: "",
-                                stylesheet: apiAssets.stylesheet ?: "",
-                                markdown: apiAssets.markdown ?: [],
-                                apiId: apiAssets.assetmappingsApiId ?: ""
-                            },
-                            orgName: api.organizationName ?: ""
-                        }
+                            orgName: api.organizationName ?: "",
+                            apiArtifacts: {apiContent: {}, apiImages: {}}}
                     };
                     filteredData.push(metaData);
                 }

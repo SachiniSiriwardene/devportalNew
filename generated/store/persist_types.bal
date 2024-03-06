@@ -118,7 +118,6 @@ public type ApiMetadataWithRelations record {|
     ThrottlingPolicyOptionalized[] throttlingPolicies?;
     ReviewOptionalized[] reviews?;
     SubscriptionOptionalized[] subscriptions?;
-    APIAssetsOptionalized assetMappings?;
     ApiContentOptionalized[] apiContent?;
     ApiImagesOptionalized[] apiImages?;
 |};

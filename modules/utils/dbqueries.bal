@@ -2,7 +2,6 @@ import devportal.models;
 import devportal.store;
 
 import ballerina/log;
-import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
 
@@ -126,7 +125,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     log:printInfo("Asset ID update: " + assetID);
 
      store:OrganizationAssets org = check  dbClient->/organizationassets/[assetID].put({
-        orgLandingPage: orgContent.landingPageUrl,
+        orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
         apiStyleSheet: orgContent.apiStyleSheet,
@@ -135,28 +134,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
     });
 
     return org.assetId;
-}
-
-
-public function createAPIAssets(models:APIAssets apiContent) returns string|error {
-
-    store:APIAssets assets = {
-        assetId: uuid:createType1AsString(),
-        apiAssets: apiContent.apiAssets,
-        assetmappingsApiId: apiContent.apiId,
-        stylesheet: apiContent.stylesheet,
-        markdown: apiContent.markdown,
-        landingPageUrl: apiContent.landingPageUrl
-    };
-
-    log:printInfo("Stored API asset ID "+apiContent.apiId);
-
-    string[] listResult = check dbClient->/apiassets.post([assets]);
-
-    if (listResult.length() == 0) {
-        return error("API assets creation failed");
-    }
-    return listResult[0];
 }
 
 public function createAPI(models:ApiMetadata apiMetaData) returns string|error {
