@@ -39,9 +39,10 @@ public type APIContentResponse record {
 # + orgId - field description
 public type OrganizationAssets record {|
     string[] orgAssets;
-    string[] markdown;
+    string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
+    string portalStyleSheet;
     string orgLandingPage;
     string apiLandingPage;
     string orgId;

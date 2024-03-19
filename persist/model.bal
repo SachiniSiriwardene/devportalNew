@@ -68,6 +68,7 @@ public type ApiMetadata record {|
     string sandboxUrl;
     Review[] reviews;
     Subscription[] subscriptions;
+    APIAssets? apiAsset;
     ApiContent[] apiContent;
     ApiImages[] apiImages;
 |};
@@ -161,7 +162,7 @@ public type Organization record {|
 #
 # + assetId - field description  
 # + orgAssets - field description  
-# + markdown - field description  
+# + orgLandingPageDetails - field description  
 # + orgStyleSheet - field description  
 # + apiStyleSheet - field description  
 # + orgLandingPage - field description  
@@ -170,13 +171,22 @@ public type Organization record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string[]? orgAssets;
-    string[] markdown;
+    string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
     string orgLandingPage;
     string apiLandingPage;
+    string portalStyleSheet;
     Organization organization;
 |};
+
+public type APIAssets record {|
+    readonly string assetId;
+   string apiContent;
+   string[] images;
+   ApiMetadata api;
+|};
+
 
 
 public type ApplicationProperties record {|

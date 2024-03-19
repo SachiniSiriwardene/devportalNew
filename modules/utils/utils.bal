@@ -4,6 +4,7 @@ import ballerina/file;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/regex;
+import ballerina/io;
 
 public function handleContent(mime:Entity bodyPart) {
     // Get the media type from the body part retrieved from the request.
@@ -75,17 +76,20 @@ returns models:OrganizationAssets|error {
             file:MetaData[] meta = check file:readDir(item.absPath);
             _ = check getContentForOrgTemplate(meta, orgName, assetMappings);
         } else {
-
-            //string relativePath = check file:relativePath(orgName, item.absPath);
+            string readContent = check io:fileReadString(item.absPath);
+            log:printInfo(readContent);
             string[] names = regex:split(item.absPath, orgName);
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
-                assetMappings.markdown.push(relativePath);
+               
             } else if (relativePath.endsWith("org-landing-page.css")) {
-                assetMappings.orgStyleSheet = relativePath;
+                assetMappings.orgStyleSheet = readContent;
 
             } else if (relativePath.endsWith("api-landing-page.css")) {
-                assetMappings.apiStyleSheet = relativePath;
+                assetMappings.apiStyleSheet = readContent;
+
+            }  else if (relativePath.endsWith("style.css")) {
+                assetMappings.portalStyleSheet = readContent;
 
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
                 assetMappings.orgAssets.push(relativePath);
@@ -96,10 +100,13 @@ returns models:OrganizationAssets|error {
                 assetMappings.orgAssets.push(relativePath);
             } else if (relativePath.endsWith("org-landing-page.html")) {
 
-                assetMappings.orgLandingPage = relativePath;
+                assetMappings.orgLandingPage = readContent;
             } else if (relativePath.endsWith("api-landing-page.html")) {
 
-                assetMappings.apiLandingPage = relativePath;
+                assetMappings.apiLandingPage = readContent;
+            } else if (relativePath.endsWith("orgContent.json")) {
+                
+                assetMappings.orgLandingPageDetails = readContent;
             }
 
         }

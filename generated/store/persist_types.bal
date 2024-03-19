@@ -118,6 +118,7 @@ public type ApiMetadataWithRelations record {|
     ThrottlingPolicyOptionalized[] throttlingPolicies?;
     ReviewOptionalized[] reviews?;
     SubscriptionOptionalized[] subscriptions?;
+    APIAssetsOptionalized apiAsset?;
     ApiContentOptionalized[] apiContent?;
     ApiImagesOptionalized[] apiImages?;
 |};
@@ -364,22 +365,24 @@ public type OrganizationUpdate record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string[]? orgAssets;
-    string[] markdown;
+    string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
     string orgLandingPage;
     string apiLandingPage;
+    string portalStyleSheet;
     string organizationassetsOrgId;
 |};
 
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
     string[]? orgAssets?;
-    string[] markdown?;
+    string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
     string orgLandingPage?;
     string apiLandingPage?;
+    string portalStyleSheet?;
     string organizationassetsOrgId?;
 |};
 
@@ -394,12 +397,42 @@ public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
     string[]? orgAssets?;
-    string[] markdown?;
+    string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
     string orgLandingPage?;
     string apiLandingPage?;
+    string portalStyleSheet?;
     string organizationassetsOrgId?;
+|};
+
+public type APIAssets record {|
+    readonly string assetId;
+    string apiContent;
+    string[] images;
+    string apiassetApiId;
+|};
+
+public type APIAssetsOptionalized record {|
+    string assetId?;
+    string apiContent?;
+    string[] images?;
+    string apiassetApiId?;
+|};
+
+public type APIAssetsWithRelations record {|
+    *APIAssetsOptionalized;
+    ApiMetadataOptionalized api?;
+|};
+
+public type APIAssetsTargetType typedesc<APIAssetsWithRelations>;
+
+public type APIAssetsInsert APIAssets;
+
+public type APIAssetsUpdate record {|
+    string apiContent?;
+    string[] images?;
+    string apiassetApiId?;
 |};
 
 public type ApplicationProperties record {|

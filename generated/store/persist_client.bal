@@ -17,6 +17,7 @@ const THEME = "themes";
 const APPLICATION = "applications";
 const ORGANIZATION = "organizations";
 const ORGANIZATION_ASSETS = "organizationassets";
+const A_P_I_ASSETS = "apiassets";
 const APPLICATION_PROPERTIES = "applicationproperties";
 const USER = "users";
 const SUBSCRIPTION = "subscriptions";
@@ -32,6 +33,7 @@ final isolated table<Theme> key(themeId) themesTable = table [];
 final isolated table<Application> key(appId) applicationsTable = table [];
 final isolated table<Organization> key(orgId) organizationsTable = table [];
 final isolated table<OrganizationAssets> key(assetId) organizationassetsTable = table [];
+final isolated table<APIAssets> key(assetId) apiassetsTable = table [];
 final isolated table<ApplicationProperties> key(propertyId) applicationpropertiesTable = table [];
 final isolated table<User> key(userId) usersTable = table [];
 final isolated table<Subscription> key(subscriptionId) subscriptionsTable = table [];
@@ -120,6 +122,11 @@ public isolated client class Client {
                 query: queryOrganizationassets,
                 queryOne: queryOneOrganizationassets
             },
+            [A_P_I_ASSETS] : {
+                keyFields: ["assetId"],
+                query: queryApiassets,
+                queryOne: queryOneApiassets
+            },
             [APPLICATION_PROPERTIES] : {
                 keyFields: ["propertyId"],
                 query: queryApplicationproperties,
@@ -153,6 +160,7 @@ public isolated client class Client {
             [APPLICATION] : check new (metadata.get(APPLICATION).cloneReadOnly()),
             [ORGANIZATION] : check new (metadata.get(ORGANIZATION).cloneReadOnly()),
             [ORGANIZATION_ASSETS] : check new (metadata.get(ORGANIZATION_ASSETS).cloneReadOnly()),
+            [A_P_I_ASSETS] : check new (metadata.get(A_P_I_ASSETS).cloneReadOnly()),
             [APPLICATION_PROPERTIES] : check new (metadata.get(APPLICATION_PROPERTIES).cloneReadOnly()),
             [USER] : check new (metadata.get(USER).cloneReadOnly()),
             [SUBSCRIPTION] : check new (metadata.get(SUBSCRIPTION).cloneReadOnly())
@@ -723,6 +731,53 @@ public isolated client class Client {
         }
     }
 
+    isolated resource function get apiassets(APIAssetsTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "query"
+    } external;
+
+    isolated resource function get apiassets/[string assetId](APIAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+        'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
+        name: "queryOne"
+    } external;
+
+    isolated resource function post apiassets(APIAssetsInsert[] data) returns string[]|persist:Error {
+        string[] keys = [];
+        foreach APIAssetsInsert value in data {
+            lock {
+                if apiassetsTable.hasKey(value.assetId) {
+                    return persist:getAlreadyExistsError("APIAssets", value.assetId);
+                }
+                apiassetsTable.put(value.clone());
+            }
+            keys.push(value.assetId);
+        }
+        return keys;
+    }
+
+    isolated resource function put apiassets/[string assetId](APIAssetsUpdate value) returns APIAssets|persist:Error {
+        lock {
+            if !apiassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("APIAssets", assetId);
+            }
+            APIAssets apiassets = apiassetsTable.get(assetId);
+            foreach var [k, v] in value.clone().entries() {
+                apiassets[k] = v;
+            }
+            apiassetsTable.put(apiassets);
+            return apiassets.clone();
+        }
+    }
+
+    isolated resource function delete apiassets/[string assetId]() returns APIAssets|persist:Error {
+        lock {
+            if !apiassetsTable.hasKey(assetId) {
+                return persist:getNotFoundError("APIAssets", assetId);
+            }
+            return apiassetsTable.remove(assetId).clone();
+        }
+    }
+
     isolated resource function get applicationproperties(ApplicationPropertiesTargetType targetType = <>) returns stream<targetType, persist:Error?> = @java:Method {
         'class: "io.ballerina.stdlib.persist.inmemory.datastore.InMemoryProcessor",
         name: "query"
@@ -1287,6 +1342,44 @@ isolated function queryOneOrganizationassets(anydata key) returns record {}|pers
         };
     };
     return persist:getNotFoundError("OrganizationAssets", key);
+}
+
+isolated function queryApiassets(string[] fields) returns stream<record {}, persist:Error?> {
+    table<APIAssets> key(assetId) apiassetsClonedTable;
+    lock {
+        apiassetsClonedTable = apiassetsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    return from record {} 'object in apiassetsClonedTable
+        outer join var api in apimetadataClonedTable on ['object.apiassetApiId] equals [api?.apiId]
+        select persist:filterRecord({
+            ...'object,
+            "api": api
+        }, fields);
+}
+
+isolated function queryOneApiassets(anydata key) returns record {}|persist:NotFoundError {
+    table<APIAssets> key(assetId) apiassetsClonedTable;
+    lock {
+        apiassetsClonedTable = apiassetsTable.clone();
+    }
+    table<ApiMetadata> key(apiId) apimetadataClonedTable;
+    lock {
+        apimetadataClonedTable = apimetadataTable.clone();
+    }
+    from record {} 'object in apiassetsClonedTable
+    where persist:getKey('object, ["assetId"]) == key
+    outer join var api in apimetadataClonedTable on ['object.apiassetApiId] equals [api?.apiId]
+    do {
+        return {
+            ...'object,
+            "api": api
+        };
+    };
+    return persist:getNotFoundError("APIAssets", key);
 }
 
 isolated function queryApplicationproperties(string[] fields) returns stream<record {}, persist:Error?> {

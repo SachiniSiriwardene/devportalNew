@@ -94,10 +94,11 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
         orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgContent.orgId,
-        markdown: orgContent.markdown,
         apiStyleSheet: orgContent.apiStyleSheet,
         orgStyleSheet: orgContent.orgStyleSheet,
-        apiLandingPage: orgContent.apiLandingPage
+        apiLandingPage: orgContent.apiLandingPage,
+        portalStyleSheet: orgContent.portalStyleSheet, 
+        orgLandingPageDetails: orgContent.orgLandingPageDetails
     };
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
