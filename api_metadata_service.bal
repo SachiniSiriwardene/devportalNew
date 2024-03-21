@@ -204,13 +204,8 @@ service /apiMetadata on new http:Listener(9090) {
 
         check file:copy(targetPath + apiName + "/images/", "./" + orgName + "/resources/images",file:COPY_ATTRIBUTES);
 
-        //check file:remove(orgName + "/resources/content/" + apiName + "/images/");
-
-
-
-       
-      
-       
+        check file:remove(orgName + "/resources/content/" + apiName + "/images/", file:RECURSIVE);
+        
         return "API asset updated";
 
     }
