@@ -4,6 +4,9 @@ import devportal.utils;
 
 import ballerina/http;
 import ballerina/persist;
+import ballerina/io;
+import ballerina/file;
+import ballerinacentral/zip;
 
 final store:Client dbClient = check new ();
 
@@ -180,6 +183,36 @@ service /apiMetadata on new http:Listener(9090) {
             apis.push(metaData);
         }
         return apis;
+    }
+
+     resource function post apiContent(http:Request request, string orgName, string apiName) returns string|error {
+
+        string orgId = check utils:getOrgId(orgName);
+
+        byte[] binaryPayload = check request.getBinaryPayload();
+        string path = "./zip";
+        string targetPath = "./" + orgName + "/resources/content/";
+        check io:fileWriteBytes(path, binaryPayload);
+
+        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+
+        if (dirExists) {
+            file:Error? remove = check file:remove(orgName);
+        }
+
+        error? result = check zip:extract(path, targetPath);
+
+        check file:copy(targetPath + apiName + "/images/", "./" + orgName + "/resources/images",file:COPY_ATTRIBUTES);
+
+        //check file:remove(orgName + "/resources/content/" + apiName + "/images/");
+
+
+
+       
+      
+       
+        return "API asset updated";
+
     }
 
 }
