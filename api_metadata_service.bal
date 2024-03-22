@@ -2,10 +2,11 @@ import devportal.models;
 import devportal.store;
 import devportal.utils;
 
-import ballerina/http;
-import ballerina/persist;
-import ballerina/io;
 import ballerina/file;
+import ballerina/http;
+import ballerina/io;
+import ballerina/persist;
+
 import ballerinacentral/zip;
 
 final store:Client dbClient = check new ();
@@ -19,6 +20,7 @@ service /apiMetadata on new http:Listener(9090) {
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:createAPIMetadata(metadata);
+        utils:addApiImages(metadata.apiInfo.assets.apiImages, apiId, metadata.apiInfo.orgName);
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -32,7 +34,7 @@ service /apiMetadata on new http:Listener(9090) {
         return response;
     }
 
-    resource function get api(string apiID, string orgName) returns models:ApiMetadata|error {
+    resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
         store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID]/[orgName].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
@@ -71,10 +73,10 @@ service /apiMetadata on new http:Listener(9090) {
             properties[property.key ?: ""] = property.value ?: "";
         }
 
-        map<string> apiContentRecord = {};
+        string[] apiContentRecord = [];
 
         foreach var property in apiContent {
-            apiContentRecord[property.key ?: ""] = property.value ?: "";
+            apiContentRecord.push(property.apiContentReference ?: "");
         }
 
         map<string> apiImagesRecord = {};
@@ -82,8 +84,11 @@ service /apiMetadata on new http:Listener(9090) {
         foreach var property in apiImages {
             apiImagesRecord[property.key ?: ""] = property.value ?: "";
         }
+        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+        json openApiDefinition = check apiDefinition.fromJsonString();
 
-        models:ApiMetadata metaData = {
+        string version = check openApiDefinition.info.version;
+        models:ApiMetadataResponse metaData = {
             serverUrl: {
                 sandboxUrl: apiMetaData.sandboxUrl ?: "",
                 productionUrl: apiMetaData.productionUrl ?: ""
@@ -92,18 +97,19 @@ service /apiMetadata on new http:Listener(9090) {
             apiInfo: {
                 apiName: apiMetaData.apiName ?: "",
                 apiCategory: apiMetaData.apiCategory ?: [],
-                openApiDefinition: apiMetaData.openApiDefinition ?: "",
+                openApiDefinition: openApiDefinition,
                 additionalProperties: properties,
                 reviews: reviews,
                 orgName: apiMetaData.organizationName ?: "",
-                apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord}
+                apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
+                apiVersion: version
             }
         };
 
         return metaData;
     }
 
-    resource function get apiList(string orgName) returns models:ApiMetadata[]|error {
+    resource function get apiList(string orgName) returns models:ApiMetadataResponse[]|error {
 
         //retrieve the organization id
         string orgId = check utils:getOrgId(orgName);
@@ -113,7 +119,7 @@ service /apiMetadata on new http:Listener(9090) {
             where api.orgId == orgId
             select api;
 
-        models:ApiMetadata[] apis = [];
+        models:ApiMetadataResponse[] apis = [];
         foreach var apiMetaData in apiList {
 
             store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
@@ -152,10 +158,10 @@ service /apiMetadata on new http:Listener(9090) {
                 properties[property.key ?: ""] = property.value ?: "";
             }
 
-            map<string> apiContentRecord = {};
+            string[] apiContentRecord = [];
 
             foreach var property in apiContent {
-                apiContentRecord[property.key ?: ""] = property.value ?: "";
+                apiContentRecord.push(property.apiContentReference ?: "");
             }
 
             map<string> apiImagesRecord = {};
@@ -164,7 +170,11 @@ service /apiMetadata on new http:Listener(9090) {
                 apiImagesRecord[property.key ?: ""] = property.value ?: "";
             }
 
-            models:ApiMetadata metaData = {
+            string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+            json openApiDefinition = check apiDefinition.fromJsonString();
+            string version = check openApiDefinition.info.version;
+
+            models:ApiMetadataResponse metaData = {
                 serverUrl: {
                     sandboxUrl: apiMetaData.sandboxUrl ?: "",
                     productionUrl: apiMetaData.productionUrl ?: ""
@@ -177,7 +187,8 @@ service /apiMetadata on new http:Listener(9090) {
                     additionalProperties: properties,
                     reviews: reviews,
                     orgName: apiMetaData.organizationName ?: "",
-                    apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord}
+                    apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
+                    apiVersion: version
                 }
             };
             apis.push(metaData);
@@ -185,9 +196,9 @@ service /apiMetadata on new http:Listener(9090) {
         return apis;
     }
 
-     resource function post apiContent(http:Request request, string orgName, string apiName) returns string|error {
+    resource function post apiContent(http:Request request, string orgName, string apiName) returns string|error {
 
-        string orgId = check utils:getOrgId(orgName);
+        string apiId = check utils:getAPIId(orgName, apiName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
@@ -201,11 +212,19 @@ service /apiMetadata on new http:Listener(9090) {
         }
 
         error? result = check zip:extract(path, targetPath);
+        
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources/content/" + apiName);
 
-        check file:copy(targetPath + apiName + "/images/", "./" + orgName + "/resources/images",file:COPY_ATTRIBUTES);
+        models:APIAssets apiAssets = {apiContent: [], apiImages: [], apiId: apiId};
+        apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
+
+        check file:copy(targetPath + apiName + "/images/", "./" + orgName + "/resources/images", file:COPY_ATTRIBUTES);
 
         check file:remove(orgName + "/resources/content/" + apiName + "/images/", file:RECURSIVE);
-        
+
+        utils:addApiContent(apiAssets, apiId, orgName);
+        //utils:addApiImages(apiAssets.apiImages, apiId, orgName);
+
         return "API asset updated";
 
     }

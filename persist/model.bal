@@ -72,10 +72,10 @@ public type ApiMetadata record {|
     ApiImages[] apiImages;
 |};
 
+
 public type ApiContent record {|
     readonly string contentId;
-    string key;
-    string value;
+    string apiContentReference;
 	ApiMetadata apimetadata;
 |};
 

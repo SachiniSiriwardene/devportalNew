@@ -82,80 +82,80 @@ service /apiUserPortal on new graphql:Listener(4000) {
     # + orgId - parameter description  
     # + category - parameter description
     # + return - return value description
-    resource function get apiFilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|error {
+    // resource function get apiFilter(string orgId, string category, string? keywords) returns models:ApiMetadata[]|error {
 
-        stream<store:ApiMetadataWithRelations, persist:Error?> apiData = userClient->/apimetadata.get();
-        models:ApiMetadata[] filteredData = [];
-        store:ApiMetadataWithRelations[] metaDataList = check from var apiMetadata in apiData
-            select apiMetadata;
+    //     stream<store:ApiMetadataWithRelations, persist:Error?> apiData = userClient->/apimetadata.get();
+    //     models:ApiMetadata[] filteredData = [];
+    //     store:ApiMetadataWithRelations[] metaDataList = check from var apiMetadata in apiData
+    //         select apiMetadata;
 
-        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = userClient->/organizationassets.get();
+    //     stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = userClient->/organizationassets.get();
         
-        store:OrganizationAssetsWithRelations[] storedAsset = check from var asset in orgAssets
-            where asset.organizationassetsOrgId ==orgId
-            select asset;
-        string apiLandingPage = "";
-        if(storedAsset.length() == 1) {
-            apiLandingPage = storedAsset.pop().apiLandingPage ?: "";
-        }
+    //     store:OrganizationAssetsWithRelations[] storedAsset = check from var asset in orgAssets
+    //         where asset.organizationassetsOrgId ==orgId
+    //         select asset;
+    //     string apiLandingPage = "";
+    //     if(storedAsset.length() == 1) {
+    //         apiLandingPage = storedAsset.pop().apiLandingPage ?: "";
+    //     }
 
 
-        // Filter the APIs based on the category.
-        foreach var api in metaDataList {
-            foreach var item in api.apiCategory ?: [] {
-                if (category.equalsIgnoreCaseAscii(item)) {
-                    store:ThrottlingPolicyOptionalized[] policies = api.throttlingPolicies ?: [];
-                    models:ThrottlingPolicy[] throttlingPolicies = [];
+    //     // Filter the APIs based on the category.
+    //     foreach var api in metaDataList {
+    //         foreach var item in api.apiCategory ?: [] {
+    //             if (category.equalsIgnoreCaseAscii(item)) {
+    //                 store:ThrottlingPolicyOptionalized[] policies = api.throttlingPolicies ?: [];
+    //                 models:ThrottlingPolicy[] throttlingPolicies = [];
                     
-                    foreach var policy in policies {
-                        models:ThrottlingPolicy policyData = {
-                            policyName: policy.policyName ?: "",
-                            description: policy.description ?: "",
-                            'type: policy.'type ?: ""
-                        };
-                        throttlingPolicies.push(policyData);
-                    }
-                    store:ReviewOptionalized[] apiReviews = api.reviews ?: [];
-                    models:APIReview[] reviews = [];
+    //                 foreach var policy in policies {
+    //                     models:ThrottlingPolicy policyData = {
+    //                         policyName: policy.policyName ?: "",
+    //                         description: policy.description ?: "",
+    //                         'type: policy.'type ?: ""
+    //                     };
+    //                     throttlingPolicies.push(policyData);
+    //                 }
+    //                 store:ReviewOptionalized[] apiReviews = api.reviews ?: [];
+    //                 models:APIReview[] reviews = [];
 
-                    foreach var review in apiReviews {
-                        models:APIReview reviewData = {
-                            apiRating: review.rating ?: 0,
-                            apiComment: review.comment ?: "",
-                            apiReviewer: review.reviewedbyUserId ?: "",
-                            reviewId: review.reviewId ?: "",
-                            apiName: "",
-                            apiID: review.apifeedbackApiId ?: ""
-                        };
-                        reviews.push(reviewData);
-                    }
-                    store:AdditionalPropertiesOptionalized[] additionalProperties = api.additionalProperties ?: [];
-                    map<string> properties = {};
-                    foreach var property in additionalProperties {
-                        properties[property.key ?: ""] = property.value ?: "";
-                    }
-                    models:ApiMetadata metaData = {
-                        serverUrl:
-                            {
-                            sandboxUrl: api.sandboxUrl ?: "",
-                            productionUrl: api.productionUrl ?: ""
-                        },
-                        throttlingPolicies: throttlingPolicies,
-                        apiInfo: {
-                            apiName: api.apiName ?: "",
-                            apiCategory: api.apiCategory ?: [],
-                            openApiDefinition: api.openApiDefinition ?: "",
-                            additionalProperties: properties,
-                            reviews: reviews,
-                            orgName: api.organizationName ?: "",
-                            apiArtifacts: {apiContent: {}, apiImages: {}}}
-                    };
-                    filteredData.push(metaData);
-                }
-            }
-        }
-        return filteredData;
-    }
+    //                 foreach var review in apiReviews {
+    //                     models:APIReview reviewData = {
+    //                         apiRating: review.rating ?: 0,
+    //                         apiComment: review.comment ?: "",
+    //                         apiReviewer: review.reviewedbyUserId ?: "",
+    //                         reviewId: review.reviewId ?: "",
+    //                         apiName: "",
+    //                         apiID: review.apifeedbackApiId ?: ""
+    //                     };
+    //                     reviews.push(reviewData);
+    //                 }
+    //                 store:AdditionalPropertiesOptionalized[] additionalProperties = api.additionalProperties ?: [];
+    //                 map<string> properties = {};
+    //                 foreach var property in additionalProperties {
+    //                     properties[property.key ?: ""] = property.value ?: "";
+    //                 }
+    //                 models:ApiMetadata metaData = {
+    //                     serverUrl:
+    //                         {
+    //                         sandboxUrl: api.sandboxUrl ?: "",
+    //                         productionUrl: api.productionUrl ?: ""
+    //                     },
+    //                     throttlingPolicies: throttlingPolicies,
+    //                     apiInfo: {
+    //                         apiName: api.apiName ?: "",
+    //                         apiCategory: api.apiCategory ?: [],
+    //                         openApiDefinition: api.openApiDefinition ?: "",
+    //                         additionalProperties: properties,
+    //                         reviews: reviews,
+    //                         orgName: api.organizationName ?: "",
+    //                         apiArtifacts: {apiContent: {}, apiImages: {}}}
+    //                 };
+    //                 filteredData.push(metaData);
+    //             }
+    //         }
+    //     }
+    //     return filteredData;
+    // }
 
     # Create an application.
     #
