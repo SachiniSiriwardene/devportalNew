@@ -29,6 +29,7 @@ service /apiMetadata on new http:Listener(9090) {
     resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
+        utils:addApiImages(metadata.apiInfo.assets.apiImages, apiId, metadata.apiInfo.orgName);
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
