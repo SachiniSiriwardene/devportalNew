@@ -42,10 +42,10 @@ service /admin on new http:Listener(8080) {
         string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
-        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+        boolean dirExists = check file:test("./" + orgName, file:EXISTS);
 
         if (dirExists) {
-            file:Error? remove = check file:remove(orgName);
+            file:Error? remove = check file:remove(orgName, file:RECURSIVE);
         }
 
         error? result = check zip:extract(path, targetPath);
@@ -88,15 +88,12 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip" + orgName;
-        string targetPath = "./";
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
 
-        if (dirExists) {
-            file:Error? remove = check file:remove(orgName);
-        }
-
+      
         error? result = check zip:extract(path, targetPath);
 
         //check whether org exists
@@ -118,8 +115,7 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
-        // directories = check file:readDir("./" + orgName + "/files/APILandingPage");
-        // models:APIAssets apiPageContent = check utils:getContentForAPITemplate(directories, orgName, apiAssets);
+        
 
         string org = check utils:updateOrg(orgName, templateName);
 

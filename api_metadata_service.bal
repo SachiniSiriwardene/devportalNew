@@ -205,7 +205,7 @@ service /apiMetadata on new http:Listener(9090) {
         string targetPath = "./" + orgName + "/resources/content/";
         check io:fileWriteBytes(path, binaryPayload);
 
-        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+        boolean dirExists = check file:test(targetPath+apiName, file:EXISTS);
 
         if (dirExists) {
             file:Error? remove = check file:remove(orgName);
