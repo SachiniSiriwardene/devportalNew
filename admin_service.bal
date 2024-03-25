@@ -175,35 +175,6 @@ service /admin on new http:Listener(8080) {
 
     }
 
-    # Store the theme for the developer portal.
-    #
-    # + theme - theme object
-    # + return - return value description
-    resource function post theme(@http:Payload models:Theme theme) returns models:ThemeResponse|error {
-
-        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
-
-        //retrieve the organization id
-        string orgId = check utils:getOrgId(theme.orgName);
-
-        //TODO :map the templacte name to ID 
-
-        store:ThemeInsert insertTheme = {
-            themeId: uuid:createType1AsString(),
-            organizationOrgId: orgId,
-            theme: theme.toJsonString()
-        };
-
-        string[] listResult = check adminClient->/themes.post([insertTheme]);
-
-        models:ThemeResponse createdTheme = {
-            createdAt: time:utcToString(time:utcNow(0)),
-            themeId: listResult[0],
-            orgId: orgId
-        };
-        return createdTheme;
-    }
-
     # Store the identity provider details for the developer portal.
     #
     # + identityProvider - IDP details
