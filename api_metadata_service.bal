@@ -20,7 +20,7 @@ service /apiMetadata on new http:Listener(9090) {
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:createAPIMetadata(metadata);
-        utils:addApiImages(metadata.apiInfo.assets.apiImages, apiId, metadata.apiInfo.orgName);
+        utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -29,7 +29,7 @@ service /apiMetadata on new http:Listener(9090) {
     resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
-        utils:addApiImages(metadata.apiInfo.assets.apiImages, apiId, metadata.apiInfo.orgName);
+        utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -206,11 +206,6 @@ service /apiMetadata on new http:Listener(9090) {
         string targetPath = "./" + orgName + "/resources/content/";
         check io:fileWriteBytes(path, binaryPayload);
 
-        boolean dirExists = check file:test(targetPath+apiName, file:EXISTS);
-
-        if (dirExists) {
-            file:Error? remove = check file:remove(orgName);
-        }
 
         error? result = check zip:extract(path, targetPath);
         

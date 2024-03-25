@@ -42,12 +42,7 @@ service /admin on new http:Listener(8080) {
         string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
-        boolean dirExists = check file:test("./" + orgName, file:EXISTS);
-
-        if (dirExists) {
-            file:Error? remove = check file:remove(orgName, file:RECURSIVE);
-        }
-
+        
         error? result = check zip:extract(path, targetPath);
 
         models:OrganizationAssets assetMappings = {
