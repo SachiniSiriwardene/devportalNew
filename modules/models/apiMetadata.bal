@@ -11,7 +11,7 @@ public type ApiInfo record {
     string[] apiCategory;
     json openApiDefinition;
     map<string> additionalProperties;
-    ApiArtifacts assets;
+    ApiArtifacts apiArtifacts;
 };
 
 public type ApiInfoResponse record {
