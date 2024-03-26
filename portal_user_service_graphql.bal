@@ -74,7 +74,7 @@ service /apiUserPortal on new graphql:Listener(4000) {
         models:Application app = {
             accessControl: userList,
             productionKey: "",
-            addedAPIs: [],
+            addedAPIs: "",
             appId: application.productionKey ?: "",
             sandBoxKey: application.sandBoxKey ?: "",
             applicationName: application.applicationName ?: "",

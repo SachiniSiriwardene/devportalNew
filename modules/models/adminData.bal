@@ -38,7 +38,7 @@ public type APIContentResponse record {
 # + apiLandingPage - field description  
 # + orgId - field description
 public type OrganizationAssets record {|
-    string[] orgAssets;
+    string orgAssets;
     string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
@@ -89,7 +89,7 @@ public type IdentityProvider record {
     string issuer;
     string jwksEndpoint;
     string authorizeEndpoint;
-    string[] envrionments;
+    string envrionments;
 };
 
 # Response for IdentityProvider creaton.

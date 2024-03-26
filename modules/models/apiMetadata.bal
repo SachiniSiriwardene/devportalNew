@@ -8,7 +8,7 @@ public type ApiArtifacts record {
 public type ApiInfo record {
     string orgName;
     string apiName;
-    string[] apiCategory;
+    string apiCategory;
     json openApiDefinition;
     map<string> additionalProperties;
     ApiArtifacts apiArtifacts;
@@ -17,7 +17,7 @@ public type ApiInfo record {
 public type ApiInfoResponse record {
     string orgName;
     string apiName;
-    string[] apiCategory;
+    string apiCategory;
     string apiVersion;
     json openApiDefinition;
     APIReview[] reviews?;

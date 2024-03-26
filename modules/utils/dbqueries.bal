@@ -1,9 +1,9 @@
 import devportal.models;
-import devportal.store;
 
 import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
+import devportal.store;
 
 final store:Client dbClient = check new ();
 

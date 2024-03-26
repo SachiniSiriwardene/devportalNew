@@ -14,7 +14,7 @@ public distinct service class ApplicationResponse {
         return self.app.applicationName;
     }
 
-    resource function get addedAPIs() returns string[] {
+    resource function get addedAPIs() returns string {
         return self.app.addedAPIs;
     }
 

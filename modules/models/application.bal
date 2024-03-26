@@ -12,7 +12,7 @@ public type Application record {|
     readonly string appId;
     string applicationName;
     ApplicationProperties[] appProperties;
-    string[] addedAPIs;
+    string addedAPIs;
     User[] accessControl;
     string sandBoxKey;
     string productionKey;

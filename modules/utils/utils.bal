@@ -92,12 +92,12 @@ returns models:OrganizationAssets|error {
                 assetMappings.portalStyleSheet = readContent;
 
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
-                assetMappings.orgAssets.push(relativePath);
+                assetMappings.orgAssets =  assetMappings.orgAssets + " " + relativePath;
 
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
 
-                assetMappings.orgAssets.push(relativePath);
+                assetMappings.orgAssets =  assetMappings.orgAssets + " " + relativePath;
             } else if (relativePath.endsWith("org-landing-page.html")) {
 
                 assetMappings.orgLandingPage = readContent;

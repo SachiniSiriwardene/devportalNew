@@ -97,7 +97,7 @@ service /apiMetadata on new http:Listener(9090) {
             throttlingPolicies: throttlingPolicies,
             apiInfo: {
                 apiName: apiMetaData.apiName ?: "",
-                apiCategory: apiMetaData.apiCategory ?: [],
+                apiCategory: apiMetaData.apiCategory ?: "",
                 openApiDefinition: openApiDefinition,
                 additionalProperties: properties,
                 reviews: reviews,
@@ -183,7 +183,7 @@ service /apiMetadata on new http:Listener(9090) {
                 throttlingPolicies: throttlingPolicies,
                 apiInfo: {
                     apiName: apiMetaData.apiName ?: "",
-                    apiCategory: apiMetaData.apiCategory ?: [],
+                    apiCategory: apiMetaData.apiCategory ?: "",
                     openApiDefinition: apiMetaData.openApiDefinition ?: "",
                     additionalProperties: properties,
                     reviews: reviews,

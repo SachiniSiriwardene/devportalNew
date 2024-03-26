@@ -15,7 +15,7 @@ import ballerinacentral/zip;
 // # A service representing a network-accessible API
 // # bound to port `8080`.
 
-final store:Client adminClient = check new ();
+final Client adminClient = check new ();
 
 service /admin on new http:Listener(8080) {
 
@@ -42,21 +42,19 @@ service /admin on new http:Listener(8080) {
         string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
-        
         error? result = check zip:extract(path, targetPath);
 
         models:OrganizationAssets assetMappings = {
 
             orgLandingPage: "",
-            orgAssets: [],
+            orgAssets: "",
             orgId: orgId,
-            markdown: [],
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
             orgLandingPageDetails: "",
             portalStyleSheet: ""
-            
+
         };
 
         // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
@@ -103,12 +101,12 @@ service /admin on new http:Listener(8080) {
         models:OrganizationAssets assetMappings = {
 
             orgLandingPage: "",
-            orgAssets: [],
+            orgAssets: "",
             orgId: check orgId,
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: "", 
+            portalStyleSheet: "",
             orgLandingPageDetails: ""
         };
 
@@ -116,7 +114,6 @@ service /admin on new http:Listener(8080) {
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
-
 
         string orgAssets = check utils:updateOrgAssets(orgContent, orgName);
         //string createdAPIAssets = check  utils:createAPIAssets(apiPageContent);
@@ -145,7 +142,6 @@ service /admin on new http:Listener(8080) {
 
         boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
 
-      
         error? result = check zip:extract(path, targetPath);
 
         //check whether org exists
@@ -154,13 +150,12 @@ service /admin on new http:Listener(8080) {
         models:OrganizationAssets assetMappings = {
 
             orgLandingPage: "",
-            orgAssets: [],
+            orgAssets: "",
             orgId: check orgId,
-            markdown: [],
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: "", 
+            portalStyleSheet: "",
             orgLandingPageDetails: ""
         };
 
@@ -168,8 +163,6 @@ service /admin on new http:Listener(8080) {
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
-
-        
 
         string org = check utils:updateOrg(orgName, templateName);
 
@@ -210,7 +203,16 @@ service /admin on new http:Listener(8080) {
 
         string orgId = check utils:getOrgId(orgName);
         log:printInfo("Org ID: " + orgId);
-        models:OrganizationAssets organizationAssets = {orgLandingPage: "", orgAssets: [], orgId: "", apiStyleSheet: "", orgStyleSheet: "", apiLandingPage: "",portalStyleSheet: "", orgLandingPageDetails: ""};
+        models:OrganizationAssets organizationAssets = {
+            orgLandingPage: "",
+            orgAssets: "",
+            orgId: "",
+            apiStyleSheet: "",
+            orgStyleSheet: "",
+            apiLandingPage: "",
+            portalStyleSheet: "",
+            orgLandingPageDetails: ""
+        };
 
         stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
         store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
@@ -222,12 +224,12 @@ service /admin on new http:Listener(8080) {
         foreach var asset in assets {
             organizationAssets = {
                 orgLandingPage: asset.orgLandingPage ?: "",
-                orgAssets: asset?.orgAssets ?: [],
+                orgAssets: asset?.orgAssets ?: "",
                 orgId: asset.organizationassetsOrgId ?: "",
                 apiStyleSheet: asset.apiStyleSheet ?: "",
                 orgStyleSheet: asset.orgStyleSheet ?: "",
                 apiLandingPage: asset.apiLandingPage ?: "",
-                portalStyleSheet: asset.portalStyleSheet ?: "", 
+                portalStyleSheet: asset.portalStyleSheet ?: "",
                 orgLandingPageDetails: asset.orgLandingPageDetails ?: ""
             };
         }
@@ -276,7 +278,7 @@ service /admin on new http:Listener(8080) {
 
                 models:IdentityProvider identityProvider = {
                     name: idp.name ?: "",
-                    envrionments: idp.envrionments ?: [],
+                    envrionments: idp.envrionments ?: "",
                     jwksEndpoint: idp.jwksEndpoint ?: "",
                     introspectionEndpoint: idp.introspectionEndpoint ?: "",
                     wellKnownEndpoint: idp.wellKnownEndpoint ?: "",
