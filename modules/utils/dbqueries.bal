@@ -304,6 +304,7 @@ public function addApiContent(models:APIAssets apiAssets, string apiID, string o
 }
 
 public function addApiImages(map<string> images, string apiID, string orgName) {
+
     store:ApiImagesInsert[] apiImagesRecord = [];
 
     foreach var propertyKey in images.keys() {
