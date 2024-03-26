@@ -9,8 +9,6 @@ import ballerina/persist;
 
 import ballerinacentral/zip;
 
-final store:Client dbClient = check new ();
-
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.

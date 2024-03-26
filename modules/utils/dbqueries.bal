@@ -9,10 +9,10 @@ final store:Client dbClient = check new ();
 
 public function getOrgId(string orgName) returns string|error {
 
-    stream<store:OrganizationWithRelations, persist:Error?> organizations = check dbClient->/organizations.get();
+    stream<store:Organization, persist:Error?> organizations = check dbClient->/organizations.get();
 
     //retrieve the organization id
-    store:OrganizationWithRelations[] organization = check from var org in organizations
+    store:Organization[] organization = check from var org in organizations
         where org.organizationName == orgName
         select org;
 
@@ -20,7 +20,7 @@ public function getOrgId(string orgName) returns string|error {
         return error("Organization not found");
     }
 
-    return organization[0].orgId ?: "";
+    return organization[0].orgId;
 
 }
 
@@ -154,12 +154,10 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 }
 
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
+        log:printInfo("API metadata record: ################");
+
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
-
-    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
-    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadata metadataRecord = {
         apiId: apiID,
@@ -173,6 +171,9 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
+
+    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
