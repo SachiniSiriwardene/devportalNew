@@ -9,10 +9,10 @@ final store:Client dbClient = check new ();
 
 public function getOrgId(string orgName) returns string|error {
 
-    stream<store:OrganizationWithRelations, persist:Error?> organizations = check dbClient->/organizations.get();
+    stream<store:Organization, persist:Error?> organizations = check dbClient->/organizations.get();
 
     //retrieve the organization id
-    store:OrganizationWithRelations[] organization = check from var org in organizations
+    store:Organization[] organization = check from var org in organizations
         where org.organizationName == orgName
         select org;
 
@@ -20,7 +20,7 @@ public function getOrgId(string orgName) returns string|error {
         return error("Organization not found");
     }
 
-    return organization[0].orgId ?: "";
+    return organization[0].orgId;
 
 }
 
@@ -303,6 +303,7 @@ public function addApiContent(models:APIAssets apiAssets, string apiID, string o
 }
 
 public function addApiImages(map<string> images, string apiID, string orgName) {
+
     store:ApiImagesInsert[] apiImagesRecord = [];
 
     foreach var propertyKey in images.keys() {
