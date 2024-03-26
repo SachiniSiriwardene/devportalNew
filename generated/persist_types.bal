@@ -9,6 +9,7 @@ public type ThrottlingPolicy record {|
     string policyName;
     string description;
     string apimetadataApiId;
+    string apimetadataOrganizationName;
 |};
 
 public type ThrottlingPolicyOptionalized record {|
@@ -17,6 +18,7 @@ public type ThrottlingPolicyOptionalized record {|
     string policyName?;
     string description?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type ThrottlingPolicyWithRelations record {|
@@ -34,6 +36,7 @@ public type ThrottlingPolicyUpdate record {|
     string policyName?;
     string description?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type RateLimitingPolicy record {|
@@ -62,6 +65,7 @@ public type Review record {|
     int rating;
     string comment;
     string apifeedbackApiId;
+    string apifeedbackOrganizationName;
     string reviewedbyUserId;
 |};
 
@@ -70,6 +74,7 @@ public type ReviewOptionalized record {|
     int rating?;
     string comment?;
     string apifeedbackApiId?;
+    string apifeedbackOrganizationName?;
     string reviewedbyUserId?;
 |};
 
@@ -87,6 +92,7 @@ public type ReviewUpdate record {|
     int rating?;
     string comment?;
     string apifeedbackApiId?;
+    string apifeedbackOrganizationName?;
     string reviewedbyUserId?;
 |};
 
@@ -94,8 +100,8 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
-    string organizationName;
-    string[] apiCategory;
+    readonly string organizationName;
+    string apiCategory;
     string openApiDefinition;
     string productionUrl;
     string sandboxUrl;
@@ -106,7 +112,7 @@ public type ApiMetadataOptionalized record {|
     string orgId?;
     string apiName?;
     string organizationName?;
-    string[] apiCategory?;
+    string apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
@@ -118,7 +124,6 @@ public type ApiMetadataWithRelations record {|
     ThrottlingPolicyOptionalized[] throttlingPolicies?;
     ReviewOptionalized[] reviews?;
     SubscriptionOptionalized[] subscriptions?;
-    APIAssetsOptionalized apiAsset?;
     ApiContentOptionalized[] apiContent?;
     ApiImagesOptionalized[] apiImages?;
 |};
@@ -130,8 +135,7 @@ public type ApiMetadataInsert ApiMetadata;
 public type ApiMetadataUpdate record {|
     string orgId?;
     string apiName?;
-    string organizationName?;
-    string[] apiCategory?;
+    string apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
@@ -139,16 +143,16 @@ public type ApiMetadataUpdate record {|
 
 public type ApiContent record {|
     readonly string contentId;
-    string key;
-    string value;
+    string apiContentReference;
     string apimetadataApiId;
+    string apimetadataOrganizationName;
 |};
 
 public type ApiContentOptionalized record {|
     string contentId?;
-    string key?;
-    string value?;
+    string apiContentReference?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type ApiContentWithRelations record {|
@@ -161,9 +165,9 @@ public type ApiContentTargetType typedesc<ApiContentWithRelations>;
 public type ApiContentInsert ApiContent;
 
 public type ApiContentUpdate record {|
-    string key?;
-    string value?;
+    string apiContentReference?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type ApiImages record {|
@@ -171,6 +175,7 @@ public type ApiImages record {|
     string key;
     string value;
     string apimetadataApiId;
+    string apimetadataOrganizationName;
 |};
 
 public type ApiImagesOptionalized record {|
@@ -178,6 +183,7 @@ public type ApiImagesOptionalized record {|
     string key?;
     string value?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type ApiImagesWithRelations record {|
@@ -193,6 +199,7 @@ public type ApiImagesUpdate record {|
     string key?;
     string value?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type AdditionalProperties record {|
@@ -200,6 +207,7 @@ public type AdditionalProperties record {|
     string key;
     string value;
     string apimetadataApiId;
+    string apimetadataOrganizationName;
 |};
 
 public type AdditionalPropertiesOptionalized record {|
@@ -207,6 +215,7 @@ public type AdditionalPropertiesOptionalized record {|
     string key?;
     string value?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type AdditionalPropertiesWithRelations record {|
@@ -222,6 +231,7 @@ public type AdditionalPropertiesUpdate record {|
     string key?;
     string value?;
     string apimetadataApiId?;
+    string apimetadataOrganizationName?;
 |};
 
 public type IdentityProvider record {|
@@ -232,7 +242,7 @@ public type IdentityProvider record {|
     string issuer;
     string jwksEndpoint;
     string authorizeEndpoint;
-    string[] envrionments;
+    string envrionments;
     string organizationOrgId;
 |};
 
@@ -244,7 +254,7 @@ public type IdentityProviderOptionalized record {|
     string issuer?;
     string jwksEndpoint?;
     string authorizeEndpoint?;
-    string[] envrionments?;
+    string envrionments?;
     string organizationOrgId?;
 |};
 
@@ -264,7 +274,7 @@ public type IdentityProviderUpdate record {|
     string issuer?;
     string jwksEndpoint?;
     string authorizeEndpoint?;
-    string[] envrionments?;
+    string envrionments?;
     string organizationOrgId?;
 |};
 
@@ -299,7 +309,7 @@ public type Application record {|
     string applicationName;
     string sandBoxKey;
     string productionKey;
-    string[] addedAPIs;
+    string addedAPIs;
     string idpId;
 |};
 
@@ -308,7 +318,7 @@ public type ApplicationOptionalized record {|
     string applicationName?;
     string sandBoxKey?;
     string productionKey?;
-    string[] addedAPIs?;
+    string addedAPIs?;
     string idpId?;
 |};
 
@@ -326,7 +336,7 @@ public type ApplicationUpdate record {|
     string applicationName?;
     string sandBoxKey?;
     string productionKey?;
-    string[] addedAPIs?;
+    string addedAPIs?;
     string idpId?;
 |};
 
@@ -364,7 +374,7 @@ public type OrganizationUpdate record {|
 
 public type OrganizationAssets record {|
     readonly string assetId;
-    string[]? orgAssets;
+    string? orgAssets;
     string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
@@ -376,7 +386,7 @@ public type OrganizationAssets record {|
 
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
-    string[]? orgAssets?;
+    string? orgAssets?;
     string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
@@ -396,7 +406,7 @@ public type OrganizationAssetsTargetType typedesc<OrganizationAssetsWithRelation
 public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
-    string[]? orgAssets?;
+    string? orgAssets?;
     string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
@@ -404,35 +414,6 @@ public type OrganizationAssetsUpdate record {|
     string apiLandingPage?;
     string portalStyleSheet?;
     string organizationassetsOrgId?;
-|};
-
-public type APIAssets record {|
-    readonly string assetId;
-    string apiContent;
-    string[] images;
-    string apiassetApiId;
-|};
-
-public type APIAssetsOptionalized record {|
-    string assetId?;
-    string apiContent?;
-    string[] images?;
-    string apiassetApiId?;
-|};
-
-public type APIAssetsWithRelations record {|
-    *APIAssetsOptionalized;
-    ApiMetadataOptionalized api?;
-|};
-
-public type APIAssetsTargetType typedesc<APIAssetsWithRelations>;
-
-public type APIAssetsInsert APIAssets;
-
-public type APIAssetsUpdate record {|
-    string apiContent?;
-    string[] images?;
-    string apiassetApiId?;
 |};
 
 public type ApplicationProperties record {|
@@ -498,6 +479,7 @@ public type UserUpdate record {|
 public type Subscription record {|
     readonly string subscriptionId;
     string apiApiId;
+    string apiOrganizationName;
     string userUserId;
     string organizationOrgId;
     string subscriptionPolicyId;
@@ -506,6 +488,7 @@ public type Subscription record {|
 public type SubscriptionOptionalized record {|
     string subscriptionId?;
     string apiApiId?;
+    string apiOrganizationName?;
     string userUserId?;
     string organizationOrgId?;
     string subscriptionPolicyId?;
@@ -525,6 +508,7 @@ public type SubscriptionInsert Subscription;
 
 public type SubscriptionUpdate record {|
     string apiApiId?;
+    string apiOrganizationName?;
     string userUserId?;
     string organizationOrgId?;
     string subscriptionPolicyId?;

@@ -1,15 +1,28 @@
+public type ApiArtifactsResponse record {
+    string[] apiContent;
+    map<string> apiImages;
+};
 public type ApiArtifacts record {
-    map<string> apiContent;
     map<string> apiImages;
 };
 public type ApiInfo record {
     string orgName;
     string apiName;
     string[] apiCategory;
-    string openApiDefinition;
-    APIReview[] reviews?;
+    json openApiDefinition;
     map<string> additionalProperties;
     ApiArtifacts apiArtifacts;
+};
+
+public type ApiInfoResponse record {
+    string orgName;
+    string apiName;
+    string[] apiCategory;
+    string apiVersion;
+    json openApiDefinition;
+    APIReview[] reviews?;
+    map<string> additionalProperties;
+    ApiArtifactsResponse apiArtifacts;
 };
 
 public type APIReview record {|
@@ -60,4 +73,11 @@ public type ApiMetadata record {
     ThrottlingPolicy[]? throttlingPolicies;
     ServerUrl serverUrl;
 };
+
+public type ApiMetadataResponse record {
+    ApiInfoResponse apiInfo;
+    ThrottlingPolicy[]? throttlingPolicies;
+    ServerUrl serverUrl;
+};
+
 

@@ -10,19 +10,70 @@ servers:
     port:
       default: "8080"
 paths:
-  /orgContent:
+  /organisation:
     post:
-      summary: Store the content for landing pages.
-      operationId: postOrgcontent
+      operationId: postOrganisation
       parameters:
       - name: orgName
         in: query
-        description: organization name
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgCreationResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /orgContent:
+    put:
+      summary: Store the organization landing page content.
+      operationId: putOrgcontent
+      parameters:
+      - name: orgName
+        in: query
+        description: 'parameter description  '
         required: true
         schema:
           type: string
       - name: templateName
         in: query
+        description: parameter description
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgContentResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    post:
+      summary: Description.
+      operationId: postOrgcontent
+      parameters:
+      - name: orgName
+        in: query
+        description: parameter description
         required: true
         schema:
           type: string
@@ -44,23 +95,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /theme:
-    post:
-      summary: Store the theme for the developer portal.
-      operationId: postTheme
-      requestBody:
-        description: theme object
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Theme'
+  /assets:
+    get:
+      summary: Get the asset paths for the org or api.
+      operationId: getAssets
+      parameters:
+      - name: orgName
+        in: query
+        description: 'parameter description  '
+        required: true
+        schema:
+          type: string
       responses:
-        "201":
-          description: Created
+        "200":
+          description: Ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ThemeResponse'
+                oneOf:
+                - $ref: '#/components/schemas/OrganizationAssets'
+                - $ref: '#/components/schemas/APIAssets'
         "500":
           description: Internal server error
           content:
@@ -119,31 +173,34 @@ components:
   schemas:
     OrganizationAssets:
       required:
-      - landingPageUrl
+      - apiLandingPage
+      - apiStyleSheet
+      - markdown
       - orgAssets
       - orgId
+      - orgLandingPage
+      - orgStyleSheet
       type: object
       properties:
         orgAssets:
           type: array
           items:
             type: string
-        landingPageUrl:
+        markdown:
+          type: array
+          items:
+            type: string
+        orgStyleSheet:
+          type: string
+        apiStyleSheet:
+          type: string
+        orgLandingPage:
+          type: string
+        apiLandingPage:
           type: string
         orgId:
           type: string
       description: Assets needed for the org landing page.
-    OrgContentResponse:
-      required:
-      - assetMappings
-      - timeUploaded
-      type: object
-      properties:
-        assetMappings:
-          $ref: '#/components/schemas/OrganizationAssets'
-        timeUploaded:
-          type: string
-      description: Response for content storage.
     ErrorPayload:
       type: object
       properties:
@@ -166,192 +223,24 @@ components:
           type: integer
           description: Relevant HTTP status code
           format: int32
-    PalettePrimary:
+    APIAssets:
       required:
-      - dark
-      - light
+      - apiContent
+      - apiId
+      - apiImages
       type: object
       properties:
-        light:
+        apiImages:
+          type: array
+          items:
+            type: string
+        apiContent:
+          type: array
+          items:
+            type: string
+        apiId:
           type: string
-        dark:
-          type: string
-    PaletteSecondary:
-      required:
-      - dark
-      - light
-      type: object
-      properties:
-        light:
-          type: string
-        dark:
-          type: string
-    PaletteBackground:
-      required:
-      - primary
-      - secondary
-      type: object
-      properties:
-        primary:
-          $ref: '#/components/schemas/PalettePrimary'
-        secondary:
-          $ref: '#/components/schemas/PaletteSecondary'
-    PaletteText:
-      required:
-      - primary
-      - secondary
-      type: object
-      properties:
-        primary:
-          $ref: '#/components/schemas/PalettePrimary'
-        secondary:
-          $ref: '#/components/schemas/PaletteSecondary'
-    PaletteButton:
-      required:
-      - primary
-      - secondary
-      type: object
-      properties:
-        primary:
-          $ref: '#/components/schemas/PalettePrimary'
-        secondary:
-          $ref: '#/components/schemas/PaletteSecondary'
-    APITilePalette:
-      required:
-      - background
-      - button
-      - text
-      - type
-      type: object
-      properties:
-        type:
-          type: string
-        background:
-          $ref: '#/components/schemas/PaletteBackground'
-        text:
-          $ref: '#/components/schemas/PaletteText'
-        button:
-          $ref: '#/components/schemas/PaletteButton'
-      description: Description.
-    Heading:
-      required:
-      - fontFamily
-      type: object
-      properties:
-        fontFamily:
-          type: string
-    Body:
-      required:
-      - fontFamily
-      type: object
-      properties:
-        fontFamily:
-          type: string
-    Paragraph:
-      required:
-      - fontFamily
-      type: object
-      properties:
-        fontFamily:
-          type: string
-    Typography:
-      required:
-      - body
-      - heading
-      - paragraph
-      type: object
-      properties:
-        heading:
-          $ref: '#/components/schemas/Heading'
-        body:
-          $ref: '#/components/schemas/Body'
-        paragraph:
-          $ref: '#/components/schemas/Paragraph'
-    AssetLogourl:
-      required:
-      - favicon
-      - footer
-      - header
-      type: object
-      properties:
-        header:
-          type: string
-        footer:
-          type: string
-        favicon:
-          type: string
-    Assets:
-      required:
-      - logoUrl
-      type: object
-      properties:
-        logoUrl:
-          $ref: '#/components/schemas/AssetLogourl'
-    FooterLink:
-      required:
-      - privacyPolicy
-      - support
-      - terms
-      type: object
-      properties:
-        terms:
-          type: string
-        privacyPolicy:
-          type: string
-        support:
-          type: string
-    ApiListingPage:
-      required:
-      - apiTilePalette
-      type: object
-      properties:
-        apiTilePalette:
-          $ref: '#/components/schemas/APITilePalette'
-    Theme:
-      required:
-      - assets
-      - footerLink
-      - orgLandingPageUrl
-      - orgName
-      - palette
-      - templateName
-      - themeId
-      - typography
-      type: object
-      properties:
-        themeId:
-          type: string
-        orgName:
-          type: string
-        templateName:
-          type: string
-        orgLandingPageUrl:
-          type: string
-          nullable: true
-        palette:
-          $ref: '#/components/schemas/APITilePalette'
-        typography:
-          $ref: '#/components/schemas/Typography'
-        assets:
-          $ref: '#/components/schemas/Assets'
-        footerLink:
-          $ref: '#/components/schemas/FooterLink'
-        apiListingPage:
-          $ref: '#/components/schemas/ApiListingPage'
-    ThemeResponse:
-      required:
-      - createdAt
-      - orgId
-      - themeId
-      type: object
-      properties:
-        themeId:
-          type: string
-        orgId:
-          type: string
-        createdAt:
-          type: string
-      description: Description.
+      description: Assets needed for the api landing page.
     IdentityProvider:
       required:
       - authorizeEndpoint
@@ -397,3 +286,25 @@ components:
         createdAt:
           type: string
       description: Response for IdentityProvider creaton.
+    OrgCreationResponse:
+      required:
+      - orgId
+      - orgName
+      type: object
+      properties:
+        orgName:
+          type: string
+        orgId:
+          type: string
+      description: Response for organization creation.
+    OrgContentResponse:
+      required:
+      - assetMappings
+      - timeUploaded
+      type: object
+      properties:
+        assetMappings:
+          $ref: '#/components/schemas/OrganizationAssets'
+        timeUploaded:
+          type: string
+      description: Response for content storage.

@@ -59,8 +59,8 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
-    string organizationName;
-    string[] apiCategory;
+    readonly string organizationName;
+    string apiCategory;
     string openApiDefinition;
     AdditionalProperties[] additionalProperties;
     ThrottlingPolicy[] throttlingPolicies;
@@ -68,15 +68,14 @@ public type ApiMetadata record {|
     string sandboxUrl;
     Review[] reviews;
     Subscription[] subscriptions;
-    APIAssets? apiAsset;
     ApiContent[] apiContent;
     ApiImages[] apiImages;
 |};
 
+
 public type ApiContent record {|
     readonly string contentId;
-    string key;
-    string value;
+    string apiContentReference;
 	ApiMetadata apimetadata;
 |};
 
@@ -114,7 +113,7 @@ public type IdentityProvider record {|
     string issuer;
     string jwksEndpoint;
     string authorizeEndpoint;
-    string[] envrionments;
+    string envrionments;
     Organization organization;
 |};
 
@@ -140,7 +139,7 @@ public type Application record {|
     string sandBoxKey;
     string productionKey;
     ApplicationProperties[] appProperties;
-    string[] addedAPIs;
+    string addedAPIs;
     User[] accessControl;
     string idpId;
 |};
@@ -170,7 +169,7 @@ public type Organization record {|
 # + organization - field description
 public type OrganizationAssets record {|
     readonly string assetId;
-    string[]? orgAssets;
+    string? orgAssets;
     string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
@@ -179,14 +178,6 @@ public type OrganizationAssets record {|
     string portalStyleSheet;
     Organization organization;
 |};
-
-public type APIAssets record {|
-    readonly string assetId;
-   string apiContent;
-   string[] images;
-   ApiMetadata api;
-|};
-
 
 
 public type ApplicationProperties record {|

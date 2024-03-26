@@ -115,54 +115,24 @@ returns models:OrganizationAssets|error {
 
 }
 
-function readAPIContent(file:MetaData[] directories, string path, models:APIAssets assetMappings) returns models:APIAssets|error {
+public function readAPIContent(file:MetaData[] directories, string orgname, string apiName, models:APIAssets apiAssets) returns models:APIAssets|error {
 
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check readAPIContent(meta, path, assetMappings);
+            _ = check readAPIContent(meta, orgname, apiName, apiAssets);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
-            if (relativePath.endsWith(".html")) {
-                if (relativePath.endsWith("api-landing-page.html")) {
-                    assetMappings.landingPageUrl = relativePath;
-                }
-                assetMappings.apiAssets.push(relativePath);
-            } else if (relativePath.endsWith(".md")) {
-                assetMappings.apiAssets.push(relativePath);
-            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
-            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
-                assetMappings.apiAssets.push(relativePath);
-            }
-        }
-    }
-    return assetMappings;
-}
-
-public function getContentForAPITemplate(file:MetaData[] directories, string path, models:APIAssets assetMappings) returns models:APIAssets|error {
-
-    foreach var item in directories {
-        if (item.dir) {
-            file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getContentForAPITemplate(meta, path, assetMappings);
-        } else {
-            string[] names = regex:split(item.absPath, path);
-            string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
-                assetMappings.markdown.push(relativePath);
-            } else if (relativePath.endsWith(".css")) {
-                assetMappings.stylesheet = relativePath;
-
-            } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
-                assetMappings.apiAssets.push(relativePath);
-
+                apiAssets.apiContent.push(relativePath);
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
-                assetMappings.apiAssets.push(relativePath);
-            } else if (relativePath.endsWith("api-landing-page.html")) {
-                assetMappings.landingPageUrl = relativePath;
+                apiAssets.apiImages.push(relativePath);
             }
         }
     }
-    return assetMappings;
+
+    
+    return apiAssets;
 }
+

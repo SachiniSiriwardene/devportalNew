@@ -50,16 +50,12 @@ public type OrganizationAssets record {|
 
 # Assets needed for the api landing page.
 #
-# + apiAssets - field description  
-# + markdown - field description  
-# + stylesheet - field description  
-# + landingPageUrl - field description  
+# + apiImages - field description  
+# + apiContent - field description  
 # + apiId - field description
 public type APIAssets record {|
-    string[] apiAssets;
-    string[] markdown;
-    string stylesheet;
-    string landingPageUrl;
+    string[] apiImages;
+    string[] apiContent;
     string apiId;
 |};
 
