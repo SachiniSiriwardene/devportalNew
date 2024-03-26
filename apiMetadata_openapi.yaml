@@ -10,49 +10,46 @@ servers:
     port:
       default: "9090"
 paths:
-  /apiContent:
-    post:
-      summary: Store API Content
-      operationId: postApicontent
+  /api:
+    get:
+      operationId: getApi
       parameters:
+      - name: apiID
+        in: query
+        required: true
+        schema:
+          type: string
       - name: orgName
         in: query
-        description: organization name
         required: true
         schema:
           type: string
-      - name: apiName
-        in: query
-        description: API name
-        required: true
-        schema:
-          type: string
-      - name: templateName
-        in: query
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              description: Any type of entity body
       responses:
-        "201":
-          description: Created
+        "200":
+          description: Ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIContentResponse'
+                $ref: '#/components/schemas/ApiMetadataResponse'
         "500":
-          description: InternalServerError
+          description: Internal server error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /api:
-    post:
-      operationId: postApi
+    put:
+      operationId: putApi
+      parameters:
+      - name: apiID
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
@@ -71,32 +68,162 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
+    post:
+      summary: Create an API.
+      operationId: postApi
+      requestBody:
+        description: api metadata
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiMetadata'
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /apiList:
+    get:
+      operationId: getApilist
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiMetadataResponse'
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /apiContent:
+    post:
+      operationId: postApicontent
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: query
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "201":
+          description: Created
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    APIAssets:
+    ApiArtifacts:
       required:
-      - apiAssets
-      - landingPageUrl
+      - apiImages
       type: object
       properties:
-        apiAssets:
+        apiImages:
+          type: object
+          additionalProperties:
+            type: string
+    ApiInfo:
+      required:
+      - additionalProperties
+      - apiArtifacts
+      - apiCategory
+      - apiName
+      - openApiDefinition
+      - orgName
+      type: object
+      properties:
+        orgName:
+          type: string
+        apiName:
+          type: string
+        apiCategory:
           type: array
           items:
             type: string
-        landingPageUrl:
-          type: string
-      description: Assets needed for the api landing page.
-    APIContentResponse:
+        openApiDefinition: {}
+        additionalProperties:
+          type: object
+          additionalProperties:
+            type: string
+        apiArtifacts:
+          $ref: '#/components/schemas/ApiArtifacts'
+    ThrottlingPolicy:
       required:
-      - assetMappings
-      - timeUploaded
+      - description
+      - policyName
+      - type
       type: object
       properties:
-        assetMappings:
-          $ref: '#/components/schemas/APIAssets'
-        timeUploaded:
+        type:
           type: string
-      description: Response for API content storage.
+        policyName:
+          type: string
+        description:
+          type: string
+      description: Description.
+    ServerUrl:
+      required:
+      - productionUrl
+      - sandboxUrl
+      type: object
+      properties:
+        sandboxUrl:
+          type: string
+        productionUrl:
+          type: string
+      description: Description.
+    ApiMetadata:
+      required:
+      - apiInfo
+      - serverUrl
+      - throttlingPolicies
+      type: object
+      properties:
+        apiInfo:
+          $ref: '#/components/schemas/ApiInfo'
+        throttlingPolicies:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ThrottlingPolicy'
+        serverUrl:
+          $ref: '#/components/schemas/ServerUrl'
+      description: Description.
     ErrorPayload:
       type: object
       properties:
@@ -142,67 +269,53 @@ components:
           type: string
         apiName:
           type: string
-    ApiInfo:
+    ApiArtifactsResponse:
       required:
-      - additionalProperties
-      - apiAssets
-      - apiCategory
-      - apiLandingPageURL
-      - apiName
-      - openApiDefinition
-      - reviews
+      - apiContent
+      - apiImages
       type: object
       properties:
+        apiContent:
+          type: array
+          items:
+            type: string
+        apiImages:
+          type: object
+          additionalProperties:
+            type: string
+    ApiInfoResponse:
+      required:
+      - additionalProperties
+      - apiArtifacts
+      - apiCategory
+      - apiName
+      - apiVersion
+      - openApiDefinition
+      - orgName
+      type: object
+      properties:
+        orgName:
+          type: string
         apiName:
           type: string
         apiCategory:
           type: array
           items:
             type: string
-        openApiDefinition:
+        apiVersion:
           type: string
-        apiLandingPageURL:
-          type: string
-          nullable: true
+        openApiDefinition: {}
         reviews:
           type: array
-          nullable: true
           items:
             $ref: '#/components/schemas/APIReview'
-        apiAssets:
-          nullable: true
-          oneOf:
-          - $ref: '#/components/schemas/APIAssets'
         additionalProperties:
           type: object
           additionalProperties:
             type: string
-    ThrottlingPolicy:
-      required:
-      - description
-      - policyName
-      - type
-      type: object
-      properties:
-        type:
-          type: string
-        policyName:
-          type: string
-        description:
-          type: string
-      description: Description.
-    ServerUrl:
-      required:
-      - productionUrl
-      - sandboxUrl
-      type: object
-      properties:
-        sandboxUrl:
-          type: string
-        productionUrl:
-          type: string
-      description: Description.
-    ApiMetadata:
+        apiArtifacts:
+          $ref: '#/components/schemas/ApiArtifactsResponse'
+    ApiMetadataResponse:
       required:
       - apiInfo
       - serverUrl
@@ -210,7 +323,7 @@ components:
       type: object
       properties:
         apiInfo:
-          $ref: '#/components/schemas/ApiInfo'
+          $ref: '#/components/schemas/ApiInfoResponse'
         throttlingPolicies:
           type: array
           nullable: true
@@ -218,4 +331,3 @@ components:
             $ref: '#/components/schemas/ThrottlingPolicy'
         serverUrl:
           $ref: '#/components/schemas/ServerUrl'
-      description: Description.

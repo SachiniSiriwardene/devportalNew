@@ -42,12 +42,7 @@ service /admin on new http:Listener(8080) {
         string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
-        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
-
-        if (dirExists) {
-            file:Error? remove = check file:remove(orgName);
-        }
-
+        
         error? result = check zip:extract(path, targetPath);
 
         models:OrganizationAssets assetMappings = {
@@ -88,15 +83,12 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip" + orgName;
-        string targetPath = "./";
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
 
-        if (dirExists) {
-            file:Error? remove = check file:remove(orgName);
-        }
-
+      
         error? result = check zip:extract(path, targetPath);
 
         //check whether org exists
@@ -118,8 +110,7 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
-        // directories = check file:readDir("./" + orgName + "/files/APILandingPage");
-        // models:APIAssets apiPageContent = check utils:getContentForAPITemplate(directories, orgName, apiAssets);
+        
 
         string org = check utils:updateOrg(orgName, templateName);
 
@@ -182,35 +173,6 @@ service /admin on new http:Listener(8080) {
         }
         return organizationAssets;
 
-    }
-
-    # Store the theme for the developer portal.
-    #
-    # + theme - theme object
-    # + return - return value description
-    resource function post theme(@http:Payload models:Theme theme) returns models:ThemeResponse|error {
-
-        stream<store:Organization, persist:Error?> organizations = adminClient->/organizations.get();
-
-        //retrieve the organization id
-        string orgId = check utils:getOrgId(theme.orgName);
-
-        //TODO :map the templacte name to ID 
-
-        store:ThemeInsert insertTheme = {
-            themeId: uuid:createType1AsString(),
-            organizationOrgId: orgId,
-            theme: theme.toJsonString()
-        };
-
-        string[] listResult = check adminClient->/themes.post([insertTheme]);
-
-        models:ThemeResponse createdTheme = {
-            createdAt: time:utcToString(time:utcNow(0)),
-            themeId: listResult[0],
-            orgId: orgId
-        };
-        return createdTheme;
     }
 
     # Store the identity provider details for the developer portal.

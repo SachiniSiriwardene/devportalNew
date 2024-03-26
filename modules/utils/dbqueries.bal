@@ -57,6 +57,22 @@ public function getAPIId(string orgName, string apiName) returns string|error {
     return matchedAPI[0].apiId;
 }
 
+public function getAPIImages(string orgName, string apiName) returns store:ApiImages[]|error {
+
+    string apiId = check getAPIId(orgName, apiName);
+    stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
+
+    //retrieve the api id
+    store:ApiImages[] images = check from var image in apiImages
+        where image.apimetadataApiId == apiId
+        select image;
+
+    if (images.length() == 0) {
+        return error("API image record not found");
+    }
+    return images;
+}
+
 public function createOrg(string orgName, string template) returns string|error {
     store:OrganizationInsert org = {
         orgId: uuid:createType1AsString(),
@@ -139,10 +155,9 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
+
     addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
     addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-    addApiContent(apiMetaData.apiInfo.apiArtifacts.apiContent, apiID, orgName);
-    addApiImages(apiMetaData.apiInfo.apiArtifacts.apiImages, apiID, orgName);
 
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadata metadataRecord = {
@@ -150,7 +165,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
-        openApiDefinition: apiMetaData.apiInfo.openApiDefinition,
+        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         organizationName: apiMetaData.apiInfo.orgName
@@ -167,15 +182,13 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, string orgName) returns string|error {
     addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
     addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-    addApiContent(apiMetaData.apiInfo.apiArtifacts.apiContent, apiID, orgName);
-    addApiImages(apiMetaData.apiInfo.apiArtifacts.apiImages, apiID, orgName);
 
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadataUpdate metadataRecord = {
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
-        openApiDefinition: apiMetaData.apiInfo.openApiDefinition,
+        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl
     };
@@ -187,6 +200,42 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     }
     return listResult.apiId;
 }
+
+// public function updateAPIImages(models:APIAssets assets, string apiName, string orgName) returns string|error {
+
+//     store:ApiImages[] aPIImages = check getAPIImages(orgName, apiName);
+//     string[] uploadedImages = assets.apiImages;
+//     store:ApiImages[] updatedImages = [];
+
+//     // replace the image path references with the uploaded image names
+//     foreach var apiImage in uploadedImages {
+//         foreach var image in aPIImages {
+//             if (apiImage.includes(image.value)) {
+//                 store:ApiImages updatedImage = {
+//                     apimetadataApiId: image.apimetadataApiId, 
+//                     imageId: image.imageId, 
+//                     apimetadataOrganizationName: image.apimetadataOrganizationName, 
+//                     'key: image.key, 
+//                     value: apiImage
+//                 };
+//                 updatedImages.push(updatedImage);
+//             } 
+//         }
+//     }
+
+//      foreach var item in updatedImages {
+//          store:ApiImages org = check dbClient->/apiimages/[item.apimetadataApiId].put({
+//         orgLandingPage: orgContent.orgLandingPage,
+//         orgAssets: orgContent.orgAssets,
+//         organizationassetsOrgId: orgId,
+//         apiStyleSheet: orgContent.apiStyleSheet,
+//         orgStyleSheet: orgContent.orgStyleSheet,
+//         apiLandingPage: orgContent.apiLandingPage
+//     });
+//      }
+    
+
+// }
 
 public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) {
     store:ThrottlingPolicy[] throttlingPolicyRecords = [];
@@ -203,7 +252,7 @@ public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies
 
     if (throttlingPolicyRecords.length() != 0) {
         do {
-	        string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
+            string[] propResults = check dbClient->/throttlingpolicies.post(throttlingPolicyRecords);
         } on fail var e {
             log:printError("Error occurred while adding throttling policies: " + e.message());
         }
@@ -224,50 +273,49 @@ public function addAdditionalProperties(map<string> additionalProperties, string
     }
     if (additionalPropertiesRecords.length() != 0) {
         do {
-	        string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
+            string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
         } on fail var e {
             log:printError("Error occurred while adding additional properties: " + e.message());
         }
     }
 }
 
-public function addApiContent(map<string> apiContents, string apiID, string orgName) {
+public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) {
     store:ApiContentInsert[] apiContentRecord = [];
 
-    foreach var propertyKey in apiContents.keys() {
+    foreach var contentRef in apiAssets.apiContent {
         apiContentRecord.push({
             apimetadataApiId: apiID,
             contentId: uuid:createType1AsString(),
-            'key: propertyKey,
-            value: <string>apiContents.get(propertyKey),
-            apimetadataOrganizationName: orgName
+            apimetadataOrganizationName: orgName,
+            apiContentReference: contentRef
         });
     }
 
     if (apiContentRecord.length() != 0) {
         do {
-	        string[] contentResults = check dbClient->/apicontents.post(apiContentRecord);
+            string[] contentResults = check dbClient->/apicontents.post(apiContentRecord);
         } on fail var e {
             log:printError("Error occurred while adding API content: " + e.message());
         }
     }
 }
 
-public function addApiImages(map<string> apiImages, string apiID, string orgName) {
+public function addApiImages(map<string> images, string apiID, string orgName) {
     store:ApiImagesInsert[] apiImagesRecord = [];
 
-    foreach var propertyKey in apiImages.keys() {
+    foreach var propertyKey in images.keys() {
         apiImagesRecord.push({
             apimetadataApiId: apiID,
             imageId: uuid:createType1AsString(),
             'key: propertyKey,
-            value: <string>apiImages.get(propertyKey),
+            value: <string>images.get(propertyKey),
             apimetadataOrganizationName: orgName
         });
     }
     if (apiImagesRecord.length() != 0) {
         do {
-	        string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+            string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
         } on fail var e {
             log:printError("Error occurred while adding API images: " + e.message());
         }
