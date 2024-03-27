@@ -154,8 +154,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 }
 
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
-        log:printInfo("API metadata record: ################");
-
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
@@ -285,14 +283,12 @@ public function addAdditionalProperties(map<string> additionalProperties, string
 public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) {
     store:ApiContentInsert[] apiContentRecord = [];
 
-    foreach var contentRef in apiAssets.apiContent {
         apiContentRecord.push({
             apimetadataApiId: apiID,
             contentId: uuid:createType1AsString(),
             apimetadataOrganizationName: orgName,
-            apiContentReference: contentRef
+            apiContent: apiAssets.apiContent
         });
-    }
 
     if (apiContentRecord.length() != 0) {
         do {

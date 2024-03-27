@@ -55,7 +55,7 @@ public type OrganizationAssets record {|
 # + apiId - field description
 public type APIAssets record {|
     string[] apiImages;
-    string[] apiContent;
+    string apiContent;
     string apiId;
 |};
 

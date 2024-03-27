@@ -69,7 +69,7 @@ CREATE TABLE `ThrottlingPolicy` (
 
 CREATE TABLE `ApiContent` (
 	`contentId` VARCHAR(191) NOT NULL,
-	`apiContentReference` VARCHAR(191) NOT NULL,
+	`apiContent` VARCHAR(191) NOT NULL,
 	`apimetadataApiId` VARCHAR(191) NOT NULL,
 	`apimetadataOrganizationName` VARCHAR(191) NOT NULL,
 	FOREIGN KEY(`apimetadataApiId`, `apimetadataOrganizationName`) REFERENCES `ApiMetadata`(`apiId`, `organizationName`),

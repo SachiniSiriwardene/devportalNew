@@ -138,7 +138,7 @@ public isolated client class Client {
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}},
                 "apiContent[].contentId": {relation: {entityName: "apiContent", refField: "contentId"}},
-                "apiContent[].apiContentReference": {relation: {entityName: "apiContent", refField: "apiContentReference"}},
+                "apiContent[].apiContent": {relation: {entityName: "apiContent", refField: "apiContent"}},
                 "apiContent[].apimetadataApiId": {relation: {entityName: "apiContent", refField: "apimetadataApiId"}},
                 "apiContent[].apimetadataOrganizationName": {relation: {entityName: "apiContent", refField: "apimetadataOrganizationName"}},
                 "apiImages[].imageId": {relation: {entityName: "apiImages", refField: "imageId"}},
@@ -162,7 +162,7 @@ public isolated client class Client {
             tableName: "ApiContent",
             fieldMetadata: {
                 contentId: {columnName: "contentId"},
-                apiContentReference: {columnName: "apiContentReference"},
+                apiContent: {columnName: "apiContent"},
                 apimetadataApiId: {columnName: "apimetadataApiId"},
                 apimetadataOrganizationName: {columnName: "apimetadataOrganizationName"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
