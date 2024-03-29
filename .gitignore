@@ -30,5 +30,4 @@ target
 */files
 
 zip
-
-.Config.toml
+Config.toml

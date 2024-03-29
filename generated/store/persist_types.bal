@@ -143,14 +143,14 @@ public type ApiMetadataUpdate record {|
 
 public type ApiContent record {|
     readonly string contentId;
-    string apiContentReference;
+    string apiContent;
     string apimetadataApiId;
     string apimetadataOrganizationName;
 |};
 
 public type ApiContentOptionalized record {|
     string contentId?;
-    string apiContentReference?;
+    string apiContent?;
     string apimetadataApiId?;
     string apimetadataOrganizationName?;
 |};
@@ -165,7 +165,7 @@ public type ApiContentTargetType typedesc<ApiContentWithRelations>;
 public type ApiContentInsert ApiContent;
 
 public type ApiContentUpdate record {|
-    string apiContentReference?;
+    string apiContent?;
     string apimetadataApiId?;
     string apimetadataOrganizationName?;
 |};

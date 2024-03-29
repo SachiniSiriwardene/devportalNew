@@ -156,10 +156,6 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
-
-    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
-    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadata metadataRecord = {
         apiId: apiID,
@@ -173,6 +169,9 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
+
+    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
@@ -284,14 +283,12 @@ public function addAdditionalProperties(map<string> additionalProperties, string
 public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) {
     store:ApiContentInsert[] apiContentRecord = [];
 
-    foreach var contentRef in apiAssets.apiContent {
         apiContentRecord.push({
             apimetadataApiId: apiID,
             contentId: uuid:createType1AsString(),
             apimetadataOrganizationName: orgName,
-            apiContentReference: contentRef
+            apiContent: apiAssets.apiContent
         });
-    }
 
     if (apiContentRecord.length() != 0) {
         do {

@@ -75,7 +75,7 @@ public type ApiMetadata record {|
 
 public type ApiContent record {|
     readonly string contentId;
-    string apiContentReference;
+    string apiContent;
 	ApiMetadata apimetadata;
 |};
 

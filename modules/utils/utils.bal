@@ -124,9 +124,10 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
-                apiAssets.apiContent.push(relativePath);
+                apiAssets.apiContent = check io:fileReadString(relativePath);
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
+                // Should be in a file storage
                 apiAssets.apiImages.push(relativePath);
             }
         }

@@ -7,9 +7,8 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/persist;
 
+import ballerina/mime;
 import ballerinacentral/zip;
-
-final store:Client dbClient = check new ();
 
 service /apiMetadata on new http:Listener(9090) {
 
@@ -77,7 +76,7 @@ service /apiMetadata on new http:Listener(9090) {
         string[] apiContentRecord = [];
 
         foreach var property in apiContent {
-            apiContentRecord.push(property.apiContentReference ?: "");
+            apiContentRecord.push(property.apiContent ?: "");
         }
 
         map<string> apiImagesRecord = {};
@@ -162,7 +161,7 @@ service /apiMetadata on new http:Listener(9090) {
             string[] apiContentRecord = [];
 
             foreach var property in apiContent {
-                apiContentRecord.push(property.apiContentReference ?: "");
+                apiContentRecord.push(property.apiContent ?: "");
             }
 
             map<string> apiImagesRecord = {};
@@ -203,27 +202,42 @@ service /apiMetadata on new http:Listener(9090) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" + orgName + "/resources/content/";
+        string targetPath = "./" + orgName + "/";
         check io:fileWriteBytes(path, binaryPayload);
-
-
         error? result = check zip:extract(path, targetPath);
         
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources/content/" + apiName);
 
-        models:APIAssets apiAssets = {apiContent: [], apiImages: [], apiId: apiId};
+        models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
         apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
 
-        check file:copy(targetPath + apiName + "/images/", "./" + orgName + "/resources/images", file:COPY_ATTRIBUTES);
+        check file:copy(targetPath + "/resources/images/", "./" + orgName + "/resources/images", file:COPY_ATTRIBUTES);
 
-        check file:remove(orgName + "/resources/content/" + apiName + "/images/", file:RECURSIVE);
+        check file:remove(orgName, file:RECURSIVE);
 
         utils:addApiContent(apiAssets, apiId, orgName);
-        //utils:addApiImages(apiAssets.apiImages, apiId, orgName);
 
         return "API asset updated";
 
     }
 
+    resource function get [string filename](string orgName, string apiName, http:Request request) returns error|http:Response {
+        stream<store:ApiContent, persist:Error?> apiContent = userClient->/apicontents.get();
+        store:ApiContent[] contents = check from var content in apiContent
+            where content.apimetadataApiId == apiName
+            select content;
+
+        mime:Entity file = new;
+        file.setBody(contents[0].apiContent);
+        
+        http:Response response = new;
+        response.setEntity(file);
+        check response.setContentType("application/octet-stream");
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+
+        return response;
+    }
 }
 
