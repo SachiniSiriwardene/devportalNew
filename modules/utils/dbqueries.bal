@@ -113,8 +113,7 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
         apiStyleSheet: orgContent.apiStyleSheet,
         orgStyleSheet: orgContent.orgStyleSheet,
         apiLandingPage: orgContent.apiLandingPage,
-        portalStyleSheet: orgContent.portalStyleSheet, 
-        orgLandingPageDetails: orgContent.orgLandingPageDetails
+        portalStyleSheet: orgContent.portalStyleSheet
     };
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);

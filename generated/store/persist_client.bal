@@ -290,7 +290,6 @@ public isolated client class Client {
                 isDefault: {columnName: "isDefault"},
                 "organizationAssets.assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
                 "organizationAssets.orgAssets": {relation: {entityName: "organizationAssets", refField: "orgAssets"}},
-                "organizationAssets.orgLandingPageDetails": {relation: {entityName: "organizationAssets", refField: "orgLandingPageDetails"}},
                 "organizationAssets.orgStyleSheet": {relation: {entityName: "organizationAssets", refField: "orgStyleSheet"}},
                 "organizationAssets.apiStyleSheet": {relation: {entityName: "organizationAssets", refField: "apiStyleSheet"}},
                 "organizationAssets.orgLandingPage": {relation: {entityName: "organizationAssets", refField: "orgLandingPage"}},
@@ -330,7 +329,6 @@ public isolated client class Client {
             fieldMetadata: {
                 assetId: {columnName: "assetId"},
                 orgAssets: {columnName: "orgAssets"},
-                orgLandingPageDetails: {columnName: "orgLandingPageDetails"},
                 orgStyleSheet: {columnName: "orgStyleSheet"},
                 apiStyleSheet: {columnName: "apiStyleSheet"},
                 orgLandingPage: {columnName: "orgLandingPage"},

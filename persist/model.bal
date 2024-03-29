@@ -170,7 +170,6 @@ public type Organization record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string? orgAssets;
-    string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
     string orgLandingPage;

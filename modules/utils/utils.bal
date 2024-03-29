@@ -104,10 +104,7 @@ returns models:OrganizationAssets|error {
             } else if (relativePath.endsWith("api-landing-page.html")) {
 
                 assetMappings.apiLandingPage = readContent;
-            } else if (relativePath.endsWith("orgContent.json")) {
-                
-                assetMappings.orgLandingPageDetails = readContent;
-            }
+            } 
 
         }
     }
