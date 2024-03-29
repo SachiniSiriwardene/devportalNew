@@ -6,6 +6,7 @@ import ballerina/file;
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
+import ballerina/mime;
 import ballerina/persist;
 import ballerina/time;
 import ballerina/uuid;
@@ -52,17 +53,22 @@ service /admin on new http:Listener(8080) {
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
-            orgLandingPageDetails: "",
             portalStyleSheet: ""
 
         };
 
         // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
 
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
-        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
+        // file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
+        // models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
-        string orgAssets = check utils:createOrgAssets(orgContent);
+        string apiLandingPage = check io:fileReadString("./" + orgName + "/resources/template/api-landing-page.html");
+        assetMappings.apiLandingPage = apiLandingPage;
+
+        string orgLandingPage = check io:fileReadString("./" + orgName + "/resources/template/org-landing-page.html");
+        assetMappings.orgLandingPage = orgLandingPage;
+
+        string orgAssets = check utils:createOrgAssets(assetMappings);
 
         log:printInfo("Org assets created: " + orgAssets);
 
@@ -77,8 +83,7 @@ service /admin on new http:Listener(8080) {
     # Store the organization landing page content.
     #
     # + request - parameter description  
-    # + orgName - parameter description  
-    # + templateName - parameter description
+    # + orgName - parameter description
     # + return - return value description
     resource function put orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
 
@@ -106,81 +111,13 @@ service /admin on new http:Listener(8080) {
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: "",
-            orgLandingPageDetails: ""
+            portalStyleSheet: ""
         };
 
         // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
         models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
-
-        string orgAssets = check utils:updateOrgAssets(orgContent, orgName);
-        //string createdAPIAssets = check  utils:createAPIAssets(apiPageContent);
-
-        log:printInfo("Org assets created: " + orgAssets);
-
-        models:OrgContentResponse uploadedContent = {
-            timeUploaded: time:utcToString(time:utcNow(0)),
-            assetMappings: orgContent
-        };
-        return uploadedContent;
-    }
-
-    # Store the organization landing page content.
-    #
-    # + request - parameter description  
-    # + orgName - parameter description  
-    # + templateName - parameter description
-    # + return - return value description
-    resource function put apiContent(http:Request request, string orgName, string templateName) returns models:OrgContentResponse|error {
-
-        byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip" + orgName;
-        string targetPath = "./" + orgName;
-        check io:fileWriteBytes(path, binaryPayload);
-
-        boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
-
-        error? result = check zip:extract(path, targetPath);
-
-        //check whether org exists
-        string|error orgId = utils:getOrgId(orgName);
-
-        models:OrganizationAssets assetMappings = {
-
-            orgLandingPage: "",
-            orgAssets: "",
-            orgId: check orgId,
-            apiStyleSheet: "",
-            orgStyleSheet: "",
-            apiLandingPage: "",
-            portalStyleSheet: "",
-            orgLandingPageDetails: ""
-        };
-
-        // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
-
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
-        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
-
-        string org = check utils:updateOrg(orgName, templateName);
-
-        string landingPage = "";
-        if (!templateName.equalsIgnoreCaseAscii("custom")) {
-            file:MetaData[] & readonly readDir = check file:readDir("./templates/" + templateName);
-            foreach var file in readDir {
-                if (file.absPath.endsWith("org-landing-page.html")) {
-                    orgContent.orgLandingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
-                }
-                if (file.absPath.endsWith("api-landing-page.html")) {
-                    orgContent.orgLandingPage = check file:relativePath(file:getCurrentDir(), file.absPath);
-                }
-            }
-        }
-
-        log:printInfo("Landing page content: " + landingPage);
-        log:printInfo("Template name: " + templateName);
 
         string orgAssets = check utils:updateOrgAssets(orgContent, orgName);
         //string createdAPIAssets = check  utils:createAPIAssets(apiPageContent);
@@ -210,8 +147,7 @@ service /admin on new http:Listener(8080) {
             apiStyleSheet: "",
             orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: "",
-            orgLandingPageDetails: ""
+            portalStyleSheet: ""
         };
 
         stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
@@ -229,12 +165,46 @@ service /admin on new http:Listener(8080) {
                 apiStyleSheet: asset.apiStyleSheet ?: "",
                 orgStyleSheet: asset.orgStyleSheet ?: "",
                 apiLandingPage: asset.apiLandingPage ?: "",
-                portalStyleSheet: asset.portalStyleSheet ?: "",
-                orgLandingPageDetails: asset.orgLandingPageDetails ?: ""
+                portalStyleSheet: asset.portalStyleSheet ?: ""
             };
         }
         return organizationAssets;
 
+    }
+
+    # Retrieve landing pages.
+    #
+    # + filename - parameter description  
+    # + orgName - parameter description  
+    # + apiName - parameter description  
+    # + request - parameter description
+    # + return - return value description
+    resource function get [string filename](string orgName, http:Request request) returns error|http:Response {
+
+        string orgId = check utils:getOrgId(orgName);
+        stream<store:OrganizationAssets, persist:Error?> orgContent = userClient->/organizationassets.get();
+
+        store:OrganizationAssets[] contents = check from var content in orgContent
+            where content.organizationassetsOrgId == orgId
+            select content;
+
+        mime:Entity file = new;
+        if (filename.equalsIgnoreCaseAscii("org-landing-page.html")) {
+            file.setBody(contents[0].orgLandingPage);
+
+        } else if (filename.equalsIgnoreCaseAscii("api-landing-page.html")) {
+            file.setBody(contents[0].apiLandingPage);
+
+        }
+
+        http:Response response = new;
+        response.setEntity(file);
+        check response.setContentType("application/octet-stream");
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
+
+        return response;
     }
 
     # Store the identity provider details for the developer portal.

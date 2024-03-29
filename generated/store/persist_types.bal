@@ -375,7 +375,6 @@ public type OrganizationUpdate record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string? orgAssets;
-    string orgLandingPageDetails;
     string orgStyleSheet;
     string apiStyleSheet;
     string orgLandingPage;
@@ -387,7 +386,6 @@ public type OrganizationAssets record {|
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
     string? orgAssets?;
-    string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
     string orgLandingPage?;
@@ -407,7 +405,6 @@ public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
     string? orgAssets?;
-    string orgLandingPageDetails?;
     string orgStyleSheet?;
     string apiStyleSheet?;
     string orgLandingPage?;

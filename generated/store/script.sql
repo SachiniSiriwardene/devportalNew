@@ -42,7 +42,7 @@ CREATE TABLE `ApiMetadata` (
 	`apiName` VARCHAR(191) NOT NULL,
 	`organizationName` VARCHAR(191) NOT NULL,
 	`apiCategory` VARCHAR(191) NOT NULL,
-	`openApiDefinition` VARCHAR(191) NOT NULL,
+	`openApiDefinition` JSON NOT NULL,
 	`productionUrl` VARCHAR(191) NOT NULL,
 	`sandboxUrl` VARCHAR(191) NOT NULL,
 	PRIMARY KEY(`apiId`,`organizationName`)
@@ -69,7 +69,7 @@ CREATE TABLE `ThrottlingPolicy` (
 
 CREATE TABLE `ApiContent` (
 	`contentId` VARCHAR(191) NOT NULL,
-	`apiContent` VARCHAR(191) NOT NULL,
+	`apiContent` BLOB NOT NULL,
 	`apimetadataApiId` VARCHAR(191) NOT NULL,
 	`apimetadataOrganizationName` VARCHAR(191) NOT NULL,
 	FOREIGN KEY(`apimetadataApiId`, `apimetadataOrganizationName`) REFERENCES `ApiMetadata`(`apiId`, `organizationName`),
@@ -165,11 +165,10 @@ CREATE TABLE `ApiImages` (
 CREATE TABLE `OrganizationAssets` (
 	`assetId` VARCHAR(191) NOT NULL,
 	`orgAssets` VARCHAR(191),
-	`orgLandingPageDetails` VARCHAR(191) NOT NULL,
 	`orgStyleSheet` VARCHAR(191) NOT NULL,
 	`apiStyleSheet` VARCHAR(191) NOT NULL,
-	`orgLandingPage` VARCHAR(191) NOT NULL,
-	`apiLandingPage` VARCHAR(191) NOT NULL,
+	`orgLandingPage` BLOB NOT NULL,
+	`apiLandingPage` BLOB NOT NULL,
 	`portalStyleSheet` VARCHAR(191) NOT NULL,
 	`organizationassetsOrgId` VARCHAR(191) UNIQUE NOT NULL,
 	FOREIGN KEY(`organizationassetsOrgId`) REFERENCES `Organization`(`orgId`),
