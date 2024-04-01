@@ -82,15 +82,6 @@ returns models:OrganizationAssets|error {
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
                
-            } else if (relativePath.endsWith("org-landing-page.css")) {
-                assetMappings.orgStyleSheet = readContent;
-
-            } else if (relativePath.endsWith("api-landing-page.css")) {
-                assetMappings.apiStyleSheet = readContent;
-
-            }  else if (relativePath.endsWith("style.css")) {
-                assetMappings.portalStyleSheet = readContent;
-
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
                 assetMappings.orgAssets =  assetMappings.orgAssets + " " + relativePath;
 

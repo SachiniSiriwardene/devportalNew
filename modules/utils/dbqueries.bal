@@ -1,9 +1,9 @@
 import devportal.models;
+import devportal.store;
 
 import ballerina/log;
 import ballerina/persist;
 import ballerina/uuid;
-import devportal.store;
 
 final store:Client dbClient = check new ();
 
@@ -110,10 +110,10 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
         orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgContent.orgId,
-        apiStyleSheet: orgContent.apiStyleSheet,
-        orgStyleSheet: orgContent.orgStyleSheet,
         apiLandingPage: orgContent.apiLandingPage,
-        portalStyleSheet: orgContent.portalStyleSheet
+        navigationBar: orgContent.navigationBar,
+        footerPage: orgContent.footerPage,
+        apiListingPage: orgContent.apiListingPage
     };
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
@@ -144,9 +144,10 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
         orgLandingPage: orgContent.orgLandingPage,
         orgAssets: orgContent.orgAssets,
         organizationassetsOrgId: orgId,
-        apiStyleSheet: orgContent.apiStyleSheet,
-        orgStyleSheet: orgContent.orgStyleSheet,
-        apiLandingPage: orgContent.apiLandingPage
+        apiLandingPage: orgContent.apiLandingPage,
+        navigationBar: orgContent.navigationBar,
+        footerPage: orgContent.footerPage,
+        apiListingPage: orgContent.apiListingPage
     });
 
     return org.assetId;
@@ -232,7 +233,6 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
 //         apiLandingPage: orgContent.apiLandingPage
 //     });
 //      }
-    
 
 // }
 
@@ -282,12 +282,12 @@ public function addAdditionalProperties(map<string> additionalProperties, string
 public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) {
     store:ApiContentInsert[] apiContentRecord = [];
 
-        apiContentRecord.push({
-            apimetadataApiId: apiID,
-            contentId: uuid:createType1AsString(),
-            apimetadataOrganizationName: orgName,
-            apiContent: apiAssets.apiContent
-        });
+    apiContentRecord.push({
+        apimetadataApiId: apiID,
+        contentId: uuid:createType1AsString(),
+        apimetadataOrganizationName: orgName,
+        apiContent: apiAssets.apiContent
+    });
 
     if (apiContentRecord.length() != 0) {
         do {
