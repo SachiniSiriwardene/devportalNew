@@ -223,10 +223,10 @@ service /apiMetadata on new http:Listener(9090) {
 
     }
 
-    resource function get [string filename](string orgName, string apiName, http:Request request) returns error|http:Response {
+    resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
         stream<store:ApiContent, persist:Error?> apiContent = userClient->/apicontents.get();
         store:ApiContent[] contents = check from var content in apiContent
-            where content.apimetadataApiId == apiName
+            where content.apimetadataApiId == apiID
             select content;
 
         mime:Entity file = new;
