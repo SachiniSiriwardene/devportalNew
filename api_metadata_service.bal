@@ -211,12 +211,12 @@ service /apiMetadata on new http:Listener(9090) {
         models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
         apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
 
-        check file:copy(targetPath + "/resources/images/", "./" + orgName + "/resources/images", file:COPY_ATTRIBUTES);
-
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+        check utils:pushContentS3(imageDir, "text/plain");
+        utils:addApiContent(apiAssets, apiId, orgName);
         check file:remove(orgName, file:RECURSIVE);
 
-        utils:addApiContent(apiAssets, apiId, orgName);
-
+        io:println("API content added successfully");
         return "API asset updated";
 
     }

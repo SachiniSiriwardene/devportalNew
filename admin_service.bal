@@ -34,7 +34,7 @@ service /admin on new http:Listener(8080) {
     #
     # + orgName - parameter description
     # + return - return value description
-    resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    resource function post orgContent(http:Request request, string orgName) returns string|error {
 
         string orgId = check utils:getOrgId(orgName);
 
@@ -50,23 +50,26 @@ service /admin on new http:Listener(8080) {
             orgLandingPage: "",
             orgAssets: "",
             orgId: orgId,
-            apiStyleSheet: "",
-            orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: ""
-
+            navigationBar: "",
+            footerPage: "",
+            apiListingPage: ""
         };
-
-        // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
-
-        // file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
-        // models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
 
         string apiLandingPage = check io:fileReadString("./" + orgName + "/resources/template/api-landing-page.html");
         assetMappings.apiLandingPage = apiLandingPage;
 
         string orgLandingPage = check io:fileReadString("./" + orgName + "/resources/template/org-landing-page.html");
         assetMappings.orgLandingPage = orgLandingPage;
+
+        string apiListingPage = check io:fileReadString("./" + orgName + "/resources/template/components-page.html");
+        assetMappings.apiListingPage = apiListingPage;
+
+        string navigationPage = check io:fileReadString("./" + orgName + "/resources/template/nav-bar.html");
+        assetMappings.navigationBar = navigationPage;
+
+        string footer = check io:fileReadString("./" + orgName + "/resources/template/footer.html");
+        assetMappings.footerPage = footer;
 
         string orgAssets = check utils:createOrgAssets(assetMappings);
 
@@ -76,7 +79,15 @@ service /admin on new http:Listener(8080) {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: assetMappings
         };
-        return uploadedContent;
+    
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+        check utils:pushContentS3(imageDir, "text/plain");
+        
+        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
+        check utils:pushContentS3(stylesheetDir, "text/css");
+
+        io:println("Organization content uploaded");
+        return "Organization content uploaded successfully";
 
     }
 
@@ -85,7 +96,7 @@ service /admin on new http:Listener(8080) {
     # + request - parameter description  
     # + orgName - parameter description
     # + return - return value description
-    resource function put orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    resource function put orgContent(http:Request request, string orgName) returns string|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip" + orgName;
@@ -108,10 +119,10 @@ service /admin on new http:Listener(8080) {
             orgLandingPage: "",
             orgAssets: "",
             orgId: check orgId,
-            apiStyleSheet: "",
-            orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: ""
+            navigationBar: "",
+            footerPage: "",
+            apiListingPage: ""
         };
 
         // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
@@ -128,7 +139,8 @@ service /admin on new http:Listener(8080) {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: orgContent
         };
-        return uploadedContent;
+        io:println("Organization content updated");
+        return "Organization content updated successfully";
     }
 
     # Get the asset paths for the org or api.
@@ -144,14 +156,14 @@ service /admin on new http:Listener(8080) {
             orgLandingPage: "",
             orgAssets: "",
             orgId: "",
-            apiStyleSheet: "",
-            orgStyleSheet: "",
             apiLandingPage: "",
-            portalStyleSheet: ""
+            navigationBar: "",
+            footerPage: "",
+            apiListingPage: ""
         };
 
-        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-        store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
+        stream<OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
+        OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
             where asset.organizationassetsOrgId == orgId
             select asset;
 
@@ -162,10 +174,10 @@ service /admin on new http:Listener(8080) {
                 orgLandingPage: asset.orgLandingPage ?: "",
                 orgAssets: asset?.orgAssets ?: "",
                 orgId: asset.organizationassetsOrgId ?: "",
-                apiStyleSheet: asset.apiStyleSheet ?: "",
-                orgStyleSheet: asset.orgStyleSheet ?: "",
                 apiLandingPage: asset.apiLandingPage ?: "",
-                portalStyleSheet: asset.portalStyleSheet ?: ""
+                navigationBar: "",
+                footerPage: "",
+                apiListingPage: ""
             };
         }
         return organizationAssets;
@@ -176,7 +188,6 @@ service /admin on new http:Listener(8080) {
     #
     # + filename - parameter description  
     # + orgName - parameter description  
-    # + apiName - parameter description  
     # + request - parameter description
     # + return - return value description
     resource function get [string filename](string orgName, http:Request request) returns error|http:Response {
@@ -191,10 +202,14 @@ service /admin on new http:Listener(8080) {
         mime:Entity file = new;
         if (filename.equalsIgnoreCaseAscii("org-landing-page.html")) {
             file.setBody(contents[0].orgLandingPage);
-
         } else if (filename.equalsIgnoreCaseAscii("api-landing-page.html")) {
             file.setBody(contents[0].apiLandingPage);
-
+        } else if (filename.equalsIgnoreCaseAscii("components-page.html")) {
+            file.setBody(contents[0].apiListingPage);
+        } else if (filename.equalsIgnoreCaseAscii("nav-bar.html")) {
+            file.setBody(contents[0].navigationBar);
+        }  else if (filename.equalsIgnoreCaseAscii("footer.html")) {
+            file.setBody(contents[0].footerPage);
         }
 
         http:Response response = new;

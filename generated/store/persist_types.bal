@@ -375,22 +375,22 @@ public type OrganizationUpdate record {|
 public type OrganizationAssets record {|
     readonly string assetId;
     string? orgAssets;
-    string orgStyleSheet;
-    string apiStyleSheet;
     string orgLandingPage;
     string apiLandingPage;
-    string portalStyleSheet;
+    string apiListingPage;
+    string navigationBar;
+    string footerPage;
     string organizationassetsOrgId;
 |};
 
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
     string? orgAssets?;
-    string orgStyleSheet?;
-    string apiStyleSheet?;
     string orgLandingPage?;
     string apiLandingPage?;
-    string portalStyleSheet?;
+    string apiListingPage?;
+    string navigationBar?;
+    string footerPage?;
     string organizationassetsOrgId?;
 |};
 
@@ -405,11 +405,11 @@ public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
     string? orgAssets?;
-    string orgStyleSheet?;
-    string apiStyleSheet?;
     string orgLandingPage?;
     string apiLandingPage?;
-    string portalStyleSheet?;
+    string apiListingPage?;
+    string navigationBar?;
+    string footerPage?;
     string organizationassetsOrgId?;
 |};
 

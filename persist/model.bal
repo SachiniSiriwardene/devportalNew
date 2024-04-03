@@ -161,20 +161,20 @@ public type Organization record {|
 #
 # + assetId - field description  
 # + orgAssets - field description  
-# + orgLandingPageDetails - field description  
-# + orgStyleSheet - field description  
-# + apiStyleSheet - field description  
 # + orgLandingPage - field description  
 # + apiLandingPage - field description  
+# + apiListingPage - field description  
+# + navigationBar - field description  
+# + footerPage - field description  
 # + organization - field description
 public type OrganizationAssets record {|
     readonly string assetId;
     string? orgAssets;
-    string orgStyleSheet;
-    string apiStyleSheet;
     string orgLandingPage;
     string apiLandingPage;
-    string portalStyleSheet;
+    string apiListingPage;
+    string navigationBar;
+    string footerPage;
     Organization organization;
 |};
 
