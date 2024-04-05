@@ -107,24 +107,19 @@ returns models:OrganizationAssets|error {
 public function pushContentS3(file:MetaData[] directories, string contentType) returns error? {
     io:println("Reading Content");
     foreach var item in directories {
-        if (item.dir) {
-            file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check pushContentS3(meta, contentType);
-        } else {
-            s3:Client|error amazonS3Client = createAmazonS3Client();
-            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+        s3:Client|error amazonS3Client = createAmazonS3Client();
+        string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
 
-            byte[] imgContent = check io:fileReadBytes(relativePath);
-            int lastIndex = <int>relativePath.lastIndexOf("/");
+        byte[] imgContent = check io:fileReadBytes(relativePath);
+        int lastIndex = <int>relativePath.lastIndexOf("/");
 
-            if (amazonS3Client is s3:Client) {
-                io:println("Uploading Content to Amazon S3: " + relativePath);
-                s3:ObjectCreationHeaders objectCreationHeaders = {};
-                objectCreationHeaders.contentType = contentType;
-                var result = amazonS3Client->createObject("devportal-content/" + relativePath.substring(0, lastIndex), relativePath.substring(lastIndex + 1), imgContent, s3:ACL_PUBLIC_READ, objectCreationHeaders);
-                if (result is error) {
-                    log:printError("Error uploading the org landing page to Amazon S3");
-                }
+        if (amazonS3Client is s3:Client) {
+            io:println("Uploading Content to Amazon S3: " + relativePath);
+            s3:ObjectCreationHeaders objectCreationHeaders = {};
+            objectCreationHeaders.contentType = contentType;
+            var result = amazonS3Client->createObject("devportal-content/" + relativePath.substring(0, lastIndex), relativePath.substring(lastIndex + 1), imgContent, s3:ACL_PUBLIC_READ, objectCreationHeaders);
+            if (result is error) {
+                log:printError("Error uploading the org landing page to Amazon S3");
             }
         }
     }

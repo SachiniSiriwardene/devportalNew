@@ -206,11 +206,13 @@ service /apiMetadata on new http:Listener(9090) {
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
         
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources/content/" + apiName);
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
 
         models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
         apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
 
+        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
+        check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
         check utils:pushContentS3(imageDir, "text/plain");
         check file:remove(orgName, file:RECURSIVE);
