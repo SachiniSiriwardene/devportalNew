@@ -91,8 +91,8 @@ service /admin on new http:Listener(8080) {
     resource function put orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip" + orgName;
-        string targetPath = "./";
+        string path = "./zip";
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
@@ -117,19 +117,30 @@ service /admin on new http:Listener(8080) {
             apiListingPage: ""
         };
 
-        // models:APIAssets apiAssets = {stylesheet: "", apiAssets: [], markdown: [], landingPageUrl: "", apiId: ""};
+        string apiLandingPage = check io:fileReadString("./" + orgName + "/resources/template/api-landing-page.html");
+        assetMappings.apiLandingPage = apiLandingPage;
 
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources");
-        models:OrganizationAssets orgContent = check utils:getContentForOrgTemplate(directories, orgName, assetMappings);
+        string orgLandingPage = check io:fileReadString("./" + orgName + "/resources/template/org-landing-page.html");
+        assetMappings.orgLandingPage = orgLandingPage;
 
-        string orgAssets = check utils:updateOrgAssets(orgContent, orgName);
+        string apiListingPage = check io:fileReadString("./" + orgName + "/resources/template/components-page.html");
+        assetMappings.apiListingPage = apiListingPage;
+
+        string navigationPage = check io:fileReadString("./" + orgName + "/resources/template/nav-bar.html");
+        assetMappings.navigationBar = navigationPage;
+
+        string footer = check io:fileReadString("./" + orgName + "/resources/template/footer.html");
+        assetMappings.footerPage = footer;
+
+
+        string orgAssets = check utils:updateOrgAssets(assetMappings, orgName);
         //string createdAPIAssets = check  utils:createAPIAssets(apiPageContent);
 
         log:printInfo("Org assets created: " + orgAssets);
 
         models:OrgContentResponse uploadedContent = {
             timeUploaded: time:utcToString(time:utcNow(0)),
-            assetMappings: orgContent
+            assetMappings: assetMappings
         };
         return uploadedContent;
     }
