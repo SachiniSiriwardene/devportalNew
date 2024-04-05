@@ -138,7 +138,6 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             _ = check readAPIContent(meta, orgname, apiName, apiAssets);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
-            io:print(relativePath);
             if (relativePath.endsWith(".md")) {
                 io:println("Updating the API Content to the Database");
                 apiAssets.apiContent = check io:fileReadString(relativePath);
