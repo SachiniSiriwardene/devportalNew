@@ -2,6 +2,7 @@ import devportal.models;
 import devportal.store;
 import devportal.utils;
 
+import ballerina/file;
 import ballerina/http;
 import ballerina/io;
 import ballerina/persist;
@@ -205,20 +206,17 @@ service /apiMetadata on new http:Listener(9090) {
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
         
-        //file:MetaData[] directories = check file:readDir("./" + orgName + "/resources/content/" + apiName);
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/resources/content/" + apiName);
 
         models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
-       // apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
+        apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
 
-        // check file:copy(targetPath + "/resources/images/", "./" + orgName + "/resources/images", file:COPY_ATTRIBUTES);
-
-        // check file:remove(orgName, file:RECURSIVE);
-
-        string content = check io:fileReadString("./" + orgName + "/"+ apiName +"/apiContent.md");
-        apiAssets.apiContent = content;
-
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+        check utils:pushContentS3(imageDir, "text/plain");
+        check file:remove(orgName, file:RECURSIVE);
         utils:addApiContent(apiAssets, apiId, orgName);
-
+        
+        io:println("API content added successfully");
         return "API asset updated";
 
     }

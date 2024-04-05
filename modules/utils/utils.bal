@@ -1,10 +1,11 @@
 import devportal.models;
 
 import ballerina/file;
+import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/regex;
-import ballerina/io;
+import ballerinax/aws.s3;
 
 public function handleContent(mime:Entity bodyPart) {
     // Get the media type from the body part retrieved from the request.
@@ -81,21 +82,21 @@ returns models:OrganizationAssets|error {
             string[] names = regex:split(item.absPath, orgName);
             string relativePath = names[1];
             if (relativePath.endsWith(".md")) {
-               
+
             } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
-                assetMappings.orgAssets =  assetMappings.orgAssets + " " + relativePath;
+                assetMappings.orgAssets = assetMappings.orgAssets + " " + relativePath;
 
             } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
             relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
 
-                assetMappings.orgAssets =  assetMappings.orgAssets + " " + relativePath;
+                assetMappings.orgAssets = assetMappings.orgAssets + " " + relativePath;
             } else if (relativePath.endsWith("org-landing-page.html")) {
 
                 assetMappings.orgLandingPage = readContent;
             } else if (relativePath.endsWith("api-landing-page.html")) {
 
                 assetMappings.apiLandingPage = readContent;
-            } 
+            }
 
         }
     }
@@ -103,8 +104,34 @@ returns models:OrganizationAssets|error {
 
 }
 
-public function readAPIContent(file:MetaData[] directories, string orgname, string apiName, models:APIAssets apiAssets) returns models:APIAssets|error {
+public function pushContentS3(file:MetaData[] directories, string contentType) returns error? {
+    io:println("Reading Content");
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check pushContentS3(meta, contentType);
+        } else {
+            s3:Client|error amazonS3Client = createAmazonS3Client();
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
 
+            byte[] imgContent = check io:fileReadBytes(relativePath);
+            int lastIndex = <int>relativePath.lastIndexOf("/");
+
+            if (amazonS3Client is s3:Client) {
+                io:println("Uploading Content to Amazon S3: " + relativePath);
+                s3:ObjectCreationHeaders objectCreationHeaders = {};
+                objectCreationHeaders.contentType = contentType;
+                var result = amazonS3Client->createObject("devportal-content/" + relativePath.substring(0, lastIndex), relativePath.substring(lastIndex + 1), imgContent, s3:ACL_PUBLIC_READ, objectCreationHeaders);
+                if (result is error) {
+                    log:printError("Error uploading the org landing page to Amazon S3");
+                }
+            }
+        }
+    }
+}
+
+public function readAPIContent(file:MetaData[] directories, string orgname, string apiName, models:APIAssets apiAssets) returns models:APIAssets|error {
+    io:println("Reading API Content");
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
@@ -112,16 +139,23 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
+                io:println("Updating the API Content to the Database");
                 apiAssets.apiContent = check io:fileReadString(relativePath);
-            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
-            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
-                // Should be in a file storage
-                apiAssets.apiImages.push(relativePath);
             }
         }
     }
 
-    
     return apiAssets;
+}
+
+public function createAmazonS3Client() returns s3:Client|error {
+    s3:ConnectionConfig amazonS3Config = {
+        accessKeyId: models:awsAccessKeyId,
+        secretAccessKey: models:awsSecretAccessKey,
+        region: models:awsRegion,
+        timeout: 120
+    };
+
+    return check new (amazonS3Config);
 }
 

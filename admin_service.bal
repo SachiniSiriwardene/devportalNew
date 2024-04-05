@@ -34,7 +34,7 @@ service /admin on new http:Listener(8080) {
     #
     # + orgName - parameter description
     # + return - return value description
-    resource function post orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    resource function post orgContent(http:Request request, string orgName) returns string|error {
 
         string orgId = check utils:getOrgId(orgName);
 
@@ -79,7 +79,15 @@ service /admin on new http:Listener(8080) {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: assetMappings
         };
-        return uploadedContent;
+    
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+        check utils:pushContentS3(imageDir, "text/plain");
+        
+        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
+        check utils:pushContentS3(stylesheetDir, "text/css");
+
+        io:println("Organization content uploaded");
+        return "Organization content uploaded successfully";
 
     }
 
@@ -88,7 +96,7 @@ service /admin on new http:Listener(8080) {
     # + request - parameter description  
     # + orgName - parameter description
     # + return - return value description
-    resource function put orgContent(http:Request request, string orgName) returns models:OrgContentResponse|error {
+    resource function put orgContent(http:Request request, string orgName) returns string|error {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
@@ -142,7 +150,8 @@ service /admin on new http:Listener(8080) {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: assetMappings
         };
-        return uploadedContent;
+        io:println("Organization content updated");
+        return "Organization content updated successfully";
     }
 
     # Get the asset paths for the org or api.
