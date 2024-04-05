@@ -86,6 +86,8 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
         check utils:pushContentS3(stylesheetDir, "text/css");
 
+        check file:remove(orgName, file:RECURSIVE);
+
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
 
@@ -142,7 +144,8 @@ service /admin on new http:Listener(8080) {
 
 
         string orgAssets = check utils:updateOrgAssets(assetMappings, orgName);
-        //string createdAPIAssets = check  utils:createAPIAssets(apiPageContent);
+        
+        check file:remove(orgName, file:RECURSIVE);
 
         log:printInfo("Org assets created: " + orgAssets);
 

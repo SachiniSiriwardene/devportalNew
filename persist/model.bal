@@ -54,7 +54,10 @@ public type Review record {|
 # + productionUrl - field description  
 # + sandboxUrl - field description  
 # + reviews - field description  
-# + subscriptions - field description
+# + subscriptions - field description  
+# + apiContent - field description  
+# + apiImages - field description  
+# + authenticate - field description
 public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
@@ -70,6 +73,7 @@ public type ApiMetadata record {|
     Subscription[] subscriptions;
     ApiContent[] apiContent;
     ApiImages[] apiImages;
+    boolean authenticate;
 |};
 
 

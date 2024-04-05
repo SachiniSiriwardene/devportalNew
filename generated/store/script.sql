@@ -42,9 +42,10 @@ CREATE TABLE `ApiMetadata` (
 	`apiName` VARCHAR(191) NOT NULL,
 	`organizationName` VARCHAR(191) NOT NULL,
 	`apiCategory` VARCHAR(191) NOT NULL,
-	`openApiDefinition`JSON NOT NULL,
+	`openApiDefinition` JSON NOT NULL,
 	`productionUrl` VARCHAR(191) NOT NULL,
 	`sandboxUrl` VARCHAR(191) NOT NULL,
+	`authenticate` BOOLEAN NOT NULL,
 	PRIMARY KEY(`apiId`,`organizationName`)
 );
 

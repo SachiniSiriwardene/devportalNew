@@ -105,6 +105,7 @@ public type ApiMetadata record {|
     string openApiDefinition;
     string productionUrl;
     string sandboxUrl;
+    boolean authenticate;
 |};
 
 public type ApiMetadataOptionalized record {|
@@ -116,6 +117,7 @@ public type ApiMetadataOptionalized record {|
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
+    boolean authenticate?;
 |};
 
 public type ApiMetadataWithRelations record {|
@@ -139,6 +141,7 @@ public type ApiMetadataUpdate record {|
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
+    boolean authenticate?;
 |};
 
 public type ApiContent record {|

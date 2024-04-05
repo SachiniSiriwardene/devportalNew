@@ -165,7 +165,8 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
-        organizationName: apiMetaData.apiInfo.orgName
+        organizationName: apiMetaData.apiInfo.orgName,
+        authenticate: apiMetaData.apiInfo.authenticate
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);

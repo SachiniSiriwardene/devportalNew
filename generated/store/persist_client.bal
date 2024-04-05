@@ -50,6 +50,7 @@ public isolated client class Client {
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
+                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}},
                 "subscription.subscriptionId": {relation: {entityName: "subscription", refField: "subscriptionId"}},
                 "subscription.apiApiId": {relation: {entityName: "subscription", refField: "apiApiId"}},
                 "subscription.apiOrganizationName": {relation: {entityName: "subscription", refField: "apiOrganizationName"}},
@@ -91,6 +92,7 @@ public isolated client class Client {
                 "apiFeedback.openApiDefinition": {relation: {entityName: "apiFeedback", refField: "openApiDefinition"}},
                 "apiFeedback.productionUrl": {relation: {entityName: "apiFeedback", refField: "productionUrl"}},
                 "apiFeedback.sandboxUrl": {relation: {entityName: "apiFeedback", refField: "sandboxUrl"}},
+                "apiFeedback.authenticate": {relation: {entityName: "apiFeedback", refField: "authenticate"}},
                 "reviewedBy.userId": {relation: {entityName: "reviewedBy", refField: "userId"}},
                 "reviewedBy.role": {relation: {entityName: "reviewedBy", refField: "role"}},
                 "reviewedBy.userName": {relation: {entityName: "reviewedBy", refField: "userName"}},
@@ -114,6 +116,7 @@ public isolated client class Client {
                 openApiDefinition: {columnName: "openApiDefinition"},
                 productionUrl: {columnName: "productionUrl"},
                 sandboxUrl: {columnName: "sandboxUrl"},
+                authenticate: {columnName: "authenticate"},
                 "additionalProperties[].propertyId": {relation: {entityName: "additionalProperties", refField: "propertyId"}},
                 "additionalProperties[].key": {relation: {entityName: "additionalProperties", refField: "key"}},
                 "additionalProperties[].value": {relation: {entityName: "additionalProperties", refField: "value"}},
@@ -172,7 +175,8 @@ public isolated client class Client {
                 "apimetadata.apiCategory": {relation: {entityName: "apimetadata", refField: "apiCategory"}},
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
-                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}}
+                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
+                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
             },
             keyFields: ["contentId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -193,7 +197,8 @@ public isolated client class Client {
                 "apimetadata.apiCategory": {relation: {entityName: "apimetadata", refField: "apiCategory"}},
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
-                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}}
+                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
+                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
             },
             keyFields: ["imageId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -214,7 +219,8 @@ public isolated client class Client {
                 "apimetadata.apiCategory": {relation: {entityName: "apimetadata", refField: "apiCategory"}},
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
-                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}}
+                "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
+                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
             },
             keyFields: ["propertyId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -413,6 +419,7 @@ public isolated client class Client {
                 "api.openApiDefinition": {relation: {entityName: "api", refField: "openApiDefinition"}},
                 "api.productionUrl": {relation: {entityName: "api", refField: "productionUrl"}},
                 "api.sandboxUrl": {relation: {entityName: "api", refField: "sandboxUrl"}},
+                "api.authenticate": {relation: {entityName: "api", refField: "authenticate"}},
                 "user.userId": {relation: {entityName: "user", refField: "userId"}},
                 "user.role": {relation: {entityName: "user", refField: "role"}},
                 "user.userName": {relation: {entityName: "user", refField: "userName"}},

@@ -102,7 +102,9 @@ service /apiMetadata on new http:Listener(9090) {
                 reviews: reviews,
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                apiVersion: version
+                apiVersion: version,
+                authenticate: apiMetaData.authenticate ?: false
+
             }
         };
 
@@ -188,8 +190,9 @@ service /apiMetadata on new http:Listener(9090) {
                     reviews: reviews,
                     orgName: apiMetaData.organizationName ?: "",
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                    apiVersion: version
-                }
+                    apiVersion: version,
+                    authenticate: apiMetaData.authenticate ?: false
+                    }
             };
             apis.push(metaData);
         }
