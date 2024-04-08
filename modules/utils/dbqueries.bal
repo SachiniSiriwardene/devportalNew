@@ -191,7 +191,8 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
-        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
+        authenticate: apiMetaData.apiInfo.authenticate
     };
 
     store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgName].put(metadataRecord);
