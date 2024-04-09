@@ -47,6 +47,24 @@ public type OrganizationAssets record {|
     string orgId;
 |};
 
+public type Organization record {
+
+    string orgName;
+    string templateName;
+    boolean isPublic;
+    PAGES[] authenticatedPages;
+};
+
+public enum PAGES {
+    ORGLANDING,
+    APILANDING,
+    APITRYOUT,
+    APPLICATION,
+    APILISTING,
+    MONETIZATION,
+    FORUMS
+}
+
 # Assets needed for the api landing page.
 #
 # + apiImages - field description  

@@ -105,7 +105,7 @@ public type ApiMetadata record {|
     string openApiDefinition;
     string productionUrl;
     string sandboxUrl;
-    boolean authenticate;
+    string? authorizedRoles;
 |};
 
 public type ApiMetadataOptionalized record {|
@@ -117,7 +117,7 @@ public type ApiMetadataOptionalized record {|
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
-    boolean authenticate?;
+    string? authorizedRoles?;
 |};
 
 public type ApiMetadataWithRelations record {|
@@ -141,7 +141,7 @@ public type ApiMetadataUpdate record {|
     string openApiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
-    boolean authenticate?;
+    string? authorizedRoles?;
 |};
 
 public type ApiContent record {|
@@ -281,32 +281,6 @@ public type IdentityProviderUpdate record {|
     string organizationOrgId?;
 |};
 
-public type Theme record {|
-    readonly string themeId;
-    string organizationOrgId;
-    string theme;
-|};
-
-public type ThemeOptionalized record {|
-    string themeId?;
-    string organizationOrgId?;
-    string theme?;
-|};
-
-public type ThemeWithRelations record {|
-    *ThemeOptionalized;
-    OrganizationOptionalized organization?;
-|};
-
-public type ThemeTargetType typedesc<ThemeWithRelations>;
-
-public type ThemeInsert Theme;
-
-public type ThemeUpdate record {|
-    string organizationOrgId?;
-    string theme?;
-|};
-
 public type Application record {|
     readonly string appId;
     string applicationName;
@@ -347,20 +321,21 @@ public type Organization record {|
     readonly string orgId;
     string organizationName;
     string templateName;
-    boolean isDefault;
+    boolean isPublic;
+    string authenticatedPages;
 |};
 
 public type OrganizationOptionalized record {|
     string orgId?;
     string organizationName?;
     string templateName?;
-    boolean isDefault?;
+    boolean isPublic?;
+    string authenticatedPages?;
 |};
 
 public type OrganizationWithRelations record {|
     *OrganizationOptionalized;
     OrganizationAssetsOptionalized organizationAssets?;
-    ThemeOptionalized[] theme?;
     IdentityProviderOptionalized[] identityProvider?;
     SubscriptionOptionalized[] subscriptions?;
 |};
@@ -372,7 +347,8 @@ public type OrganizationInsert Organization;
 public type OrganizationUpdate record {|
     string organizationName?;
     string templateName?;
-    boolean isDefault?;
+    boolean isPublic?;
+    string authenticatedPages?;
 |};
 
 public type OrganizationAssets record {|

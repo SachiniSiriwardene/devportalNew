@@ -28,10 +28,6 @@ public type APISubscription record {|
     string orgName;
 |};
 
-public type Organization record {|
-    readonly string orgId;
-    string[] subscribedAPIs;
-|};
 
 public type ApplicationProperties record {
     string name;

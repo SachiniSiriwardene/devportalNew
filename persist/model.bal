@@ -57,7 +57,7 @@ public type Review record {|
 # + subscriptions - field description  
 # + apiContent - field description  
 # + apiImages - field description  
-# + authenticate - field description
+# + authorizedRoles - field description
 public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
@@ -73,7 +73,7 @@ public type ApiMetadata record {|
     Subscription[] subscriptions;
     ApiContent[] apiContent;
     ApiImages[] apiImages;
-    boolean authenticate;
+    string? authorizedRoles;
 |};
 
 
@@ -121,12 +121,6 @@ public type IdentityProvider record {|
     Organization organization;
 |};
 
-public type Theme record {|
-    readonly string themeId;
-    Organization organization;
-    string theme;
-|};
-
 # Represents content to be included in the application section.
 #
 # + appId - application id  
@@ -152,13 +146,12 @@ public type Organization record {|
     readonly string orgId;
     string organizationName;
     string templateName;
-    boolean isDefault; 
+    boolean isPublic; 
+    string authenticatedPages;
     OrganizationAssets? organizationAssets;
-    Theme[] theme;
     IdentityProvider[] identityProvider;
     Subscription[] subscriptions;
 |};
-
 
 
 # Assets needed for the org landing page.

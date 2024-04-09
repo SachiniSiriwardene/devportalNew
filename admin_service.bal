@@ -1,6 +1,6 @@
 import devportal.models;
-import devportal.store;
 import devportal.utils;
+import devportal.store;
 
 import ballerina/file;
 import ballerina/http;
@@ -16,15 +16,15 @@ import ballerinacentral/zip;
 // # A service representing a network-accessible API
 // # bound to port `8080`.
 
-final Client adminClient = check new ();
+final store:Client adminClient = check new ();
 
 service /admin on new http:Listener(8080) {
 
-    resource function post organisation(string orgName) returns models:OrgCreationResponse|error {
+    resource function post organisation(models:Organization organization) returns models:OrgCreationResponse|error {
 
-        string orgId = check utils:createOrg(orgName, "template1");
+        string orgId = check utils:createOrg(organization);
         models:OrgCreationResponse org = {
-            orgName: orgName,
+            orgName: organization.orgName,
             orgId: orgId
         };
         return org;
@@ -176,8 +176,8 @@ service /admin on new http:Listener(8080) {
             apiListingPage: ""
         };
 
-        stream<OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-        OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
+        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
+        store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
             where asset.organizationassetsOrgId == orgId
             select asset;
 
@@ -207,7 +207,7 @@ service /admin on new http:Listener(8080) {
     resource function get [string filename](string orgName, http:Request request) returns error|http:Response {
 
         string orgId = check utils:getOrgId(orgName);
-        stream<store:OrganizationAssets, persist:Error?> orgContent = userClient->/organizationassets.get();
+        stream<store:OrganizationAssets, persist:Error?> orgContent = adminClient->/organizationassets.get();
 
         store:OrganizationAssets[] contents = check from var content in orgContent
             where content.organizationassetsOrgId == orgId
@@ -267,8 +267,7 @@ service /admin on new http:Listener(8080) {
     resource function get identityProvider(string orgId) returns models:IdentityProvider[]|error {
 
         stream<store:IdentityProviderWithRelations, persist:Error?> identityProviders = adminClient->/identityproviders.get();
-        store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders
-            select idp;
+        store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders select idp;
         models:IdentityProvider[] idps = [];
 
         foreach var idp in idpList {

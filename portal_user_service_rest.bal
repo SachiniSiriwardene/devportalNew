@@ -1,12 +1,10 @@
 import devportal.store;
 import devportal.utils;
 
-import ballerina/file;
 import ballerina/http;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
-import ballerina/regex;
 
 final store:Client retrieveContent = check new ();
 
@@ -28,16 +26,16 @@ service / on new http:Listener(3001) {
         log:printInfo("./" + request.rawPath);
 
         do {
-            if (orgDetails.isDefault ?: false) {
-                log:printInfo(regex:split(request.rawPath, "/files")[1]);
-                file.setFileAsEntityBody("DefaultOrg/files" + regex:split(request.rawPath, "/files")[1]);
-            } else {
+            // if (orgDetails.isDefault ?: false) {
+            //     log:printInfo(regex:split(request.rawPath, "/files")[1]);
+            //     file.setFileAsEntityBody("DefaultOrg/files" + regex:split(request.rawPath, "/files")[1]);
+            // } else {
 
-                boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
-                if (dirExists) {
-                    file.setFileAsEntityBody("." + request.rawPath);
-                }
-            }
+            //     boolean dirExists = check file:test("." + request.rawPath, file:EXISTS);
+            //     if (dirExists) {
+            //         file.setFileAsEntityBody("." + request.rawPath);
+            //     }
+            // }
         } on fail var e {
             log:printError("Error occurred while checking file existence: " + e.message());
         }
@@ -52,7 +50,6 @@ service / on new http:Listener(3001) {
         response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
-        //response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         return response;
 
     }
@@ -74,7 +71,6 @@ service / on new http:Listener(3001) {
             where asset.organizationassetsOrgId == org.orgId
             select asset;
 
-        store:ThemeOptionalized[] theme = org.theme ?: [];
 
         string templateName = org.templateName ?: "";
 
@@ -112,8 +108,6 @@ service / on new http:Listener(3001) {
             select org;
 
         store:OrganizationWithRelations org = organization.pop();
-
-        store:ThemeOptionalized[] theme = org.theme ?: [];
 
         string templateName = org.templateName ?: "";
 

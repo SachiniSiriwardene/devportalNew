@@ -8,7 +8,6 @@ DROP TABLE IF EXISTS `ApiImages`;
 DROP TABLE IF EXISTS `Review`;
 DROP TABLE IF EXISTS `Subscription`;
 DROP TABLE IF EXISTS `User`;
-DROP TABLE IF EXISTS `Theme`;
 DROP TABLE IF EXISTS `ApplicationProperties`;
 DROP TABLE IF EXISTS `IdentityProvider`;
 DROP TABLE IF EXISTS `AdditionalProperties`;
@@ -45,7 +44,7 @@ CREATE TABLE `ApiMetadata` (
 	`openApiDefinition` JSON NOT NULL,
 	`productionUrl` VARCHAR(191) NOT NULL,
 	`sandboxUrl` VARCHAR(191) NOT NULL,
-	`authenticate` BOOLEAN NOT NULL,
+	`authorizedRoles` VARCHAR(191),
 	PRIMARY KEY(`apiId`,`organizationName`)
 );
 
@@ -53,7 +52,8 @@ CREATE TABLE `Organization` (
 	`orgId` VARCHAR(191) NOT NULL,
 	`organizationName` VARCHAR(191) NOT NULL,
 	`templateName` VARCHAR(191) NOT NULL,
-	`isDefault` BOOLEAN NOT NULL,
+	`isPublic` BOOLEAN NOT NULL,
+	`authenticatedPages` VARCHAR(191) NOT NULL,
 	PRIMARY KEY(`orgId`)
 );
 
@@ -108,14 +108,6 @@ CREATE TABLE `ApplicationProperties` (
 	`applicationAppId` VARCHAR(191) NOT NULL,
 	FOREIGN KEY(`applicationAppId`) REFERENCES `Application`(`appId`),
 	PRIMARY KEY(`propertyId`)
-);
-
-CREATE TABLE `Theme` (
-	`themeId` VARCHAR(191) NOT NULL,
-	`theme` VARCHAR(191) NOT NULL,
-	`organizationOrgId` VARCHAR(191) NOT NULL,
-	FOREIGN KEY(`organizationOrgId`) REFERENCES `Organization`(`orgId`),
-	PRIMARY KEY(`themeId`)
 );
 
 CREATE TABLE `User` (

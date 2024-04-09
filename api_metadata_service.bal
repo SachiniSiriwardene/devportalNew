@@ -12,6 +12,7 @@ import ballerinacentral/zip;
 
 service /apiMetadata on new http:Listener(9090) {
 
+
     # Create an API.
     #
     # + metadata - api metadata
@@ -103,8 +104,7 @@ service /apiMetadata on new http:Listener(9090) {
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                 apiVersion: version,
-                authenticate: apiMetaData.authenticate ?: false
-
+                authorizedRoles: apiMetaData?.authorizedRoles
             }
         };
 
@@ -191,8 +191,8 @@ service /apiMetadata on new http:Listener(9090) {
                     orgName: apiMetaData.organizationName ?: "",
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                     apiVersion: version,
-                    authenticate: apiMetaData.authenticate ?: false
-                    }
+                    authorizedRoles: apiMetaData?.authorizedRoles
+                }
             };
             apis.push(metaData);
         }

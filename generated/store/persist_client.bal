@@ -16,7 +16,6 @@ const API_CONTENT = "apicontents";
 const API_IMAGES = "apiimages";
 const ADDITIONAL_PROPERTIES = "additionalproperties";
 const IDENTITY_PROVIDER = "identityproviders";
-const THEME = "themes";
 const APPLICATION = "applications";
 const ORGANIZATION = "organizations";
 const ORGANIZATION_ASSETS = "organizationassets";
@@ -50,7 +49,7 @@ public isolated client class Client {
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
-                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}},
+                "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}},
                 "subscription.subscriptionId": {relation: {entityName: "subscription", refField: "subscriptionId"}},
                 "subscription.apiApiId": {relation: {entityName: "subscription", refField: "apiApiId"}},
                 "subscription.apiOrganizationName": {relation: {entityName: "subscription", refField: "apiOrganizationName"}},
@@ -92,7 +91,7 @@ public isolated client class Client {
                 "apiFeedback.openApiDefinition": {relation: {entityName: "apiFeedback", refField: "openApiDefinition"}},
                 "apiFeedback.productionUrl": {relation: {entityName: "apiFeedback", refField: "productionUrl"}},
                 "apiFeedback.sandboxUrl": {relation: {entityName: "apiFeedback", refField: "sandboxUrl"}},
-                "apiFeedback.authenticate": {relation: {entityName: "apiFeedback", refField: "authenticate"}},
+                "apiFeedback.authorizedRoles": {relation: {entityName: "apiFeedback", refField: "authorizedRoles"}},
                 "reviewedBy.userId": {relation: {entityName: "reviewedBy", refField: "userId"}},
                 "reviewedBy.role": {relation: {entityName: "reviewedBy", refField: "role"}},
                 "reviewedBy.userName": {relation: {entityName: "reviewedBy", refField: "userName"}},
@@ -116,7 +115,7 @@ public isolated client class Client {
                 openApiDefinition: {columnName: "openApiDefinition"},
                 productionUrl: {columnName: "productionUrl"},
                 sandboxUrl: {columnName: "sandboxUrl"},
-                authenticate: {columnName: "authenticate"},
+                authorizedRoles: {columnName: "authorizedRoles"},
                 "additionalProperties[].propertyId": {relation: {entityName: "additionalProperties", refField: "propertyId"}},
                 "additionalProperties[].key": {relation: {entityName: "additionalProperties", refField: "key"}},
                 "additionalProperties[].value": {relation: {entityName: "additionalProperties", refField: "value"}},
@@ -176,7 +175,7 @@ public isolated client class Client {
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
-                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
+                "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
             keyFields: ["contentId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -198,7 +197,7 @@ public isolated client class Client {
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
-                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
+                "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
             keyFields: ["imageId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -220,7 +219,7 @@ public isolated client class Client {
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
                 "apimetadata.productionUrl": {relation: {entityName: "apimetadata", refField: "productionUrl"}},
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
-                "apimetadata.authenticate": {relation: {entityName: "apimetadata", refField: "authenticate"}}
+                "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
             keyFields: ["propertyId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
@@ -241,24 +240,10 @@ public isolated client class Client {
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
-                "organization.isDefault": {relation: {entityName: "organization", refField: "isDefault"}}
+                "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
+                "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
             keyFields: ["idpID"],
-            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
-        },
-        [THEME] : {
-            entityName: "Theme",
-            tableName: "Theme",
-            fieldMetadata: {
-                themeId: {columnName: "themeId"},
-                organizationOrgId: {columnName: "organizationOrgId"},
-                theme: {columnName: "theme"},
-                "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
-                "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
-                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
-                "organization.isDefault": {relation: {entityName: "organization", refField: "isDefault"}}
-            },
-            keyFields: ["themeId"],
             joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
         [APPLICATION] : {
@@ -293,7 +278,8 @@ public isolated client class Client {
                 orgId: {columnName: "orgId"},
                 organizationName: {columnName: "organizationName"},
                 templateName: {columnName: "templateName"},
-                isDefault: {columnName: "isDefault"},
+                isPublic: {columnName: "isPublic"},
+                authenticatedPages: {columnName: "authenticatedPages"},
                 "organizationAssets.assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
                 "organizationAssets.orgAssets": {relation: {entityName: "organizationAssets", refField: "orgAssets"}},
                 "organizationAssets.orgLandingPage": {relation: {entityName: "organizationAssets", refField: "orgLandingPage"}},
@@ -302,9 +288,6 @@ public isolated client class Client {
                 "organizationAssets.navigationBar": {relation: {entityName: "organizationAssets", refField: "navigationBar"}},
                 "organizationAssets.footerPage": {relation: {entityName: "organizationAssets", refField: "footerPage"}},
                 "organizationAssets.organizationassetsOrgId": {relation: {entityName: "organizationAssets", refField: "organizationassetsOrgId"}},
-                "theme[].themeId": {relation: {entityName: "theme", refField: "themeId"}},
-                "theme[].organizationOrgId": {relation: {entityName: "theme", refField: "organizationOrgId"}},
-                "theme[].theme": {relation: {entityName: "theme", refField: "theme"}},
                 "identityProvider[].idpID": {relation: {entityName: "identityProvider", refField: "idpID"}},
                 "identityProvider[].name": {relation: {entityName: "identityProvider", refField: "name"}},
                 "identityProvider[].wellKnownEndpoint": {relation: {entityName: "identityProvider", refField: "wellKnownEndpoint"}},
@@ -324,7 +307,6 @@ public isolated client class Client {
             keyFields: ["orgId"],
             joinMetadata: {
                 organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationassetsOrgId"], joinColumns: ["orgId"], 'type: psql:ONE_TO_ONE},
-                theme: {entity: Theme, fieldName: "theme", refTable: "Theme", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
@@ -344,7 +326,8 @@ public isolated client class Client {
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
-                "organization.isDefault": {relation: {entityName: "organization", refField: "isDefault"}}
+                "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
+                "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
             keyFields: ["assetId"],
             joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationassetsOrgId"], 'type: psql:ONE_TO_ONE}}
@@ -419,7 +402,7 @@ public isolated client class Client {
                 "api.openApiDefinition": {relation: {entityName: "api", refField: "openApiDefinition"}},
                 "api.productionUrl": {relation: {entityName: "api", refField: "productionUrl"}},
                 "api.sandboxUrl": {relation: {entityName: "api", refField: "sandboxUrl"}},
-                "api.authenticate": {relation: {entityName: "api", refField: "authenticate"}},
+                "api.authorizedRoles": {relation: {entityName: "api", refField: "authorizedRoles"}},
                 "user.userId": {relation: {entityName: "user", refField: "userId"}},
                 "user.role": {relation: {entityName: "user", refField: "role"}},
                 "user.userName": {relation: {entityName: "user", refField: "userName"}},
@@ -427,7 +410,8 @@ public isolated client class Client {
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
-                "organization.isDefault": {relation: {entityName: "organization", refField: "isDefault"}},
+                "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
+                "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}},
                 "subscriptionPolicy.policyId": {relation: {entityName: "subscriptionPolicy", refField: "policyId"}},
                 "subscriptionPolicy.type": {relation: {entityName: "subscriptionPolicy", refField: "type"}},
                 "subscriptionPolicy.policyName": {relation: {entityName: "subscriptionPolicy", refField: "policyName"}},
@@ -460,7 +444,6 @@ public isolated client class Client {
             [API_IMAGES] : check new (dbClient, self.metadata.get(API_IMAGES), psql:MYSQL_SPECIFICS),
             [ADDITIONAL_PROPERTIES] : check new (dbClient, self.metadata.get(ADDITIONAL_PROPERTIES), psql:MYSQL_SPECIFICS),
             [IDENTITY_PROVIDER] : check new (dbClient, self.metadata.get(IDENTITY_PROVIDER), psql:MYSQL_SPECIFICS),
-            [THEME] : check new (dbClient, self.metadata.get(THEME), psql:MYSQL_SPECIFICS),
             [APPLICATION] : check new (dbClient, self.metadata.get(APPLICATION), psql:MYSQL_SPECIFICS),
             [ORGANIZATION] : check new (dbClient, self.metadata.get(ORGANIZATION), psql:MYSQL_SPECIFICS),
             [ORGANIZATION_ASSETS] : check new (dbClient, self.metadata.get(ORGANIZATION_ASSETS), psql:MYSQL_SPECIFICS),
@@ -779,45 +762,6 @@ public isolated client class Client {
             sqlClient = self.persistClients.get(IDENTITY_PROVIDER);
         }
         _ = check sqlClient.runDeleteQuery(idpID);
-        return result;
-    }
-
-    isolated resource function get themes(ThemeTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
-        name: "query"
-    } external;
-
-    isolated resource function get themes/[string themeId](ThemeTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
-        name: "queryOne"
-    } external;
-
-    isolated resource function post themes(ThemeInsert[] data) returns string[]|persist:Error {
-        psql:SQLClient sqlClient;
-        lock {
-            sqlClient = self.persistClients.get(THEME);
-        }
-        _ = check sqlClient.runBatchInsertQuery(data);
-        return from ThemeInsert inserted in data
-            select inserted.themeId;
-    }
-
-    isolated resource function put themes/[string themeId](ThemeUpdate value) returns Theme|persist:Error {
-        psql:SQLClient sqlClient;
-        lock {
-            sqlClient = self.persistClients.get(THEME);
-        }
-        _ = check sqlClient.runUpdateQuery(themeId, value);
-        return self->/themes/[themeId].get();
-    }
-
-    isolated resource function delete themes/[string themeId]() returns Theme|persist:Error {
-        Theme result = check self->/themes/[themeId].get();
-        psql:SQLClient sqlClient;
-        lock {
-            sqlClient = self.persistClients.get(THEME);
-        }
-        _ = check sqlClient.runDeleteQuery(themeId);
         return result;
     }
 

@@ -11,7 +11,7 @@ public type ApiInfo record {
     string apiCategory;
     json openApiDefinition;
     map<string> additionalProperties;
-    boolean authenticate;
+    string authorizedRoles;
     ApiArtifacts apiArtifacts;
 };
 
@@ -20,7 +20,7 @@ public type ApiInfoResponse record {
     string apiName;
     string apiCategory;
     string apiVersion;
-    boolean authenticate;
+    string authorizedRoles?;
     json openApiDefinition;
     APIReview[] reviews?;
     map<string> additionalProperties;

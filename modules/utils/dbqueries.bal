@@ -73,12 +73,17 @@ public function getAPIImages(string orgName, string apiName) returns store:ApiIm
     return images;
 }
 
-public function createOrg(string orgName, string template) returns string|error {
+public function createOrg(models:Organization organization) returns string|error {
+
+    string pages = organization.authenticatedPages.reduce
+    (isolated function(string authenticatedPages, string page) returns string => authenticatedPages.'join(" ", page), "");
+
     store:OrganizationInsert org = {
         orgId: uuid:createType1AsString(),
-        organizationName: orgName,
-        templateName: template,
-        isDefault: true
+        organizationName: organization.orgName,
+        templateName: organization.templateName,
+        isPublic: organization.isPublic,
+        authenticatedPages: pages
     };
 
     //create an organization record
@@ -90,14 +95,17 @@ public function createOrg(string orgName, string template) returns string|error 
     return orgCreationResult[0];
 }
 
-public function updateOrg(string orgName, string template) returns string|error {
+public function updateOrg(models:Organization organization) returns string|error {
 
-    string orgId = check getOrgId(orgName);
+    string orgId = check getOrgId(organization.orgName);
+    string pages = organization.authenticatedPages.reduce
+    (isolated function(string authenticatedPages, string page) returns string => authenticatedPages.'join(" ", page), "");
 
     store:Organization org = check dbClient->/organizations/[orgId].put({
-        organizationName: orgName,
-        templateName: template,
-        isDefault: false
+        organizationName: organization.orgName,
+        templateName: organization.templateName,
+        isPublic: organization.isPublic,
+        authenticatedPages: pages
     });
 
     return org.orgId;
@@ -166,7 +174,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         organizationName: apiMetaData.apiInfo.orgName,
-        authenticate: apiMetaData.apiInfo.authenticate
+        authorizedRoles: apiMetaData.apiInfo.authorizedRoles
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
@@ -191,8 +199,7 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
-        sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
-        authenticate: apiMetaData.apiInfo.authenticate
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
     };
 
     store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgName].put(metadataRecord);
