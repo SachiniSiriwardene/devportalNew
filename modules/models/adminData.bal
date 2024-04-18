@@ -15,6 +15,8 @@ public type OrgCreationResponse record {
     
     string orgName;
     string orgId;
+    boolean isPublic;
+    string[] authenticatedPages;
 };
 
 # Response for API content storage.

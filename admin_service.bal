@@ -1,6 +1,6 @@
 import devportal.models;
-import devportal.utils;
 import devportal.store;
+import devportal.utils;
 
 import ballerina/file;
 import ballerina/http;
@@ -8,6 +8,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
+import ballerina/regex;
 import ballerina/time;
 import ballerina/uuid;
 
@@ -25,7 +26,22 @@ service /admin on new http:Listener(8080) {
         string orgId = check utils:createOrg(organization);
         models:OrgCreationResponse org = {
             orgName: organization.orgName,
-            orgId: orgId
+            orgId: orgId,
+            isPublic: organization.isPublic,
+            authenticatedPages: organization.authenticatedPages
+        };
+        return org;
+    }
+
+    resource function get organisation(string orgName) returns models:OrgCreationResponse|error {
+
+        store:OrganizationWithRelations organization = check utils:getOrgDetails(orgName);
+
+        models:OrgCreationResponse org = {
+            orgName: organization.organizationName ?: "",
+            orgId: organization.orgId ?: "",
+            isPublic: organization.isPublic ?: false,
+            authenticatedPages: regex:split(organization.authenticatedPages ?: "", " ")
         };
         return org;
     }
@@ -79,10 +95,10 @@ service /admin on new http:Listener(8080) {
             timeUploaded: time:utcToString(time:utcNow(0)),
             assetMappings: assetMappings
         };
-    
+
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
         check utils:pushContentS3(imageDir, "text/plain");
-        
+
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
         check utils:pushContentS3(stylesheetDir, "text/css");
 
@@ -142,9 +158,8 @@ service /admin on new http:Listener(8080) {
         string footer = check io:fileReadString("./" + orgName + "/resources/template/footer.html");
         assetMappings.footerPage = footer;
 
-
         string orgAssets = check utils:updateOrgAssets(assetMappings, orgName);
-        
+
         check file:remove(orgName, file:RECURSIVE);
 
         log:printInfo("Org assets created: " + orgAssets);
@@ -222,7 +237,7 @@ service /admin on new http:Listener(8080) {
             file.setBody(contents[0].apiListingPage);
         } else if (filename.equalsIgnoreCaseAscii("nav-bar.html")) {
             file.setBody(contents[0].navigationBar);
-        }  else if (filename.equalsIgnoreCaseAscii("footer.html")) {
+        } else if (filename.equalsIgnoreCaseAscii("footer.html")) {
             file.setBody(contents[0].footerPage);
         }
 
@@ -267,7 +282,8 @@ service /admin on new http:Listener(8080) {
     resource function get identityProvider(string orgId) returns models:IdentityProvider[]|error {
 
         stream<store:IdentityProviderWithRelations, persist:Error?> identityProviders = adminClient->/identityproviders.get();
-        store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders select idp;
+        store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders
+            select idp;
         models:IdentityProvider[] idps = [];
 
         foreach var idp in idpList {
