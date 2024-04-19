@@ -27,7 +27,19 @@ service /admin on new http:Listener(8080) {
             orgName: organization.orgName,
             orgId: orgId,
             isPublic: organization.isPublic,
-            authenticatedPages: organization.authenticatedPages
+            authenticatedPages: organization.authenticatedPages ?: []
+        };
+        return org;
+    }
+
+        resource function put organisation(models:Organization organization) returns models:OrgCreationResponse|error {
+
+        string orgId = check utils:updateOrg(organization);
+        models:OrgCreationResponse org = {
+            orgName: organization.orgName,
+            orgId: orgId,
+            isPublic: organization.isPublic,
+            authenticatedPages: organization.authenticatedPages ?: []
         };
         return org;
     }

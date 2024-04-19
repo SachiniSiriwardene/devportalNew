@@ -82,8 +82,8 @@ public function getAPIImages(string orgName, string apiName) returns store:ApiIm
 
 public function createOrg(models:Organization organization) returns string|error {
 
-    string pages = organization.authenticatedPages.reduce
-    (isolated function(string authenticatedPages, string page) returns string => authenticatedPages.'join(" ", page), "");
+    string[] authenticaedPages = organization.authenticatedPages ?: [];
+    string pages = string:'join(" ", ... authenticaedPages);
 
     store:OrganizationInsert org = {
         orgId: uuid:createType1AsString(),
@@ -105,8 +105,8 @@ public function createOrg(models:Organization organization) returns string|error
 public function updateOrg(models:Organization organization) returns string|error {
 
     string orgId = check getOrgId(organization.orgName);
-    string pages = organization.authenticatedPages.reduce
-    (isolated function(string authenticatedPages, string page) returns string => authenticatedPages.'join(" ", page), "");
+    string[] authenticaedPages = organization.authenticatedPages ?: [];
+    string pages = string:'join(" ", ... authenticaedPages);
 
     store:Organization org = check dbClient->/organizations/[orgId].put({
         organizationName: organization.orgName,
@@ -169,6 +169,14 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 }
 
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
+
+    string roles = "";
+    if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
+
+        string[] authenticatedRoles = apiMetaData.apiInfo.authorizedRoles ?: [];
+        roles = string:'join(" ", ... authenticatedRoles);
+    }
+
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
@@ -181,7 +189,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         organizationName: apiMetaData.apiInfo.orgName,
-        authorizedRoles: apiMetaData.apiInfo.authorizedRoles
+        authorizedRoles: roles
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
@@ -199,6 +207,12 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
     addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
 
+    string roles = "";
+    if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
+
+        string[] authenticatedRoles = apiMetaData.apiInfo.authorizedRoles ?: [];
+        roles = string:'join(" ", ... authenticatedRoles);
+    }
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadataUpdate metadataRecord = {
         orgId: orgId,
@@ -206,7 +220,8 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
-        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
+        authorizedRoles: roles
     };
 
     store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgName].put(metadataRecord);
@@ -325,6 +340,7 @@ public function getIdentityProviders(string orgName) returns store:IdentityProvi
 
     stream<store:IdentityProviderWithRelations, persist:Error?> identityProviders = dbClient->/identityproviders.get();
     store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders
-         where idp.organizationOrgId == orgId select idp;
+        where idp.organizationOrgId == orgId
+        select idp;
     return idpList;
 }

@@ -9,6 +9,8 @@ import ballerina/persist;
 
 import ballerina/mime;
 import ballerinacentral/zip;
+import ballerina/regex;
+import ballerina/log;
 
 service /apiMetadata on new http:Listener(9090) {
 
@@ -104,9 +106,10 @@ service /apiMetadata on new http:Listener(9090) {
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                 apiVersion: version,
-                authorizedRoles: apiMetaData?.authorizedRoles
+                authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " ")
             }
         };
+        log:printInfo( apiMetaData?.authorizedRoles ?: "");
 
         return metaData;
     }
@@ -191,7 +194,7 @@ service /apiMetadata on new http:Listener(9090) {
                     orgName: apiMetaData.organizationName ?: "",
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
                     apiVersion: version,
-                    authorizedRoles: apiMetaData?.authorizedRoles
+                    authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " ")
                 }
             };
             apis.push(metaData);

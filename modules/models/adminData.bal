@@ -54,7 +54,7 @@ public type Organization record {
     string orgName;
     string templateName;
     boolean isPublic;
-    PAGES[] authenticatedPages;
+    PAGES[] authenticatedPages?;
 };
 
 public enum PAGES {
