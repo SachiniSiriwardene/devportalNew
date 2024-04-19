@@ -24,12 +24,19 @@ public function getOrgId(string orgName) returns string|error {
 
 }
 
+public function getOrgName(string orgId) returns string|error {
+
+    store:Organization organization = check dbClient->/organizations/[orgId];
+    return organization.organizationName;
+
+}
+
 public function getOrgDetails(string orgName) returns store:OrganizationWithRelations|error {
 
-    stream<store:OrganizationWithRelations, persist:Error?> organizations = check dbClient->/organizations.get();
+    stream<store:Organization, persist:Error?> organizations = check dbClient->/organizations.get();
 
     //retrieve the organization id
-    store:OrganizationWithRelations[] organization = check from var org in organizations
+    store:Organization[] organization = check from var org in organizations
         where org.organizationName == orgName
         select org;
 
@@ -210,41 +217,6 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     return listResult.apiId;
 }
 
-// public function updateAPIImages(models:APIAssets assets, string apiName, string orgName) returns string|error {
-
-//     store:ApiImages[] aPIImages = check getAPIImages(orgName, apiName);
-//     string[] uploadedImages = assets.apiImages;
-//     store:ApiImages[] updatedImages = [];
-
-//     // replace the image path references with the uploaded image names
-//     foreach var apiImage in uploadedImages {
-//         foreach var image in aPIImages {
-//             if (apiImage.includes(image.value)) {
-//                 store:ApiImages updatedImage = {
-//                     apimetadataApiId: image.apimetadataApiId, 
-//                     imageId: image.imageId, 
-//                     apimetadataOrganizationName: image.apimetadataOrganizationName, 
-//                     'key: image.key, 
-//                     value: apiImage
-//                 };
-//                 updatedImages.push(updatedImage);
-//             } 
-//         }
-//     }
-
-//      foreach var item in updatedImages {
-//          store:ApiImages org = check dbClient->/apiimages/[item.apimetadataApiId].put({
-//         orgLandingPage: orgContent.orgLandingPage,
-//         orgAssets: orgContent.orgAssets,
-//         organizationassetsOrgId: orgId,
-//         apiStyleSheet: orgContent.apiStyleSheet,
-//         orgStyleSheet: orgContent.orgStyleSheet,
-//         apiLandingPage: orgContent.apiLandingPage
-//     });
-//      }
-
-// }
-
 public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) {
     store:ThrottlingPolicy[] throttlingPolicyRecords = [];
     foreach var policy in throttlingPolicies {
@@ -268,6 +240,7 @@ public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies
 }
 
 public function addAdditionalProperties(map<string> additionalProperties, string apiID, string orgName) {
+
     store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
 
     foreach var propertyKey in additionalProperties.keys() {
@@ -327,4 +300,31 @@ public function addApiImages(map<string> images, string apiID, string orgName) {
             log:printError("Error occurred while adding API images: " + e.message());
         }
     }
+}
+
+public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {
+
+    string orgId = check getOrgId(identityProvider.orgName);
+    store:IdentityProviderInsert idp = {
+        organizationOrgId: orgId,
+        idpID: uuid:createType1AsString(),
+        name: identityProvider.name,
+        issuer: identityProvider.issuer,
+        clientId: identityProvider.clientId,
+        clientSecret: identityProvider.clientSecret,
+        id: identityProvider.id,
+        'type: identityProvider.'type
+    };
+    string[] listResult = check dbClient->/identityproviders.post([idp]);
+    return listResult[0];
+}
+
+public function getIdentityProviders(string orgName) returns store:IdentityProviderWithRelations[]|error {
+
+    string orgId = check getOrgId(orgName);
+
+    stream<store:IdentityProviderWithRelations, persist:Error?> identityProviders = dbClient->/identityproviders.get();
+    store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders
+         where idp.organizationOrgId == orgId select idp;
+    return idpList;
 }

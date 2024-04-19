@@ -101,23 +101,22 @@ public type AdditionalProperties record {|
 # Identity Provider configured for dev portal.
 #
 # + idpID - field description  
+# + orgName - field description  
+# + id - field description  
 # + name - field description  
-# + wellKnownEndpoint - field description  
-# + introspectionEndpoint - field description  
+# + 'type - field description  
 # + issuer - field description  
-# + jwksEndpoint - field description  
-# + authorizeEndpoint - field description  
-# + envrionments - field description  
+# + clientId - field description  
+# + clientSecret - field description  
 # + organization - field description
 public type IdentityProvider record {|
     readonly string idpID;
+    string id;
     string name;
-    string wellKnownEndpoint;
-    string introspectionEndpoint;
+    string 'type; 
     string issuer;
-    string jwksEndpoint;
-    string authorizeEndpoint;
-    string envrionments;
+    string clientId;
+    string clientSecret;
     Organization organization;
 |};
 

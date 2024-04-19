@@ -10,7 +10,6 @@ import ballerina/mime;
 import ballerina/persist;
 import ballerina/regex;
 import ballerina/time;
-import ballerina/uuid;
 
 import ballerinacentral/zip;
 
@@ -257,51 +256,37 @@ service /admin on new http:Listener(8080) {
     # + return - return value description
     resource function post identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
 
-        store:IdentityProviderInsert idp = {
-            idpID: uuid:createType1AsString(),
+        string identityProviderResult = check utils:addIdentityProvider(identityProvider);
+
+        models:IdentityProviderResponse createdIDP = {
+            id: identityProvider.id,
+            clientId: identityProvider.clientId,
             name: identityProvider.name,
-            envrionments: identityProvider.envrionments,
-            jwksEndpoint: identityProvider.jwksEndpoint,
-            introspectionEndpoint: identityProvider.introspectionEndpoint,
-            wellKnownEndpoint: identityProvider.wellKnownEndpoint,
-            authorizeEndpoint: identityProvider.authorizeEndpoint,
-            issuer: identityProvider.issuer,
-            organizationOrgId: identityProvider.orgId
+            clientSecret: identityProvider.clientSecret,
+            'type: identityProvider.'type,
+            issuer: identityProvider.issuer
         };
-
-        string[] listResult = check adminClient->/identityproviders.post([idp]);
-
-        models:IdentityProviderResponse createdIDP = {createdAt: "", idpName: identityProvider.name, id: listResult[0]};
         return createdIDP;
     }
 
     # Retrieve identity providers.
     #
-    # + orgId - parameter description
+    # + orgName - parameter description
     # + return - list of identity providers for the organization.
-    resource function get identityProvider(string orgId) returns models:IdentityProvider[]|error {
+    resource function get identityProvider(string orgName) returns models:IdentityProviderResponse[]|error {
 
-        stream<store:IdentityProviderWithRelations, persist:Error?> identityProviders = adminClient->/identityproviders.get();
-        store:IdentityProviderWithRelations[] idpList = check from var idp in identityProviders
-            select idp;
-        models:IdentityProvider[] idps = [];
-
+        store:IdentityProviderWithRelations[] idpList = check utils:getIdentityProviders(orgName);
+        models:IdentityProviderResponse[] idps = [];
         foreach var idp in idpList {
-            string idpOrgId = idp.organizationOrgId ?: "";
-            if (orgId.equalsIgnoreCaseAscii(idpOrgId)) {
-
-                models:IdentityProvider identityProvider = {
-                    name: idp.name ?: "",
-                    envrionments: idp.envrionments ?: "",
-                    jwksEndpoint: idp.jwksEndpoint ?: "",
-                    introspectionEndpoint: idp.introspectionEndpoint ?: "",
-                    wellKnownEndpoint: idp.wellKnownEndpoint ?: "",
-                    authorizeEndpoint: idp.authorizeEndpoint ?: "",
-                    issuer: idp.issuer ?: "",
-                    orgId: idp.organizationOrgId ?: ""
-                };
-                idps.push(identityProvider);
-            }
+            models:IdentityProviderResponse identityProvider = {
+                name: idp.name ?: "",
+                issuer: idp.issuer ?: "",
+                clientId: idp.clientId ?: "",
+                clientSecret: idp.clientSecret ?: "",
+                id: idp.id ?: "",
+                'type: idp.'type ?: ""
+            };
+            idps.push(identityProvider);
 
         }
         return idps;

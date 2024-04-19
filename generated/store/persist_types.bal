@@ -239,25 +239,23 @@ public type AdditionalPropertiesUpdate record {|
 
 public type IdentityProvider record {|
     readonly string idpID;
+    string id;
     string name;
-    string wellKnownEndpoint;
-    string introspectionEndpoint;
+    string 'type;
     string issuer;
-    string jwksEndpoint;
-    string authorizeEndpoint;
-    string envrionments;
+    string clientId;
+    string clientSecret;
     string organizationOrgId;
 |};
 
 public type IdentityProviderOptionalized record {|
     string idpID?;
+    string id?;
     string name?;
-    string wellKnownEndpoint?;
-    string introspectionEndpoint?;
+    string 'type?;
     string issuer?;
-    string jwksEndpoint?;
-    string authorizeEndpoint?;
-    string envrionments?;
+    string clientId?;
+    string clientSecret?;
     string organizationOrgId?;
 |};
 
@@ -271,13 +269,12 @@ public type IdentityProviderTargetType typedesc<IdentityProviderWithRelations>;
 public type IdentityProviderInsert IdentityProvider;
 
 public type IdentityProviderUpdate record {|
+    string id?;
     string name?;
-    string wellKnownEndpoint?;
-    string introspectionEndpoint?;
+    string 'type?;
     string issuer?;
-    string jwksEndpoint?;
-    string authorizeEndpoint?;
-    string envrionments?;
+    string clientId?;
+    string clientSecret?;
     string organizationOrgId?;
 |};
 

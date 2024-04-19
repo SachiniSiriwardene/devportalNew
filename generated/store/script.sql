@@ -89,13 +89,12 @@ CREATE TABLE `AdditionalProperties` (
 
 CREATE TABLE `IdentityProvider` (
 	`idpID` VARCHAR(191) NOT NULL,
+	`id` VARCHAR(191) NOT NULL,
 	`name` VARCHAR(191) NOT NULL,
-	`wellKnownEndpoint` VARCHAR(191) NOT NULL,
-	`introspectionEndpoint` VARCHAR(191) NOT NULL,
+	`type` VARCHAR(191) NOT NULL,
 	`issuer` VARCHAR(191) NOT NULL,
-	`jwksEndpoint` VARCHAR(191) NOT NULL,
-	`authorizeEndpoint` VARCHAR(191) NOT NULL,
-	`envrionments` VARCHAR(191) NOT NULL,
+	`clientId` VARCHAR(191) NOT NULL,
+	`clientSecret` VARCHAR(191) NOT NULL,
 	`organizationOrgId` VARCHAR(191) NOT NULL,
 	FOREIGN KEY(`organizationOrgId`) REFERENCES `Organization`(`orgId`),
 	PRIMARY KEY(`idpID`)

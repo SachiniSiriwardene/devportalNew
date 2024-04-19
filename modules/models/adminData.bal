@@ -92,34 +92,40 @@ public type ThemeResponse record {
 
 # Identity Provider configured for dev portal.
 #
-# + orgId - field description  
+# + orgName - field description  
+# + id - field description  
 # + name - field description  
-# + wellKnownEndpoint - field description  
-# + introspectionEndpoint - field description  
+# + 'type - field description  
 # + issuer - field description  
-# + jwksEndpoint - field description  
-# + authorizeEndpoint - field description  
-# + envrionments - field description
+# + clientId - field description  
+# + clientSecret - field description
 public type IdentityProvider record {
-    string orgId;
+    string orgName;
+    string id;
     string name;
-    string wellKnownEndpoint;
-    string introspectionEndpoint;
+    string 'type; 
     string issuer;
-    string jwksEndpoint;
-    string authorizeEndpoint;
-    string envrionments;
+    string clientId;
+    string clientSecret;
 };
+
+
 
 # Response for IdentityProvider creaton.
 #
 # + id - field description  
-# + idpName - field description  
-# + createdAt - field description
+# + name - field description  
+# + 'type - field description  
+# + issuer - field description  
+# + clientId - field description  
+# + clientSecret - field description
 public type IdentityProviderResponse record {
-    string id;
-    string idpName;
-    string createdAt;
+     string id;
+    string name;
+    string 'type; 
+    string issuer;
+    string clientId;
+    string clientSecret;
 };
 
 
