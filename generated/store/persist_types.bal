@@ -332,7 +332,7 @@ public type OrganizationOptionalized record {|
 
 public type OrganizationWithRelations record {|
     *OrganizationOptionalized;
-    OrganizationAssetsOptionalized organizationAssets?;
+    OrganizationAssetsOptionalized[] organizationAssets?;
     IdentityProviderOptionalized[] identityProvider?;
     SubscriptionOptionalized[] subscriptions?;
 |};
@@ -350,24 +350,16 @@ public type OrganizationUpdate record {|
 
 public type OrganizationAssets record {|
     readonly string assetId;
-    string? orgAssets;
-    string orgLandingPage;
-    string apiLandingPage;
-    string apiListingPage;
-    string navigationBar;
-    string footerPage;
-    string organizationassetsOrgId;
+    string pageType;
+    string pageContent;
+    string organizationOrgId;
 |};
 
 public type OrganizationAssetsOptionalized record {|
     string assetId?;
-    string? orgAssets?;
-    string orgLandingPage?;
-    string apiLandingPage?;
-    string apiListingPage?;
-    string navigationBar?;
-    string footerPage?;
-    string organizationassetsOrgId?;
+    string pageType?;
+    string pageContent?;
+    string organizationOrgId?;
 |};
 
 public type OrganizationAssetsWithRelations record {|
@@ -380,13 +372,9 @@ public type OrganizationAssetsTargetType typedesc<OrganizationAssetsWithRelation
 public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
-    string? orgAssets?;
-    string orgLandingPage?;
-    string apiLandingPage?;
-    string apiListingPage?;
-    string navigationBar?;
-    string footerPage?;
-    string organizationassetsOrgId?;
+    string pageType?;
+    string pageContent?;
+    string organizationOrgId?;
 |};
 
 public type ApplicationProperties record {|

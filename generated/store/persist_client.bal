@@ -279,14 +279,10 @@ public isolated client class Client {
                 templateName: {columnName: "templateName"},
                 isPublic: {columnName: "isPublic"},
                 authenticatedPages: {columnName: "authenticatedPages"},
-                "organizationAssets.assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
-                "organizationAssets.orgAssets": {relation: {entityName: "organizationAssets", refField: "orgAssets"}},
-                "organizationAssets.orgLandingPage": {relation: {entityName: "organizationAssets", refField: "orgLandingPage"}},
-                "organizationAssets.apiLandingPage": {relation: {entityName: "organizationAssets", refField: "apiLandingPage"}},
-                "organizationAssets.apiListingPage": {relation: {entityName: "organizationAssets", refField: "apiListingPage"}},
-                "organizationAssets.navigationBar": {relation: {entityName: "organizationAssets", refField: "navigationBar"}},
-                "organizationAssets.footerPage": {relation: {entityName: "organizationAssets", refField: "footerPage"}},
-                "organizationAssets.organizationassetsOrgId": {relation: {entityName: "organizationAssets", refField: "organizationassetsOrgId"}},
+                "organizationAssets[].assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
+                "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
+                "organizationAssets[].pageContent": {relation: {entityName: "organizationAssets", refField: "pageContent"}},
+                "organizationAssets[].organizationOrgId": {relation: {entityName: "organizationAssets", refField: "organizationOrgId"}},
                 "identityProvider[].idpID": {relation: {entityName: "identityProvider", refField: "idpID"}},
                 "identityProvider[].id": {relation: {entityName: "identityProvider", refField: "id"}},
                 "identityProvider[].name": {relation: {entityName: "identityProvider", refField: "name"}},
@@ -304,7 +300,7 @@ public isolated client class Client {
             },
             keyFields: ["orgId"],
             joinMetadata: {
-                organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationassetsOrgId"], joinColumns: ["orgId"], 'type: psql:ONE_TO_ONE},
+                organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
@@ -314,13 +310,9 @@ public isolated client class Client {
             tableName: "OrganizationAssets",
             fieldMetadata: {
                 assetId: {columnName: "assetId"},
-                orgAssets: {columnName: "orgAssets"},
-                orgLandingPage: {columnName: "orgLandingPage"},
-                apiLandingPage: {columnName: "apiLandingPage"},
-                apiListingPage: {columnName: "apiListingPage"},
-                navigationBar: {columnName: "navigationBar"},
-                footerPage: {columnName: "footerPage"},
-                organizationassetsOrgId: {columnName: "organizationassetsOrgId"},
+                pageType: {columnName: "pageType"},
+                pageContent: {columnName: "pageContent"},
+                organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
@@ -328,7 +320,7 @@ public isolated client class Client {
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
             keyFields: ["assetId"],
-            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationassetsOrgId"], 'type: psql:ONE_TO_ONE}}
+            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
         [APPLICATION_PROPERTIES] : {
             entityName: "ApplicationProperties",

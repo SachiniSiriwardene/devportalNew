@@ -156,13 +156,9 @@ CREATE TABLE `ApiImages` (
 
 CREATE TABLE `OrganizationAssets` (
 	`assetId` VARCHAR(191) NOT NULL,
-	`orgAssets` VARCHAR(191),
-	`orgLandingPage` BLOB NOT NULL,
-	`apiLandingPage` BLOB NOT NULL,
-	`apiListingPage` BLOB NOT NULL,
-	`navigationBar` BLOB NOT NULL,
-	`footerPage` BLOB NOT NULL,
-	`organizationassetsOrgId` VARCHAR(191) UNIQUE NOT NULL,
-	FOREIGN KEY(`organizationassetsOrgId`) REFERENCES `Organization`(`orgId`),
+	`pageType` VARCHAR(191) NOT NULL,
+	`pageContent` BLOB NOT NULL,
+	`organizationOrgId` VARCHAR(191) NOT NULL,
+	FOREIGN KEY(`organizationOrgId`) REFERENCES `Organization`(`orgId`),
 	PRIMARY KEY(`assetId`)
 );

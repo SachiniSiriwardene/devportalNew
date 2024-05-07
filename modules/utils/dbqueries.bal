@@ -122,14 +122,11 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
 
     store:OrganizationAssets assets = {
         assetId: uuid:createType1AsString(),
-        orgLandingPage: orgContent.orgLandingPage,
-        orgAssets: orgContent.orgAssets,
-        organizationassetsOrgId: orgContent.orgId,
-        apiLandingPage: orgContent.apiLandingPage,
-        navigationBar: orgContent.navigationBar,
-        footerPage: orgContent.footerPage,
-        apiListingPage: orgContent.apiListingPage
+        pageType: orgContent.pageType,
+        pageContent: orgContent.pageContent,
+        organizationOrgId: orgContent.orgId
     };
+
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
@@ -149,20 +146,16 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 
     //retrieve the api id
     store:OrganizationAssets[] asset = check from var orgAsset in orgAssets
-        where orgAsset.organizationassetsOrgId == orgId
+        where orgAsset.organizationOrgId == orgId
         select orgAsset;
 
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
     store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
-        orgLandingPage: orgContent.orgLandingPage,
-        orgAssets: orgContent.orgAssets,
-        organizationassetsOrgId: orgId,
-        apiLandingPage: orgContent.apiLandingPage,
-        navigationBar: orgContent.navigationBar,
-        footerPage: orgContent.footerPage,
-        apiListingPage: orgContent.apiListingPage
+        organizationOrgId: orgId,
+        pageType: orgContent.pageType,
+        pageContent: orgContent.pageContent
     });
 
     return org.assetId;

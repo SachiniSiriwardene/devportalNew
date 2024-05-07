@@ -5,7 +5,6 @@ import devportal.utils;
 import ballerina/file;
 import ballerina/http;
 import ballerina/io;
-import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
 import ballerina/regex;
@@ -73,34 +72,18 @@ service /admin on new http:Listener(8080) {
         error? result = check zip:extract(path, targetPath);
 
         models:OrganizationAssets assetMappings = {
-
-            orgLandingPage: "",
-            orgAssets: "",
-            orgId: orgId,
-            apiLandingPage: "",
-            navigationBar: "",
-            footerPage: "",
-            apiListingPage: ""
+            pageType: "",
+            pageContent: "",
+            orgId: orgId
         };
 
-        string apiLandingPage = check io:fileReadString("./" + orgName + "/resources/template/api-landing-page.html");
-        assetMappings.apiLandingPage = apiLandingPage;
+        file:MetaData[] readDirResults = check file:readDir("./" + orgName + "/resources/template");
 
-        string orgLandingPage = check io:fileReadString("./" + orgName + "/resources/template/org-landing-page.html");
-        assetMappings.orgLandingPage = orgLandingPage;
-
-        string apiListingPage = check io:fileReadString("./" + orgName + "/resources/template/components-page.html");
-        assetMappings.apiListingPage = apiListingPage;
-
-        string navigationPage = check io:fileReadString("./" + orgName + "/resources/template/nav-bar.html");
-        assetMappings.navigationBar = navigationPage;
-
-        string footer = check io:fileReadString("./" + orgName + "/resources/template/footer.html");
-        assetMappings.footerPage = footer;
-
-        string orgAssets = check utils:createOrgAssets(assetMappings);
-
-        log:printInfo("Org assets created: " + orgAssets);
+        foreach var file in readDirResults {
+            assetMappings.pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+            assetMappings.pageContent = check io:fileReadString(file.absPath);
+            string orgAssets = check utils:createOrgAssets(assetMappings);
+        }
 
         models:OrgContentResponse uploadedContent = {
             timeUploaded: time:utcToString(time:utcNow(0)),
@@ -144,36 +127,23 @@ service /admin on new http:Listener(8080) {
         string|error orgId = utils:getOrgId(orgName);
 
         models:OrganizationAssets assetMappings = {
-
-            orgLandingPage: "",
-            orgAssets: "",
-            orgId: check orgId,
-            apiLandingPage: "",
-            navigationBar: "",
-            footerPage: "",
-            apiListingPage: ""
+            pageType: "",
+            pageContent: "",
+            orgId: check orgId
         };
 
-        string apiLandingPage = check io:fileReadString("./" + orgName + "/resources/template/api-landing-page.html");
-        assetMappings.apiLandingPage = apiLandingPage;
+        file:MetaData[] readDirResults = check file:readDir("./" + orgName + "/resources/template");
 
-        string orgLandingPage = check io:fileReadString("./" + orgName + "/resources/template/org-landing-page.html");
-        assetMappings.orgLandingPage = orgLandingPage;
+        foreach var file in readDirResults {
+            assetMappings.pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+            assetMappings.pageContent = check io:fileReadString(file.absPath);
+            string orgAssets = check utils:updateOrgAssets(assetMappings, orgName);
+        }
 
-        string apiListingPage = check io:fileReadString("./" + orgName + "/resources/template/components-page.html");
-        assetMappings.apiListingPage = apiListingPage;
 
-        string navigationPage = check io:fileReadString("./" + orgName + "/resources/template/nav-bar.html");
-        assetMappings.navigationBar = navigationPage;
-
-        string footer = check io:fileReadString("./" + orgName + "/resources/template/footer.html");
-        assetMappings.footerPage = footer;
-
-        string orgAssets = check utils:updateOrgAssets(assetMappings, orgName);
 
         check file:remove(orgName, file:RECURSIVE);
 
-        log:printInfo("Org assets created: " + orgAssets);
 
         models:OrgContentResponse uploadedContent = {
             timeUploaded: time:utcToString(time:utcNow(0)),
@@ -181,47 +151,6 @@ service /admin on new http:Listener(8080) {
         };
         io:println("Organization content updated");
         return "Organization content updated successfully";
-    }
-
-    # Get the asset paths for the org or api.
-    #
-    # + orgName - parameter description  
-    # + apiName - parameter description
-    # + return - return value description
-    resource function get assets(string orgName) returns models:OrganizationAssets|models:APIAssets|error {
-
-        string orgId = check utils:getOrgId(orgName);
-        log:printInfo("Org ID: " + orgId);
-        models:OrganizationAssets organizationAssets = {
-            orgLandingPage: "",
-            orgAssets: "",
-            orgId: "",
-            apiLandingPage: "",
-            navigationBar: "",
-            footerPage: "",
-            apiListingPage: ""
-        };
-
-        stream<store:OrganizationAssetsWithRelations, persist:Error?> orgAssets = adminClient->/organizationassets.get();
-        store:OrganizationAssetsWithRelations[] assets = check from var asset in orgAssets
-            where asset.organizationassetsOrgId == orgId
-            select asset;
-
-        log:printInfo("Org Assets" + assets.toString());
-
-        foreach var asset in assets {
-            organizationAssets = {
-                orgLandingPage: asset.orgLandingPage ?: "",
-                orgAssets: asset?.orgAssets ?: "",
-                orgId: asset.organizationassetsOrgId ?: "",
-                apiLandingPage: asset.apiLandingPage ?: "",
-                navigationBar: "",
-                footerPage: "",
-                apiListingPage: ""
-            };
-        }
-        return organizationAssets;
-
     }
 
     # Retrieve landing pages.
@@ -236,21 +165,12 @@ service /admin on new http:Listener(8080) {
         stream<store:OrganizationAssets, persist:Error?> orgContent = adminClient->/organizationassets.get();
 
         store:OrganizationAssets[] contents = check from var content in orgContent
-            where content.organizationassetsOrgId == orgId
+            where content.organizationOrgId == orgId && content.pageType == filename
             select content;
 
         mime:Entity file = new;
-        if (filename.equalsIgnoreCaseAscii("org-landing-page.html")) {
-            file.setBody(contents[0].orgLandingPage);
-        } else if (filename.equalsIgnoreCaseAscii("api-landing-page.html")) {
-            file.setBody(contents[0].apiLandingPage);
-        } else if (filename.equalsIgnoreCaseAscii("components-page.html")) {
-            file.setBody(contents[0].apiListingPage);
-        } else if (filename.equalsIgnoreCaseAscii("nav-bar.html")) {
-            file.setBody(contents[0].navigationBar);
-        } else if (filename.equalsIgnoreCaseAscii("footer.html")) {
-            file.setBody(contents[0].footerPage);
-        }
+        file.setBody(contents[0].pageContent);
+        
 
         http:Response response = new;
         response.setEntity(file);
