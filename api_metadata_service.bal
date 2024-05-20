@@ -124,7 +124,7 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get apiDefinition(string apiID, string orgName) returns json|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID]/[orgName].get();
+        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
         
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
