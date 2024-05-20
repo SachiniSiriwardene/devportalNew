@@ -5,12 +5,12 @@ import devportal.utils;
 import ballerina/file;
 import ballerina/http;
 import ballerina/io;
-import ballerina/persist;
-
-import ballerina/mime;
-import ballerinacentral/zip;
-import ballerina/regex;
 import ballerina/log;
+import ballerina/mime;
+import ballerina/persist;
+import ballerina/regex;
+
+import ballerinacentral/zip;
 
 
 
@@ -22,7 +22,6 @@ import ballerina/log;
     }
 }
 service /apiMetadata on new http:Listener(9090) {
-
 
     # Create an API.
     #
@@ -48,7 +47,7 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID]/[orgName].get();
+        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
@@ -118,7 +117,7 @@ service /apiMetadata on new http:Listener(9090) {
                 authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " ")
             }
         };
-        log:printInfo( apiMetaData?.authorizedRoles ?: "");
+        log:printInfo(apiMetaData?.authorizedRoles ?: "");
 
         return metaData;
     }
@@ -143,7 +142,7 @@ service /apiMetadata on new http:Listener(9090) {
 
         //retrieve the organization id
         string orgId = check utils:getOrgId(orgName);
-        stream<store:ApiMetadataWithRelations, persist:Error?> apiMetaDataList = userClient->/apimetadata.get();
+        stream<store:ApiMetadataWithRelations, persist:Error?> apiMetaDataList = adminClient->/apimetadata.get();
 
         store:ApiMetadataWithRelations[] apiList = check from var api in apiMetaDataList
             where api.orgId == orgId
@@ -236,7 +235,7 @@ service /apiMetadata on new http:Listener(9090) {
         string targetPath = "./" + orgName + "/";
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
-        
+
         file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
 
         models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
@@ -248,21 +247,23 @@ service /apiMetadata on new http:Listener(9090) {
         check utils:pushContentS3(imageDir, "text/plain");
         check file:remove(orgName, file:RECURSIVE);
         utils:addApiContent(apiAssets, apiId, orgName);
-        
+
         io:println("API content added successfully");
         return "API asset updated";
 
     }
 
     resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
-        stream<store:ApiContent, persist:Error?> apiContent = userClient->/apicontents.get();
+        stream<store:ApiContent, persist:Error?> apiContent = adminClient->/apicontents.get();
         store:ApiContent[] contents = check from var content in apiContent
             where content.apimetadataApiId == apiID
             select content;
 
         mime:Entity file = new;
-        file.setBody(contents[0].apiContent);
-        
+        if (contents.length() > 0) {
+            file.setBody(contents[0].apiContent);
+        }
+
         http:Response response = new;
         response.setEntity(file);
         check response.setContentType("application/octet-stream");

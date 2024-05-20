@@ -4,7 +4,6 @@ import ballerina/file;
 import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
-import ballerina/regex;
 import ballerinax/aws.s3;
 
 public function handleContent(mime:Entity bodyPart) {
@@ -67,41 +66,6 @@ public function readOrganizationContent(file:MetaData[] directories, string path
         }
     }
     return assetMappings;
-}
-
-public function getContentForOrgTemplate(file:MetaData[] directories, string orgName, models:OrganizationAssets assetMappings)
-returns models:OrganizationAssets|error {
-
-    foreach var item in directories {
-        if (item.dir) {
-            file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getContentForOrgTemplate(meta, orgName, assetMappings);
-        } else {
-            string readContent = check io:fileReadString(item.absPath);
-            log:printInfo(readContent);
-            string[] names = regex:split(item.absPath, orgName);
-            string relativePath = names[1];
-            if (relativePath.endsWith(".md")) {
-
-            } else if (relativePath.endsWith(".mp4") || relativePath.endsWith(".webm") || relativePath.endsWith(".ogv")) {
-                assetMappings.orgAssets = assetMappings.orgAssets + " " + relativePath;
-
-            } else if (relativePath.endsWith(".png") || relativePath.endsWith(".jpg") || relativePath.endsWith(".jpeg") ||
-            relativePath.endsWith(".gif") || relativePath.endsWith(".svg") || relativePath.endsWith(".ico") || relativePath.endsWith(".webp")) {
-
-                assetMappings.orgAssets = assetMappings.orgAssets + " " + relativePath;
-            } else if (relativePath.endsWith("org-landing-page.html")) {
-
-                assetMappings.orgLandingPage = readContent;
-            } else if (relativePath.endsWith("api-landing-page.html")) {
-
-                assetMappings.apiLandingPage = readContent;
-            }
-
-        }
-    }
-    return assetMappings;
-
 }
 
 public function pushContentS3(file:MetaData[] directories, string contentType) returns error? {

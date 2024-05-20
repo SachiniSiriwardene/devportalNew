@@ -1,12 +1,14 @@
 // AUTO-GENERATED FILE. DO NOT MODIFY.
+
 // This file is an auto-generated file by Ballerina persistence layer for model.
 // It should not be modified by hand.
+
 import ballerina/jballerina.java;
 import ballerina/persist;
 import ballerina/sql;
-import ballerinax/mysql;
-import ballerinax/mysql.driver as _;
 import ballerinax/persist.sql as psql;
+import ballerinax/postgresql;
+import ballerinax/postgresql.driver as _;
 
 const THROTTLING_POLICY = "throttlingpolicies";
 const RATE_LIMITING_POLICY = "ratelimitingpolicies";
@@ -26,12 +28,12 @@ const SUBSCRIPTION = "subscriptions";
 public isolated client class Client {
     *persist:AbstractPersistClient;
 
-    private final mysql:Client dbClient;
+    private final postgresql:Client dbClient;
 
     private final map<psql:SQLClient> persistClients;
 
     private final record {|psql:SQLMetadata...;|} & readonly metadata = {
-        [THROTTLING_POLICY] : {
+        [THROTTLING_POLICY]: {
             entityName: "ThrottlingPolicy",
             tableName: "ThrottlingPolicy",
             fieldMetadata: {
@@ -44,6 +46,7 @@ public isolated client class Client {
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
+                "apimetadata.metadata": {relation: {entityName: "apimetadata", refField: "metadata"}},
                 "apimetadata.organizationName": {relation: {entityName: "apimetadata", refField: "organizationName"}},
                 "apimetadata.apiCategory": {relation: {entityName: "apimetadata", refField: "apiCategory"}},
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
@@ -63,7 +66,7 @@ public isolated client class Client {
                 subscription: {entity: Subscription, fieldName: "subscription", refTable: "Subscription", refColumns: ["subscriptionPolicyId"], joinColumns: ["policyId"], 'type: psql:ONE_TO_ONE}
             }
         },
-        [RATE_LIMITING_POLICY] : {
+        [RATE_LIMITING_POLICY]: {
             entityName: "RateLimitingPolicy",
             tableName: "RateLimitingPolicy",
             fieldMetadata: {
@@ -73,7 +76,7 @@ public isolated client class Client {
             },
             keyFields: ["policyId"]
         },
-        [REVIEW] : {
+        [REVIEW]: {
             entityName: "Review",
             tableName: "Review",
             fieldMetadata: {
@@ -86,6 +89,7 @@ public isolated client class Client {
                 "apiFeedback.apiId": {relation: {entityName: "apiFeedback", refField: "apiId"}},
                 "apiFeedback.orgId": {relation: {entityName: "apiFeedback", refField: "orgId"}},
                 "apiFeedback.apiName": {relation: {entityName: "apiFeedback", refField: "apiName"}},
+                "apiFeedback.metadata": {relation: {entityName: "apiFeedback", refField: "metadata"}},
                 "apiFeedback.organizationName": {relation: {entityName: "apiFeedback", refField: "organizationName"}},
                 "apiFeedback.apiCategory": {relation: {entityName: "apiFeedback", refField: "apiCategory"}},
                 "apiFeedback.openApiDefinition": {relation: {entityName: "apiFeedback", refField: "openApiDefinition"}},
@@ -103,13 +107,14 @@ public isolated client class Client {
                 reviewedBy: {entity: User, fieldName: "reviewedBy", refTable: "User", refColumns: ["userId"], joinColumns: ["reviewedbyUserId"], 'type: psql:ONE_TO_MANY}
             }
         },
-        [API_METADATA] : {
+        [API_METADATA]: {
             entityName: "ApiMetadata",
             tableName: "ApiMetadata",
             fieldMetadata: {
                 apiId: {columnName: "apiId"},
                 orgId: {columnName: "orgId"},
                 apiName: {columnName: "apiName"},
+                metadata: {columnName: "metadata"},
                 organizationName: {columnName: "organizationName"},
                 apiCategory: {columnName: "apiCategory"},
                 openApiDefinition: {columnName: "openApiDefinition"},
@@ -159,7 +164,7 @@ public isolated client class Client {
                 apiImages: {entity: ApiImages, fieldName: "apiImages", refTable: "ApiImages", refColumns: ["apimetadataApiId", "apimetadataOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE}
             }
         },
-        [API_CONTENT] : {
+        [API_CONTENT]: {
             entityName: "ApiContent",
             tableName: "ApiContent",
             fieldMetadata: {
@@ -180,7 +185,7 @@ public isolated client class Client {
             keyFields: ["contentId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
         },
-        [API_IMAGES] : {
+        [API_IMAGES]: {
             entityName: "ApiImages",
             tableName: "ApiImages",
             fieldMetadata: {
@@ -202,7 +207,7 @@ public isolated client class Client {
             keyFields: ["imageId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
         },
-        [ADDITIONAL_PROPERTIES] : {
+        [ADDITIONAL_PROPERTIES]: {
             entityName: "AdditionalProperties",
             tableName: "AdditionalProperties",
             fieldMetadata: {
@@ -214,6 +219,7 @@ public isolated client class Client {
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
+                "apimetadata.metadata": {relation: {entityName: "apimetadata", refField: "metadata"}},
                 "apimetadata.organizationName": {relation: {entityName: "apimetadata", refField: "organizationName"}},
                 "apimetadata.apiCategory": {relation: {entityName: "apimetadata", refField: "apiCategory"}},
                 "apimetadata.openApiDefinition": {relation: {entityName: "apimetadata", refField: "openApiDefinition"}},
@@ -224,7 +230,7 @@ public isolated client class Client {
             keyFields: ["propertyId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
         },
-        [IDENTITY_PROVIDER] : {
+        [IDENTITY_PROVIDER]: {
             entityName: "IdentityProvider",
             tableName: "IdentityProvider",
             fieldMetadata: {
@@ -245,7 +251,7 @@ public isolated client class Client {
             keyFields: ["idpID"],
             joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
-        [APPLICATION] : {
+        [APPLICATION]: {
             entityName: "Application",
             tableName: "Application",
             fieldMetadata: {
@@ -270,7 +276,7 @@ public isolated client class Client {
                 accessControl: {entity: User, fieldName: "accessControl", refTable: "User", refColumns: ["applicationAppId"], joinColumns: ["appId"], 'type: psql:MANY_TO_ONE}
             }
         },
-        [ORGANIZATION] : {
+        [ORGANIZATION]: {
             entityName: "Organization",
             tableName: "Organization",
             fieldMetadata: {
@@ -279,14 +285,10 @@ public isolated client class Client {
                 templateName: {columnName: "templateName"},
                 isPublic: {columnName: "isPublic"},
                 authenticatedPages: {columnName: "authenticatedPages"},
-                "organizationAssets.assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
-                "organizationAssets.orgAssets": {relation: {entityName: "organizationAssets", refField: "orgAssets"}},
-                "organizationAssets.orgLandingPage": {relation: {entityName: "organizationAssets", refField: "orgLandingPage"}},
-                "organizationAssets.apiLandingPage": {relation: {entityName: "organizationAssets", refField: "apiLandingPage"}},
-                "organizationAssets.apiListingPage": {relation: {entityName: "organizationAssets", refField: "apiListingPage"}},
-                "organizationAssets.navigationBar": {relation: {entityName: "organizationAssets", refField: "navigationBar"}},
-                "organizationAssets.footerPage": {relation: {entityName: "organizationAssets", refField: "footerPage"}},
-                "organizationAssets.organizationassetsOrgId": {relation: {entityName: "organizationAssets", refField: "organizationassetsOrgId"}},
+                "organizationAssets[].assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
+                "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
+                "organizationAssets[].pageContent": {relation: {entityName: "organizationAssets", refField: "pageContent"}},
+                "organizationAssets[].organizationOrgId": {relation: {entityName: "organizationAssets", refField: "organizationOrgId"}},
                 "identityProvider[].idpID": {relation: {entityName: "identityProvider", refField: "idpID"}},
                 "identityProvider[].id": {relation: {entityName: "identityProvider", refField: "id"}},
                 "identityProvider[].name": {relation: {entityName: "identityProvider", refField: "name"}},
@@ -304,23 +306,19 @@ public isolated client class Client {
             },
             keyFields: ["orgId"],
             joinMetadata: {
-                organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationassetsOrgId"], joinColumns: ["orgId"], 'type: psql:ONE_TO_ONE},
+                organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
         },
-        [ORGANIZATION_ASSETS] : {
+        [ORGANIZATION_ASSETS]: {
             entityName: "OrganizationAssets",
             tableName: "OrganizationAssets",
             fieldMetadata: {
                 assetId: {columnName: "assetId"},
-                orgAssets: {columnName: "orgAssets"},
-                orgLandingPage: {columnName: "orgLandingPage"},
-                apiLandingPage: {columnName: "apiLandingPage"},
-                apiListingPage: {columnName: "apiListingPage"},
-                navigationBar: {columnName: "navigationBar"},
-                footerPage: {columnName: "footerPage"},
-                organizationassetsOrgId: {columnName: "organizationassetsOrgId"},
+                pageType: {columnName: "pageType"},
+                pageContent: {columnName: "pageContent"},
+                organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
@@ -328,9 +326,9 @@ public isolated client class Client {
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
             keyFields: ["assetId"],
-            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationassetsOrgId"], 'type: psql:ONE_TO_ONE}}
+            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
-        [APPLICATION_PROPERTIES] : {
+        [APPLICATION_PROPERTIES]: {
             entityName: "ApplicationProperties",
             tableName: "ApplicationProperties",
             fieldMetadata: {
@@ -348,7 +346,7 @@ public isolated client class Client {
             keyFields: ["propertyId"],
             joinMetadata: {application: {entity: Application, fieldName: "application", refTable: "Application", refColumns: ["appId"], joinColumns: ["applicationAppId"], 'type: psql:ONE_TO_MANY}}
         },
-        [USER] : {
+        [USER]: {
             entityName: "User",
             tableName: "User",
             fieldMetadata: {
@@ -382,7 +380,7 @@ public isolated client class Client {
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["userUserId"], joinColumns: ["userId"], 'type: psql:MANY_TO_ONE}
             }
         },
-        [SUBSCRIPTION] : {
+        [SUBSCRIPTION]: {
             entityName: "Subscription",
             tableName: "Subscription",
             fieldMetadata: {
@@ -395,6 +393,7 @@ public isolated client class Client {
                 "api.apiId": {relation: {entityName: "api", refField: "apiId"}},
                 "api.orgId": {relation: {entityName: "api", refField: "orgId"}},
                 "api.apiName": {relation: {entityName: "api", refField: "apiName"}},
+                "api.metadata": {relation: {entityName: "api", refField: "metadata"}},
                 "api.organizationName": {relation: {entityName: "api", refField: "organizationName"}},
                 "api.apiCategory": {relation: {entityName: "api", refField: "apiCategory"}},
                 "api.openApiDefinition": {relation: {entityName: "api", refField: "openApiDefinition"}},
@@ -428,36 +427,36 @@ public isolated client class Client {
     };
 
     public isolated function init() returns persist:Error? {
-        mysql:Client|error dbClient = new (host = host, user = user, password = password, database = database, port = port, options = connectionOptions);
+        postgresql:Client|error dbClient = new (host = host, username = user, password = password, database = database, port = port, options = connectionOptions);
         if dbClient is error {
             return <persist:Error>error(dbClient.message());
         }
         self.dbClient = dbClient;
         self.persistClients = {
-            [THROTTLING_POLICY] : check new (dbClient, self.metadata.get(THROTTLING_POLICY), psql:MYSQL_SPECIFICS),
-            [RATE_LIMITING_POLICY] : check new (dbClient, self.metadata.get(RATE_LIMITING_POLICY), psql:MYSQL_SPECIFICS),
-            [REVIEW] : check new (dbClient, self.metadata.get(REVIEW), psql:MYSQL_SPECIFICS),
-            [API_METADATA] : check new (dbClient, self.metadata.get(API_METADATA), psql:MYSQL_SPECIFICS),
-            [API_CONTENT] : check new (dbClient, self.metadata.get(API_CONTENT), psql:MYSQL_SPECIFICS),
-            [API_IMAGES] : check new (dbClient, self.metadata.get(API_IMAGES), psql:MYSQL_SPECIFICS),
-            [ADDITIONAL_PROPERTIES] : check new (dbClient, self.metadata.get(ADDITIONAL_PROPERTIES), psql:MYSQL_SPECIFICS),
-            [IDENTITY_PROVIDER] : check new (dbClient, self.metadata.get(IDENTITY_PROVIDER), psql:MYSQL_SPECIFICS),
-            [APPLICATION] : check new (dbClient, self.metadata.get(APPLICATION), psql:MYSQL_SPECIFICS),
-            [ORGANIZATION] : check new (dbClient, self.metadata.get(ORGANIZATION), psql:MYSQL_SPECIFICS),
-            [ORGANIZATION_ASSETS] : check new (dbClient, self.metadata.get(ORGANIZATION_ASSETS), psql:MYSQL_SPECIFICS),
-            [APPLICATION_PROPERTIES] : check new (dbClient, self.metadata.get(APPLICATION_PROPERTIES), psql:MYSQL_SPECIFICS),
-            [USER] : check new (dbClient, self.metadata.get(USER), psql:MYSQL_SPECIFICS),
-            [SUBSCRIPTION] : check new (dbClient, self.metadata.get(SUBSCRIPTION), psql:MYSQL_SPECIFICS)
+            [THROTTLING_POLICY]: check new (dbClient, self.metadata.get(THROTTLING_POLICY), psql:POSTGRESQL_SPECIFICS),
+            [RATE_LIMITING_POLICY]: check new (dbClient, self.metadata.get(RATE_LIMITING_POLICY), psql:POSTGRESQL_SPECIFICS),
+            [REVIEW]: check new (dbClient, self.metadata.get(REVIEW), psql:POSTGRESQL_SPECIFICS),
+            [API_METADATA]: check new (dbClient, self.metadata.get(API_METADATA), psql:POSTGRESQL_SPECIFICS),
+            [API_CONTENT]: check new (dbClient, self.metadata.get(API_CONTENT), psql:POSTGRESQL_SPECIFICS),
+            [API_IMAGES]: check new (dbClient, self.metadata.get(API_IMAGES), psql:POSTGRESQL_SPECIFICS),
+            [ADDITIONAL_PROPERTIES]: check new (dbClient, self.metadata.get(ADDITIONAL_PROPERTIES), psql:POSTGRESQL_SPECIFICS),
+            [IDENTITY_PROVIDER]: check new (dbClient, self.metadata.get(IDENTITY_PROVIDER), psql:POSTGRESQL_SPECIFICS),
+            [APPLICATION]: check new (dbClient, self.metadata.get(APPLICATION), psql:POSTGRESQL_SPECIFICS),
+            [ORGANIZATION]: check new (dbClient, self.metadata.get(ORGANIZATION), psql:POSTGRESQL_SPECIFICS),
+            [ORGANIZATION_ASSETS]: check new (dbClient, self.metadata.get(ORGANIZATION_ASSETS), psql:POSTGRESQL_SPECIFICS),
+            [APPLICATION_PROPERTIES]: check new (dbClient, self.metadata.get(APPLICATION_PROPERTIES), psql:POSTGRESQL_SPECIFICS),
+            [USER]: check new (dbClient, self.metadata.get(USER), psql:POSTGRESQL_SPECIFICS),
+            [SUBSCRIPTION]: check new (dbClient, self.metadata.get(SUBSCRIPTION), psql:POSTGRESQL_SPECIFICS)
         };
     }
 
     isolated resource function get throttlingpolicies(ThrottlingPolicyTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get throttlingpolicies/[string policyId](ThrottlingPolicyTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -491,12 +490,12 @@ public isolated client class Client {
     }
 
     isolated resource function get ratelimitingpolicies(RateLimitingPolicyTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get ratelimitingpolicies/[string policyId](RateLimitingPolicyTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -530,12 +529,12 @@ public isolated client class Client {
     }
 
     isolated resource function get reviews(ReviewTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get reviews/[string reviewId](ReviewTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -569,12 +568,12 @@ public isolated client class Client {
     }
 
     isolated resource function get apimetadata(ApiMetadataTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get apimetadata/[string apiId]/[string organizationName](ApiMetadataTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -608,12 +607,12 @@ public isolated client class Client {
     }
 
     isolated resource function get apicontents(ApiContentTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get apicontents/[string contentId](ApiContentTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -647,12 +646,12 @@ public isolated client class Client {
     }
 
     isolated resource function get apiimages(ApiImagesTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get apiimages/[string imageId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -686,12 +685,12 @@ public isolated client class Client {
     }
 
     isolated resource function get additionalproperties(AdditionalPropertiesTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get additionalproperties/[string propertyId](AdditionalPropertiesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -725,12 +724,12 @@ public isolated client class Client {
     }
 
     isolated resource function get identityproviders(IdentityProviderTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get identityproviders/[string idpID](IdentityProviderTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -764,12 +763,12 @@ public isolated client class Client {
     }
 
     isolated resource function get applications(ApplicationTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get applications/[string appId](ApplicationTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -803,12 +802,12 @@ public isolated client class Client {
     }
 
     isolated resource function get organizations(OrganizationTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get organizations/[string orgId](OrganizationTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -842,12 +841,12 @@ public isolated client class Client {
     }
 
     isolated resource function get organizationassets(OrganizationAssetsTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get organizationassets/[string assetId](OrganizationAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -881,12 +880,12 @@ public isolated client class Client {
     }
 
     isolated resource function get applicationproperties(ApplicationPropertiesTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get applicationproperties/[string propertyId](ApplicationPropertiesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -920,12 +919,12 @@ public isolated client class Client {
     }
 
     isolated resource function get users(UserTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get users/[string userId](UserTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -959,12 +958,12 @@ public isolated client class Client {
     }
 
     isolated resource function get subscriptions(SubscriptionTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;
 
     isolated resource function get subscriptions/[string subscriptionId](SubscriptionTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor",
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
@@ -998,11 +997,11 @@ public isolated client class Client {
     }
 
     remote isolated function queryNativeSQL(sql:ParameterizedQuery sqlQuery, typedesc<record {}> rowType = <>) returns stream<rowType, persist:Error?> = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor"
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor"
     } external;
 
     remote isolated function executeNativeSQL(sql:ParameterizedQuery sqlQuery) returns psql:ExecutionResult|persist:Error = @java:Method {
-        'class: "io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor"
+        'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor"
     } external;
 
     public isolated function close() returns persist:Error? {

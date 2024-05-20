@@ -46,6 +46,7 @@ public type Review record {|
 # + apiId - api id  
 # + orgId - organization id  
 # + apiName - field description  
+# + metadata - field description
 # + organizationName - field description  
 # + apiCategory - field description  
 # + openApiDefinition - field description  
@@ -62,6 +63,7 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
+    string metadata;
     readonly string organizationName;
     string apiCategory;
     string openApiDefinition;
@@ -147,7 +149,7 @@ public type Organization record {|
     string templateName;
     boolean isPublic; 
     string authenticatedPages;
-    OrganizationAssets? organizationAssets;
+    OrganizationAssets[] organizationAssets;
     IdentityProvider[] identityProvider;
     Subscription[] subscriptions;
 |};
@@ -156,21 +158,13 @@ public type Organization record {|
 # Assets needed for the org landing page.
 #
 # + assetId - field description  
-# + orgAssets - field description  
-# + orgLandingPage - field description  
-# + apiLandingPage - field description  
-# + apiListingPage - field description  
-# + navigationBar - field description  
-# + footerPage - field description  
+# + pageType - field description
+# + pageContent - field description
 # + organization - field description
 public type OrganizationAssets record {|
     readonly string assetId;
-    string? orgAssets;
-    string orgLandingPage;
-    string apiLandingPage;
-    string apiListingPage;
-    string navigationBar;
-    string footerPage;
+    string pageType;
+    string pageContent;
     Organization organization;
 |};
 

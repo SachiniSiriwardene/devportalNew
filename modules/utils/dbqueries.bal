@@ -122,14 +122,12 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
 
     store:OrganizationAssets assets = {
         assetId: uuid:createType1AsString(),
-        orgLandingPage: orgContent.orgLandingPage,
-        orgAssets: orgContent.orgAssets,
-        organizationassetsOrgId: orgContent.orgId,
-        apiLandingPage: orgContent.apiLandingPage,
-        navigationBar: orgContent.navigationBar,
-        footerPage: orgContent.footerPage,
-        apiListingPage: orgContent.apiListingPage
+        pageType: orgContent.pageType,
+        pageContent: orgContent.pageContent,
+        organizationOrgId: orgContent.orgId
     };
+
+    log:printError(assets.toBalString());
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
@@ -149,20 +147,16 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
 
     //retrieve the api id
     store:OrganizationAssets[] asset = check from var orgAsset in orgAssets
-        where orgAsset.organizationassetsOrgId == orgId
+        where orgAsset.organizationOrgId == orgId
         select orgAsset;
 
     string assetID = asset.pop().assetId;
     log:printInfo("Asset ID update: " + assetID);
 
     store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
-        orgLandingPage: orgContent.orgLandingPage,
-        orgAssets: orgContent.orgAssets,
-        organizationassetsOrgId: orgId,
-        apiLandingPage: orgContent.apiLandingPage,
-        navigationBar: orgContent.navigationBar,
-        footerPage: orgContent.footerPage,
-        apiListingPage: orgContent.apiListingPage
+        organizationOrgId: orgId,
+        pageType: orgContent.pageType,
+        pageContent: orgContent.pageContent
     });
 
     return org.assetId;
@@ -180,10 +174,18 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
+    json metadata = {
+        apiName: apiMetaData.apiInfo.apiName,
+        apiCategory: apiMetaData.apiInfo.apiCategory,
+        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJson(),
+        productionUrl: apiMetaData.serverUrl.productionUrl,
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
+    };
     store:ApiMetadata metadataRecord = {
         apiId: apiID,
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
+        metadata: metadata.toJsonString(),
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
