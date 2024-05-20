@@ -46,6 +46,7 @@ public type Review record {|
 # + apiId - api id  
 # + orgId - organization id  
 # + apiName - field description  
+# + metadata - field description
 # + organizationName - field description  
 # + apiCategory - field description  
 # + openApiDefinition - field description  
@@ -62,6 +63,7 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
+    string metadata;
     readonly string organizationName;
     string apiCategory;
     string openApiDefinition;

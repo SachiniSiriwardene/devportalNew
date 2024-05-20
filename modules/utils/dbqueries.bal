@@ -127,6 +127,7 @@ public function createOrgAssets(models:OrganizationAssets orgContent) returns st
         organizationOrgId: orgContent.orgId
     };
 
+    log:printError(assets.toBalString());
 
     string[] listResult = check dbClient->/organizationassets.post([assets]);
 
@@ -173,10 +174,18 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     string apiID = apiMetaData.apiInfo.apiName;
     string orgName = apiMetaData.apiInfo.orgName;
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
+    json metadata = {
+        apiName: apiMetaData.apiInfo.apiName,
+        apiCategory: apiMetaData.apiInfo.apiCategory,
+        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJson(),
+        productionUrl: apiMetaData.serverUrl.productionUrl,
+        sandboxUrl: apiMetaData.serverUrl.sandboxUrl
+    };
     store:ApiMetadata metadataRecord = {
         apiId: apiID,
         orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
+        metadata: metadata.toJsonString(),
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,

@@ -10,6 +10,7 @@ public type ThrottlingPolicy record {|
     string description;
     string apimetadataApiId;
     string apimetadataOrganizationName;
+
 |};
 
 public type ThrottlingPolicyOptionalized record {|
@@ -100,11 +101,14 @@ public type ApiMetadata record {|
     readonly string apiId;
     string orgId;
     string apiName;
+    string metadata;
     readonly string organizationName;
     string apiCategory;
     string openApiDefinition;
+
     string productionUrl;
     string sandboxUrl;
+
     string? authorizedRoles;
 |};
 
@@ -112,6 +116,7 @@ public type ApiMetadataOptionalized record {|
     string apiId?;
     string orgId?;
     string apiName?;
+    string metadata?;
     string organizationName?;
     string apiCategory?;
     string openApiDefinition?;
@@ -137,6 +142,7 @@ public type ApiMetadataInsert ApiMetadata;
 public type ApiMetadataUpdate record {|
     string orgId?;
     string apiName?;
+    string metadata?;
     string apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -283,7 +289,9 @@ public type Application record {|
     string applicationName;
     string sandBoxKey;
     string productionKey;
+
     string addedAPIs;
+
     string idpId;
 |};
 
@@ -320,6 +328,7 @@ public type Organization record {|
     string templateName;
     boolean isPublic;
     string authenticatedPages;
+
 |};
 
 public type OrganizationOptionalized record {|
@@ -411,6 +420,7 @@ public type User record {|
     string role;
     string userName;
     string applicationAppId;
+
 |};
 
 public type UserOptionalized record {|
