@@ -12,6 +12,15 @@ import ballerinacentral/zip;
 import ballerina/regex;
 import ballerina/log;
 
+
+
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://localhost:3000", "http://www.hello.com"],
+       
+        maxAge: 84900
+    }
+}
 service /apiMetadata on new http:Listener(9090) {
 
 
@@ -112,6 +121,22 @@ service /apiMetadata on new http:Listener(9090) {
         log:printInfo( apiMetaData?.authorizedRoles ?: "");
 
         return metaData;
+    }
+
+    resource function get apiDefinition(string apiID, string orgName) returns json|error {
+
+        store:ApiMetadataWithRelations apiMetaData = check userClient->/apimetadata/[apiID]/[orgName].get();
+        
+
+        models:ThrottlingPolicy[] throttlingPolicies = [];
+        models:APIReview[] reviews = [];
+
+        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+        json openApiDefinition = check apiDefinition.fromJsonString();
+
+        log:printInfo( "apiDefff");
+
+        return openApiDefinition;
     }
 
     resource function get apiList(string orgName) returns models:ApiMetadataResponse[]|error {
