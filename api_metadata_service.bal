@@ -12,12 +12,9 @@ import ballerina/regex;
 
 import ballerinacentral/zip;
 
-
-
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["http://localhost:3000", "http://www.hello.com"],
-       
+        allowOrigins: ["http://localhost:3000"],
         maxAge: 84900
     }
 }
@@ -272,6 +269,22 @@ service /apiMetadata on new http:Listener(9090) {
         response.setHeader("Transfer-Encoding", "chunked");
 
         return response;
+    }
+
+    resource function get apiDefinition(string apiID, string orgName) returns json|error {
+
+        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
+        
+
+        models:ThrottlingPolicy[] throttlingPolicies = [];
+        models:APIReview[] reviews = [];
+
+        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+        json openApiDefinition = check apiDefinition.fromJsonString();
+
+        log:printInfo( "apiDefff");
+
+        return openApiDefinition;
     }
 }
 

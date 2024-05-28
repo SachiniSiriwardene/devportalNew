@@ -169,15 +169,19 @@ service /admin on new http:Listener(8080) {
             select content;
 
         mime:Entity file = new;
-        file.setBody(contents[0].pageContent);
-        
-
         http:Response response = new;
-        response.setEntity(file);
-        check response.setContentType("application/octet-stream");
-        response.setHeader("Content-Type", "application/octet-stream");
-        response.setHeader("Content-Description", "File Transfer");
-        response.setHeader("Transfer-Encoding", "chunked");
+
+        if (contents.length() > 0) {
+            file.setBody(contents[0].pageContent);           
+            response.setEntity(file);
+            check response.setContentType("application/octet-stream");
+            response.setHeader("Content-Type", "application/octet-stream");
+            response.setHeader("Content-Description", "File Transfer");
+            response.setHeader("Transfer-Encoding", "chunked");
+        } else {
+            response.statusCode = 404;
+            response.setPayload("Requested file not found");
+        }
 
         return response;
     }
