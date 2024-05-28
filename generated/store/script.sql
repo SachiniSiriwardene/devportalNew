@@ -41,11 +41,11 @@ CREATE TABLE "ApiMetadata" (
 	"apiName" VARCHAR(191) NOT NULL,
 	"organizationName" VARCHAR(191) NOT NULL,
 	"apiCategory" VARCHAR(191) NOT NULL,
-	"openApiDefinition" JSON NOT NULL,
+	"openApiDefinition" TEXT NOT NULL,
 	"productionUrl" VARCHAR(191) NOT NULL,
 	"sandboxUrl" VARCHAR(191) NOT NULL,
 	"authorizedRoles" VARCHAR(191),
-	"metadata" VARCHAR(191) NOT NULL,
+	"metadata" TEXT NOT NULL,
 	PRIMARY KEY("apiId","organizationName")
 );
 
@@ -149,6 +149,7 @@ CREATE TABLE "ApiImages" (
 	"imageId" VARCHAR(191) NOT NULL,
 	"key" VARCHAR(191) NOT NULL,
 	"value" VARCHAR(191) NOT NULL,
+	"image" BYTEA ,
 	"apimetadataApiId" VARCHAR(191) NOT NULL,
 	"apimetadataOrganizationName" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("apimetadataApiId", "apimetadataOrganizationName") REFERENCES "ApiMetadata"("apiId", "organizationName"),
@@ -156,10 +157,9 @@ CREATE TABLE "ApiImages" (
 );
 
 CREATE TABLE "OrganizationAssets" (
-	"assetId" VARCHAR(191) NOT NULL,
 	"pageType" VARCHAR(191) NOT NULL,
 	"pageContent" TEXT NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	PRIMARY KEY("assetId")
+	PRIMARY KEY("pageType")
 );

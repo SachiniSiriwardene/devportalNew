@@ -9,15 +9,10 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
 import ballerina/regex;
+import ballerina/toml;
 
 import ballerinacentral/zip;
 
-@http:ServiceConfig {
-    cors: {
-        allowOrigins: ["http://localhost:3000"],
-        maxAge: 84900
-    }
-}
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
@@ -31,6 +26,11 @@ service /apiMetadata on new http:Listener(9090) {
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
+    }
+
+    resource function delete api(string apiID, string orgName) returns string|error? {
+
+        return utils:deleteAPI(apiID, orgName);
     }
 
     resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
@@ -122,7 +122,6 @@ service /apiMetadata on new http:Listener(9090) {
     resource function get apiDefinition(string apiID, string orgName) returns json|error {
 
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
-        
 
         models:ThrottlingPolicy[] throttlingPolicies = [];
         models:APIReview[] reviews = [];
@@ -130,7 +129,7 @@ service /apiMetadata on new http:Listener(9090) {
         string apiDefinition = check apiMetaData.openApiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
 
-        log:printInfo( "apiDefff");
+        log:printInfo("apiDefff");
 
         return openApiDefinition;
     }
@@ -241,7 +240,26 @@ service /apiMetadata on new http:Listener(9090) {
         check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
         check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-        check utils:pushContentS3(imageDir, "text/plain");
+
+        models:APIImages[] apiImages = [];
+        foreach var file in imageDir {
+
+            string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
+            apiImages.push({
+                image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
+                imageKey: ""
+            }
+            );
+        }
+
+        map<json> tomlFile = check toml:readFile("./Ballerina.toml");
+
+        if (check tomlFile.storage.cdn) {
+            check utils:pushContentS3(imageDir, "text/plain");
+        } else {
+            _ = check utils:updateApiImages(apiImages, apiId, orgName);
+        }
         check file:remove(orgName, file:RECURSIVE);
         utils:addApiContent(apiAssets, apiId, orgName);
 
@@ -251,14 +269,26 @@ service /apiMetadata on new http:Listener(9090) {
     }
 
     resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
-        stream<store:ApiContent, persist:Error?> apiContent = adminClient->/apicontents.get();
-        store:ApiContent[] contents = check from var content in apiContent
-            where content.apimetadataApiId == apiID
-            select content;
 
         mime:Entity file = new;
-        if (contents.length() > 0) {
-            file.setBody(contents[0].apiContent);
+        if (filename.endsWith(".md")) {
+            stream<store:ApiContent, persist:Error?> apiContent = adminClient->/apicontents.get();
+            store:ApiContent[] contents = check from var content in apiContent
+                where content.apimetadataApiId == apiID
+                select content;
+
+            if (contents.length() > 0) {
+                file.setBody(contents[0].apiContent);
+            } else {
+                file.setBody("File not found");
+            }
+        } else {
+            byte[] image = check utils:retrieveAPIImages(filename, apiID, orgName);
+            if (image.length() != 0) {
+                file.setBody(image);
+            } else {
+                file.setBody("File not found");
+            }
         }
 
         http:Response response = new;
@@ -269,22 +299,6 @@ service /apiMetadata on new http:Listener(9090) {
         response.setHeader("Transfer-Encoding", "chunked");
 
         return response;
-    }
-
-    resource function get apiDefinition(string apiID, string orgName) returns json|error {
-
-        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
-        
-
-        models:ThrottlingPolicy[] throttlingPolicies = [];
-        models:APIReview[] reviews = [];
-
-        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
-        json openApiDefinition = check apiDefinition.fromJsonString();
-
-        log:printInfo( "apiDefff");
-
-        return openApiDefinition;
     }
 }
 
