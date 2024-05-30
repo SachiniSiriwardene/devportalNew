@@ -9,16 +9,14 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
 import ballerina/regex;
-import ballerina/toml;
-
 import ballerinacentral/zip;
 
-@http:ServiceConfig {
-    cors: {
-        allowOrigins: ["http://localhost:3000"],
-        maxAge: 84900
-    }
-}
+type Origins record {|
+    string[] allowedOrigins;
+|};
+
+configurable boolean cdn = false;
+configurable Origins origins = ?;
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
@@ -125,7 +123,16 @@ service /apiMetadata on new http:Listener(9090) {
         return metaData;
     }
 
+
+     @http:ResourceConfig {
+        cors: {
+            allowOrigins: origins.allowedOrigins
+            
+        }
+    }
     resource function get apiDefinition(string apiID, string orgName) returns json|error {
+
+       
 
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
 
@@ -259,9 +266,7 @@ service /apiMetadata on new http:Listener(9090) {
             );
         }
 
-        map<json> tomlFile = check toml:readFile("./Ballerina.toml");
-
-        if (check tomlFile.storage.cdn) {
+        if (cdn) {
             check utils:pushContentS3(imageDir, "text/plain");
         } else {
             _ = check utils:updateApiImages(apiImages, apiId, orgName);
@@ -305,22 +310,6 @@ service /apiMetadata on new http:Listener(9090) {
         response.setHeader("Transfer-Encoding", "chunked");
 
         return response;
-    }
-
-    resource function get apiDefinition(string apiID, string orgName) returns json|error {
-
-        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
-        
-
-        models:ThrottlingPolicy[] throttlingPolicies = [];
-        models:APIReview[] reviews = [];
-
-        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
-        json openApiDefinition = check apiDefinition.fromJsonString();
-
-        log:printInfo( "apiDefff");
-
-        return openApiDefinition;
     }
 }
 
