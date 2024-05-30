@@ -212,6 +212,23 @@ public isolated client class Client {
             keyFields: ["imageId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
         },
+          [ORG_IMAGES]: {
+            entityName: "OrgImages",
+            tableName: "OrgImages",
+            fieldMetadata: {
+                imageId: {columnName: "imageId"},
+                fileName: {columnName: "fileName"},
+                image: {columnName: "image"},
+                organizationOrgId: {columnName: "organizationOrgId"},
+                "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
+                "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
+                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
+                "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
+                "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
+            },
+            keyFields: ["imageId"],
+            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
+        },
         [ADDITIONAL_PROPERTIES]: {
             entityName: "AdditionalProperties",
             tableName: "AdditionalProperties",
@@ -290,7 +307,6 @@ public isolated client class Client {
                 templateName: {columnName: "templateName"},
                 isPublic: {columnName: "isPublic"},
                 authenticatedPages: {columnName: "authenticatedPages"},
-                "organizationAssets[].assetId": {relation: {entityName: "organizationAssets", refField: "assetId"}},
                 "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
                 "organizationAssets[].pageContent": {relation: {entityName: "organizationAssets", refField: "pageContent"}},
                 "organizationAssets[].organizationOrgId": {relation: {entityName: "organizationAssets", refField: "organizationOrgId"}},
@@ -313,7 +329,8 @@ public isolated client class Client {
             joinMetadata: {
                 organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
-                subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
+                subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
+                orgImages: {entity: OrgImages, fieldName: "orgImages", refTable: "OrgImages", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
         },
         [ORGANIZATION_ASSETS]: {

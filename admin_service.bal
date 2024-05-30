@@ -177,12 +177,11 @@ service /admin on new http:Listener(8080) {
         http:Response response = new;
         if (filename.endsWith("html") || filename.endsWith("css")) {
             store:OrganizationAssets[] contents = check utils:retrieveOrgFiles(filename, orgId) ?: [];
-
             if (contents.length() > 0) {
                 file.setBody(contents[0].pageContent);
                 response.setEntity(file);
                 check response.setContentType("application/octet-stream");
-                response.setHeader("Content-Type", "application/octet-stream");
+                response.setHeader("Content-Type", "text/css");
                 response.setHeader("Content-Description", "File Transfer");
                 response.setHeader("Transfer-Encoding", "chunked");
             } else {
