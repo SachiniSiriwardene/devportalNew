@@ -98,8 +98,9 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
-                io:println("Updating the API Content to the Database");
                 apiAssets.apiContent = check io:fileReadString(relativePath);
+            }else {
+                apiAssets.apiImages.push(relativePath);
             }
         }
     }
@@ -118,3 +119,6 @@ public function createAmazonS3Client() returns s3:Client|error {
     return check new (amazonS3Config);
 }
 
+public function storeOrganizationContent() {
+    
+}

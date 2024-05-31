@@ -83,7 +83,7 @@ public function getAPIImages(string orgName, string apiName) returns store:ApiIm
 public function createOrg(models:Organization organization) returns string|error {
 
     string[] authenticaedPages = organization.authenticatedPages ?: [];
-    string pages = string:'join(" ", ... authenticaedPages);
+    string pages = string:'join(" ", ...authenticaedPages);
 
     store:OrganizationInsert org = {
         orgId: uuid:createType1AsString(),
@@ -106,7 +106,7 @@ public function updateOrg(models:Organization organization) returns string|error
 
     string orgId = check getOrgId(organization.orgName);
     string[] authenticaedPages = organization.authenticatedPages ?: [];
-    string pages = string:'join(" ", ... authenticaedPages);
+    string pages = string:'join(" ", ...authenticaedPages);
 
     store:Organization org = check dbClient->/organizations/[orgId].put({
         organizationName: organization.orgName,
@@ -118,18 +118,19 @@ public function updateOrg(models:Organization organization) returns string|error
     return org.orgId;
 }
 
-public function createOrgAssets(models:OrganizationAssets orgContent) returns string|error {
+public function createOrgAssets(models:OrganizationAssets[] orgContent) returns string|error {
 
-    store:OrganizationAssets assets = {
-        assetId: uuid:createType1AsString(),
-        pageType: orgContent.pageType,
-        pageContent: orgContent.pageContent,
-        organizationOrgId: orgContent.orgId
-    };
+    store:OrganizationAssets[] orgAssets = [];
+    foreach var asset in orgContent {
+        store:OrganizationAssets storeAsset = {
+            pageType: asset.pageType,
+            pageContent: asset.pageContent,
+            organizationOrgId: asset.orgId
+        };
+        orgAssets.push(storeAsset);
+    }
 
-    log:printError(assets.toBalString());
-
-    string[] listResult = check dbClient->/organizationassets.post([assets]);
+    string[] listResult = check dbClient->/organizationassets.post(orgAssets);
 
     log:printInfo("Asset ID update: " + listResult[0]);
 
@@ -150,7 +151,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
         where orgAsset.organizationOrgId == orgId
         select orgAsset;
 
-    string assetID = asset.pop().assetId;
+    string assetID = asset.pop().pageType;
     log:printInfo("Asset ID update: " + assetID);
 
     store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
@@ -159,7 +160,7 @@ public function updateOrgAssets(models:OrganizationAssets orgContent, string org
         pageContent: orgContent.pageContent
     });
 
-    return org.assetId;
+    return org.pageType;
 }
 
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
@@ -168,7 +169,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
 
         string[] authenticatedRoles = apiMetaData.apiInfo.authorizedRoles ?: [];
-        roles = string:'join(" ", ... authenticatedRoles);
+        roles = string:'join(" ", ...authenticatedRoles);
     }
 
     string apiID = apiMetaData.apiInfo.apiName;
@@ -213,7 +214,7 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
 
         string[] authenticatedRoles = apiMetaData.apiInfo.authorizedRoles ?: [];
-        roles = string:'join(" ", ... authenticatedRoles);
+        roles = string:'join(" ", ...authenticatedRoles);
     }
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadataUpdate metadataRecord = {
@@ -317,6 +318,89 @@ public function addApiImages(map<string> images, string apiID, string orgName) {
             log:printError("Error occurred while adding API images: " + e.message());
         }
     }
+}
+
+public function updateApiImages(models:APIImages[] imageRecords, string apiID, string orgName) returns string|error {
+
+    foreach var apiImage in imageRecords {
+        stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
+
+        //retrieve the api id
+        store:ApiImages[] images = check from var image in apiImages
+            where image.apimetadataApiId == apiID && image.value == apiImage.imageName && image.apimetadataOrganizationName == orgName
+            select image;
+        if (images.length() !== 0) {
+            store:ApiImages imageRecord = images[0];
+            _ = check dbClient->/apiimages/[imageRecord.imageId].put({
+                image: apiImage.image
+            }
+            );
+        }
+    }
+    return "API Image upload success";
+}
+
+public function storeOrgImages(models:OrgImages[] orgImages, string orgId) returns string|error {
+
+    store:OrgImagesInsert[] orgImageRecords = [];
+    foreach var image in orgImages {
+        orgImageRecords.push({
+            fileName: image.imageName,
+            image: image.image,
+            imageId: uuid:createType1AsString(),
+            organizationOrgId: orgId
+        });
+    }
+    string[] listResult = check dbClient->/orgimages.post(orgImageRecords);
+    log:printInfo("Organization images stored");
+
+    if (listResult.length() == 0) {
+        return error("Organization image creation failed");
+    }
+    return listResult[0];
+}
+
+public function retrieveAPIImages(string imagePath, string apiID, string orgName) returns byte[]|error {
+
+    stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
+    byte[] retrievedImage = [];
+    string filePath = "/resources/images/" + imagePath;
+    store:ApiImages[] images = check from var image in apiImages
+        where image.apimetadataApiId == apiID && image.value == filePath && image.apimetadataOrganizationName == orgName
+        select image;
+    if (images.length() !== 0) {
+        store:ApiImages imageRecord = images[0];
+        retrievedImage = imageRecord.image ?: [];
+    }
+    return retrievedImage;
+}
+
+public function deleteAPI(string apiID, string orgName) returns string|error? {
+
+    // store:ApiMetadata apiImages = check dbClient->/additionalproperties/["path"].delete;
+
+    store:ApiMetadata apiImages = check dbClient->/apimetadata/[apiID]/[orgName].delete();
+
+    return "API deleted successfully";
+
+}
+
+public function retrieveOrgFiles(string fileName, string orgId) returns store:OrganizationAssets[]|error? {
+
+    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
+    store:OrganizationAssets[] contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.pageType == fileName
+        select content;
+    return  contents;
+}
+
+public function retrieveOrgImages(string fileName, string orgId) returns store:OrgImages[]|error? {
+
+    stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
+    store:OrgImages[] contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.fileName == fileName
+        select content;
+    return  contents;
 }
 
 public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {

@@ -7,14 +7,11 @@ distribution = "2201.8.4"
 [build-options]
 observabilityIncluded = true
 
-[[tool.persist]]
-id = "generate-db-client"
-targetModule = "devportal.devportal.store"
-options.datastore = "postgresql"
-filePath = "persist/model.bal"
+
 
 [[platform.java17.dependency]]
 groupId = "io.ballerina.stdlib"
 artifactId = "persist.sql-native"
 version = "1.3.0"
+
 

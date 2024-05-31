@@ -69,6 +69,16 @@ public type APIAssets record {|
     string apiId;
 |};
 
+public type APIImages record {|
+    string imageName;
+    string imageKey;
+    byte[] image;
+|};
+
+public type OrgImages record {|
+    string imageName;
+    byte[] image;
+|};
 
 # Description.
 #

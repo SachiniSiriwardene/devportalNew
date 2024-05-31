@@ -89,7 +89,15 @@ public type ApiImages record {|
     readonly string imageId;
     string key;
     string value;
+    byte[] image;
 	ApiMetadata apimetadata;
+|};
+
+public type OrgImages record {|
+    readonly string imageId;
+    string fileName;
+    byte[] image;
+	Organization organization;
 |};
 
 public type AdditionalProperties record {|
@@ -103,7 +111,6 @@ public type AdditionalProperties record {|
 # Identity Provider configured for dev portal.
 #
 # + idpID - field description  
-# + orgName - field description  
 # + id - field description  
 # + name - field description  
 # + 'type - field description  
@@ -152,18 +159,17 @@ public type Organization record {|
     OrganizationAssets[] organizationAssets;
     IdentityProvider[] identityProvider;
     Subscription[] subscriptions;
+    OrgImages[] orgImages;
 |};
 
 
 # Assets needed for the org landing page.
 #
-# + assetId - field description  
 # + pageType - field description
 # + pageContent - field description
 # + organization - field description
 public type OrganizationAssets record {|
-    readonly string assetId;
-    string pageType;
+    readonly string pageType;
     string pageContent;
     Organization organization;
 |};
