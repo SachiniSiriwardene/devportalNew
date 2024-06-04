@@ -152,7 +152,7 @@ public isolated client class Client {
                 "apiImages[].imageId": {relation: {entityName: "apiImages", refField: "imageId"}},
                 "apiImages[].key": {relation: {entityName: "apiImages", refField: "key"}},
                 "apiImages[].value": {relation: {entityName: "apiImages", refField: "value"}},
-                 "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}},
+                "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}},
                 "apiImages[].apimetadataApiId": {relation: {entityName: "apiImages", refField: "apimetadataApiId"}},
                 "apiImages[].apimetadataOrganizationName": {relation: {entityName: "apiImages", refField: "apimetadataOrganizationName"}}
             },
@@ -212,7 +212,7 @@ public isolated client class Client {
             keyFields: ["imageId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
         },
-          [ORG_IMAGES]: {
+        [ORG_IMAGES]: {
             entityName: "OrgImages",
             tableName: "OrgImages",
             fieldMetadata: {
@@ -222,7 +222,6 @@ public isolated client class Client {
                 organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
-                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
@@ -266,7 +265,6 @@ public isolated client class Client {
                 organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
-                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
@@ -304,7 +302,6 @@ public isolated client class Client {
             fieldMetadata: {
                 orgId: {columnName: "orgId"},
                 organizationName: {columnName: "organizationName"},
-                templateName: {columnName: "templateName"},
                 isPublic: {columnName: "isPublic"},
                 authenticatedPages: {columnName: "authenticatedPages"},
                 "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
@@ -323,7 +320,11 @@ public isolated client class Client {
                 "subscriptions[].apiOrganizationName": {relation: {entityName: "subscriptions", refField: "apiOrganizationName"}},
                 "subscriptions[].userUserId": {relation: {entityName: "subscriptions", refField: "userUserId"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
-                "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}}
+                "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}},
+                "orgImages[].imageId": {relation: {entityName: "orgImages", refField: "imageId"}},
+                "orgImages[].fileName": {relation: {entityName: "orgImages", refField: "fileName"}},
+                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}},
+                "orgImages[].organizationOrgId": {relation: {entityName: "orgImages", refField: "organizationOrgId"}}
             },
             keyFields: ["orgId"],
             joinMetadata: {
@@ -342,7 +343,6 @@ public isolated client class Client {
                 organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
-                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
@@ -427,7 +427,6 @@ public isolated client class Client {
                 "user.applicationAppId": {relation: {entityName: "user", refField: "applicationAppId"}},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
-                "organization.templateName": {relation: {entityName: "organization", refField: "templateName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}},
                 "subscriptionPolicy.policyId": {relation: {entityName: "subscriptionPolicy", refField: "policyId"}},
@@ -706,7 +705,7 @@ public isolated client class Client {
         return result;
     }
 
-     isolated resource function get orgimages(OrgImagesTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
+    isolated resource function get orgimages(OrgImagesTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns stream<targetType, persist:Error?> = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "query"
     } external;

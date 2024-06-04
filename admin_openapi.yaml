@@ -43,12 +43,6 @@ paths:
         required: true
         schema:
           type: string
-      - name: templateName
-        in: query
-        description: parameter description
-        required: true
-        schema:
-          type: string
       requestBody:
         content:
           '*/*':

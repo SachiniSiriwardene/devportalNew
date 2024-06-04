@@ -43,7 +43,6 @@ public type OrganizationAssets record {|
 public type Organization record {
 
     string orgName;
-    string templateName;
     boolean isPublic;
     PAGES[] authenticatedPages?;
 };

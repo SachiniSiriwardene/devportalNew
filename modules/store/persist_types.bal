@@ -357,7 +357,6 @@ public type ApplicationUpdate record {|
 public type Organization record {|
     readonly string orgId;
     string organizationName;
-    string templateName;
     boolean isPublic;
     string authenticatedPages;
 
@@ -366,7 +365,6 @@ public type Organization record {|
 public type OrganizationOptionalized record {|
     string orgId?;
     string organizationName?;
-    string templateName?;
     boolean isPublic?;
     string authenticatedPages?;
 |};
@@ -376,6 +374,7 @@ public type OrganizationWithRelations record {|
     OrganizationAssetsOptionalized[] organizationAssets?;
     IdentityProviderOptionalized[] identityProvider?;
     SubscriptionOptionalized[] subscriptions?;
+    OrgImagesOptionalized[] orgImages?;
 |};
 
 public type OrganizationTargetType typedesc<OrganizationWithRelations>;
@@ -384,7 +383,6 @@ public type OrganizationInsert Organization;
 
 public type OrganizationUpdate record {|
     string organizationName?;
-    string templateName?;
     boolean isPublic?;
     string authenticatedPages?;
 |};

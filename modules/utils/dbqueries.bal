@@ -88,7 +88,6 @@ public function createOrg(models:Organization organization) returns string|error
     store:OrganizationInsert org = {
         orgId: uuid:createType1AsString(),
         organizationName: organization.orgName,
-        templateName: organization.templateName,
         isPublic: organization.isPublic,
         authenticatedPages: pages
     };
@@ -110,7 +109,6 @@ public function updateOrg(models:Organization organization) returns string|error
 
     store:Organization org = check dbClient->/organizations/[orgId].put({
         organizationName: organization.orgName,
-        templateName: organization.templateName,
         isPublic: organization.isPublic,
         authenticatedPages: pages
     });
