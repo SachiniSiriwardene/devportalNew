@@ -11,7 +11,6 @@ import ballerina/persist;
 import ballerina/regex;
 import ballerinacentral/zip;
 
-configurable boolean cdn = false;
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
@@ -118,27 +117,12 @@ service /apiMetadata on new http:Listener(9090) {
         return metaData;
     }
 
-
-     @http:ResourceConfig {
-        cors: {
-            allowOrigins: origins.allowedOrigins
-            
-        }
-    }
     resource function get apiDefinition(string apiID, string orgName) returns json|error {
 
-       
-
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
-
-        models:ThrottlingPolicy[] throttlingPolicies = [];
-        models:APIReview[] reviews = [];
-
-        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+        string apiDefinition = apiMetaData.openApiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
-
-        log:printInfo("apiDefff");
-
+        log:printInfo("API definition returned");
         return openApiDefinition;
     }
 
@@ -260,18 +244,15 @@ service /apiMetadata on new http:Listener(9090) {
             }
             );
         }
-
-        if (cdn) {
+        if (models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
             check utils:pushContentS3(imageDir, "text/plain");
         } else {
             _ = check utils:updateApiImages(apiImages, apiId, orgName);
         }
         check file:remove(orgName, file:RECURSIVE);
         utils:addApiContent(apiAssets, apiId, orgName);
-
         io:println("API content added successfully");
         return "API asset updated";
-
     }
 
     resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
