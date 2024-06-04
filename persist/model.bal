@@ -165,11 +165,13 @@ public type Organization record {|
 
 # Assets needed for the org landing page.
 #
-# + pageType - field description
-# + pageContent - field description
+# + pageType - field description  
+# + orgName - field description  
+# + pageContent - field description  
 # + organization - field description
 public type OrganizationAssets record {|
     readonly string pageType;
+    readonly string orgName;
     string pageContent;
     Organization organization;
 |};
