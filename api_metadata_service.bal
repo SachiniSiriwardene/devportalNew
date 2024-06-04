@@ -11,12 +11,7 @@ import ballerina/persist;
 import ballerina/regex;
 import ballerinacentral/zip;
 
-type Origins record {|
-    string[] allowedOrigins;
-|};
-
 configurable boolean cdn = false;
-configurable Origins origins = ?;
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
