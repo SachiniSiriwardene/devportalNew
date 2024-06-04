@@ -374,6 +374,7 @@ public type OrganizationWithRelations record {|
     OrganizationAssetsOptionalized[] organizationAssets?;
     IdentityProviderOptionalized[] identityProvider?;
     SubscriptionOptionalized[] subscriptions?;
+    OrgImagesOptionalized[] orgImages?;
 |};
 
 public type OrganizationTargetType typedesc<OrganizationWithRelations>;

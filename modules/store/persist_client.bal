@@ -320,7 +320,11 @@ public isolated client class Client {
                 "subscriptions[].apiOrganizationName": {relation: {entityName: "subscriptions", refField: "apiOrganizationName"}},
                 "subscriptions[].userUserId": {relation: {entityName: "subscriptions", refField: "userUserId"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
-                "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}}
+                "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}},
+                "orgImages[].imageId": {relation: {entityName: "orgImages", refField: "imageId"}},
+                "orgImages[].fileName": {relation: {entityName: "orgImages", refField: "fileName"}},
+                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}},
+                "orgImages[].organizationOrgId": {relation: {entityName: "orgImages", refField: "organizationOrgId"}}
             },
             keyFields: ["orgId"],
             joinMetadata: {
