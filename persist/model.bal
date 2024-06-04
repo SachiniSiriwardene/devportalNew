@@ -153,7 +153,6 @@ public type Application record {|
 public type Organization record {|
     readonly string orgId;
     string organizationName;
-    string templateName;
     boolean isPublic; 
     string authenticatedPages;
     OrganizationAssets[] organizationAssets;

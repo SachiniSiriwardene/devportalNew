@@ -53,7 +53,6 @@ CREATE TABLE "ApiMetadata" (
 CREATE TABLE "Organization" (
 	"orgId" VARCHAR(191) NOT NULL,
 	"organizationName" VARCHAR(191) NOT NULL,
-	"templateName" VARCHAR(191) NOT NULL,
 	"isPublic" BOOLEAN NOT NULL,
 	"authenticatedPages" VARCHAR(191) NOT NULL,
 	PRIMARY KEY("orgId")
