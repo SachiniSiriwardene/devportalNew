@@ -140,27 +140,19 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
     return listResult[0];
 }
 
-public function updateOrgAssets(models:OrganizationAssets orgContent, string orgName) returns string|error {
+public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns string|error {
 
-    string orgId = check getOrgId(orgName);
-
-    stream<store:OrganizationAssets, persist:Error?> orgAssets = dbClient->/organizationassets.get();
-
-    //retrieve the api id
-    store:OrganizationAssets[] asset = check from var orgAsset in orgAssets
-        where orgAsset.organizationOrgId == orgId
-        select orgAsset;
-
-    string assetID = asset.pop().pageType;
-    log:printInfo("Asset ID update: " + assetID);
-
-    store:OrganizationAssets org = check dbClient->/organizationassets/[assetID].put({
-        organizationOrgId: orgId,
-        pageType: orgContent.pageType,
-        pageContent: orgContent.pageContent
-    });
-
-    return org.pageType;
+    foreach var asset in orgContent {
+        store:OrganizationAssets|persist:Error org = dbClient->/organizationassets/[asset.pageType].put({
+            organizationOrgId: asset.orgId,
+            pageType: asset.pageType,
+            pageContent: asset.pageContent
+        });
+        if (org is error) {
+            return "Error occurred while updating organization assets";
+        }
+    }
+    return "Organization assets upated";
 }
 
 public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string|error {
@@ -207,9 +199,9 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 }
 
 public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, string orgName) returns string|error {
+
     addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
     addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-
     string roles = "";
     if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
 
@@ -236,6 +228,7 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
 }
 
 public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) {
+
     store:ThrottlingPolicy[] throttlingPolicyRecords = [];
     foreach var policy in throttlingPolicies {
         throttlingPolicyRecords.push({
@@ -360,6 +353,27 @@ public function storeOrgImages(models:OrgImages[] orgImages, string orgId) retur
     return listResult[0];
 }
 
+public function updateOrgImages(models:OrgImages[] orgImages, string orgId) returns string|error {
+
+    foreach var image in orgImages {
+        stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
+        store:OrgImages[] retrievedImage = check from var content in orgContent
+            where content.organizationOrgId == orgId && content.fileName == image.imageName
+            select content;
+        if (retrievedImage.length() !== 0) {
+            store:OrgImages|persist:Error org = dbClient->/orgimages/[retrievedImage[0].imageId].put({
+                fileName: image.imageName,
+                image: image.image,
+                organizationOrgId: orgId
+            });
+            if (org is error) {
+                return "Error occurred while updating organization images";
+            }
+        }
+    }
+    return "Organization images updated";
+}
+
 public function retrieveAPIImages(string imagePath, string apiID, string orgName) returns byte[]|error {
 
     stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
@@ -391,16 +405,16 @@ public function retrieveOrgFiles(string fileName, string orgId) returns store:Or
     store:OrganizationAssets[] contents = check from var content in orgContent
         where content.organizationOrgId == orgId && content.pageType == fileName
         select content;
-    return  contents;
+    return contents;
 }
 
 public function retrieveOrgImages(string fileName, string orgId) returns store:OrgImages[]|error? {
 
     stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
-    store:OrgImages[] contents = check from var content in orgContent
+    store:OrgImages[] orgImages = check from var content in orgContent
         where content.organizationOrgId == orgId && content.fileName == fileName
         select content;
-    return  contents;
+    return orgImages;
 }
 
 public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {
