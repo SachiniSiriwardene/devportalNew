@@ -15,9 +15,18 @@ import ballerinacentral/zip;
 // # bound to port `8080`.
 
 final store:Client adminClient = check new ();
+type Origins record {|
+    string[] allowedOrigins;
+|};
 
+configurable Origins origins = ?;
 service /admin on new http:Listener(8080) {
 
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: ["http://localhost:3000"]          
+        }
+    }
     resource function post organisation(models:Organization organization) returns models:OrgCreationResponse|error {
 
         string orgId = check utils:createOrg(organization);
@@ -30,6 +39,11 @@ service /admin on new http:Listener(8080) {
         return org;
     }
 
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: ["http://localhost:3000"]          
+        }
+    }
     resource function put organisation(models:Organization organization) returns models:OrgCreationResponse|error {
 
         string orgId = check utils:updateOrg(organization);
