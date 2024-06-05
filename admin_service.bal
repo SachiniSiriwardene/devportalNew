@@ -71,14 +71,13 @@ service /admin on new http:Listener(8080) {
         return org;
     }
 
-
     # Description.
     #
     # + orgName - parameter description
     # + return - return value description
     @http:ResourceConfig {
         cors: {
-            allowOrigins: ["http://localhost:3000"]          
+            allowOrigins: ["http://localhost:3000"]
         }
     }
     resource function post orgContent(http:Request request, string orgName) returns string|error {
@@ -96,29 +95,31 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
 
-        if (models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
+        file:MetaData[] content = [];
+        content.push(...templateDir);
+        content.push(...stylesheetDir);
+        models:OrganizationAssets[] assetMappings = [];
+
+        foreach var file in content {
+            string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+            if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
+                string pageContent = check io:fileReadString(file.absPath);
+                models:OrganizationAssets assetMapping = {
+                    pageType: pageType,
+                    pageContent: pageContent,
+                    orgId: orgId,
+                    orgName: orgName
+                };
+                assetMappings.push(assetMapping);
+            }
+        }
+        string _ = check utils:createOrgAssets(assetMappings);
+
+        if !(models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
             check utils:pushContentS3(imageDir, "text/plain");
             check utils:pushContentS3(stylesheetDir, "text/css");
             log:printInfo("Added content to S3 successfully");
         } else {
-            file:MetaData[] content = [];
-            content.push(...templateDir);
-            content.push(...stylesheetDir);
-            models:OrganizationAssets[] assetMappings = [];
-            foreach var file in content {
-                string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-                if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
-                    string pageContent = check io:fileReadString(file.absPath);
-                    models:OrganizationAssets assetMapping = {
-                        pageType: pageType,
-                        pageContent: pageContent,
-                        orgId: orgId,
-                        orgName: orgName
-                    };
-                    assetMappings.push(assetMapping);
-                }
-            }
-            string _ = check utils:createOrgAssets(assetMappings);
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
