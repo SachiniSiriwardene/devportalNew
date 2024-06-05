@@ -168,7 +168,8 @@ CREATE TABLE "ApiImages" (
 CREATE TABLE "OrganizationAssets" (
 	"pageType" VARCHAR(191) NOT NULL,
 	"pageContent" TEXT NOT NULL,
+	"orgName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	PRIMARY KEY("pageType")
+	PRIMARY KEY("pageType","orgName")
 );

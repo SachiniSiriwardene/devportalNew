@@ -38,6 +38,7 @@ public type OrganizationAssets record {|
     string pageType;
     string pageContent;
     string orgId;
+    string orgName;
 |};
 
 public type Organization record {

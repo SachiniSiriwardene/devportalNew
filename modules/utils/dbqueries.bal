@@ -123,27 +123,27 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
         store:OrganizationAssets storeAsset = {
             pageType: asset.pageType,
             pageContent: asset.pageContent,
-            organizationOrgId: asset.orgId
+            organizationOrgId: asset.orgId,
+            orgName: asset.orgName
         };
         orgAssets.push(storeAsset);
     }
 
-    string[] listResult = check dbClient->/organizationassets.post(orgAssets);
+    string[][] listResult = check dbClient->/organizationassets.post(orgAssets);
 
-    log:printInfo("Asset ID update: " + listResult[0]);
+    log:printInfo("Asset ID update: " + listResult[0][0]);
 
     if (listResult.length() == 0) {
         return error("Organization assets creation failed");
     }
-    return listResult[0];
+    return listResult[0][0];
 }
 
 public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns string|error {
 
     foreach var asset in orgContent {
-        store:OrganizationAssets|persist:Error org = dbClient->/organizationassets/[asset.pageType].put({
+        store:OrganizationAssets|persist:Error org = dbClient->/organizationassets/[asset.pageType]/[asset.orgName].put({
             organizationOrgId: asset.orgId,
-            pageType: asset.pageType,
             pageContent: asset.pageContent
         });
         if (org is error) {

@@ -192,8 +192,8 @@ public type ApiImagesOptionalized record {|
     string imageId?;
     string key?;
     string value?;
-    string apimetadataApiId?;
     byte[] image?;
+    string apimetadataApiId?;
     string apimetadataOrganizationName?;
 |};
 
@@ -209,8 +209,8 @@ public type ApiImagesInsert ApiImages;
 public type ApiImagesUpdate record {|
     string key?;
     string value?;
-    string apimetadataApiId?;
     byte[] image?;
+    string apimetadataApiId?;
     string apimetadataOrganizationName?;
 |};
 
@@ -389,12 +389,14 @@ public type OrganizationUpdate record {|
 
 public type OrganizationAssets record {|
     readonly string pageType;
+    readonly string orgName;
     string pageContent;
     string organizationOrgId;
 |};
 
 public type OrganizationAssetsOptionalized record {|
     string pageType?;
+    string orgName?;
     string pageContent?;
     string organizationOrgId?;
 |};
@@ -409,7 +411,6 @@ public type OrganizationAssetsTargetType typedesc<OrganizationAssetsWithRelation
 public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
-    string pageType?;
     string pageContent?;
     string organizationOrgId?;
 |};
