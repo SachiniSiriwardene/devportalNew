@@ -71,10 +71,16 @@ service /admin on new http:Listener(8080) {
         return org;
     }
 
+
     # Description.
     #
     # + orgName - parameter description
     # + return - return value description
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: ["http://localhost:3000"]          
+        }
+    }
     resource function post orgContent(http:Request request, string orgName) returns string|error {
 
         string orgId = check utils:getOrgId(orgName);
