@@ -387,6 +387,20 @@ public function retrieveAPIImages(string imagePath, string apiID, string orgName
     return retrievedImage;
 }
 
+public function retrieveAPIContent(string apiID, string orgName ) returns string|error {
+
+    stream<store:ApiContent, persist:Error?> apiContent = dbClient->/apicontents.get();
+    store:ApiContent[] contents = check from var content in apiContent
+        where content.apimetadataApiId == apiID && content.apimetadataOrganizationName == orgName
+        select content;
+    if (contents.length() == 0) {
+       return  contents[0].apiContent;
+    } else {
+        return "API content not found";
+    }
+
+    }
+
 public function deleteAPI(string apiID, string orgName) returns string|error? {
 
     // store:ApiMetadata apiImages = check dbClient->/additionalproperties/["path"].delete;

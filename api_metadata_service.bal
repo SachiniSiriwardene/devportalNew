@@ -9,6 +9,7 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/persist;
 import ballerina/regex;
+
 import ballerinacentral/zip;
 
 service /apiMetadata on new http:Listener(9090) {
@@ -244,11 +245,13 @@ service /apiMetadata on new http:Listener(9090) {
             }
             );
         }
-        if (models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
-            check utils:pushContentS3(imageDir, "text/plain");
-        } else {
+        if (storage.equalsIgnoreCaseAscii("DB")) {
             _ = check utils:updateApiImages(apiImages, apiId, orgName);
+
+        } else {
+            check utils:pushContentS3(imageDir, "text/plain");
         }
+
         check file:remove(orgName, file:RECURSIVE);
         utils:addApiContent(apiAssets, apiId, orgName);
         io:println("API content added successfully");
@@ -259,16 +262,8 @@ service /apiMetadata on new http:Listener(9090) {
 
         mime:Entity file = new;
         if (filename.endsWith(".md")) {
-            stream<store:ApiContent, persist:Error?> apiContent = adminClient->/apicontents.get();
-            store:ApiContent[] contents = check from var content in apiContent
-                where content.apimetadataApiId == apiID
-                select content;
-
-            if (contents.length() > 0) {
-                file.setBody(contents[0].apiContent);
-            } else {
-                file.setBody("File not found");
-            }
+            string content = check utils:retrieveAPIContent(apiID, orgName);
+            file.setBody(content);
         } else {
             byte[] image = check utils:retrieveAPIImages(filename, apiID, orgName);
             if (image.length() != 0) {

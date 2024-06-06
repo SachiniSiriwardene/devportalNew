@@ -21,12 +21,13 @@ type Origins record {|
 |};
 
 configurable Origins origins = ?;
+configurable string storage = ?;
 
 service /admin on new http:Listener(8080) {
 
     @http:ResourceConfig {
         cors: {
-            allowOrigins: ["http://localhost:3000"]
+            allowOrigins: origins.allowedOrigins
         }
     }
     resource function post organisation(models:Organization organization) returns models:OrgCreationResponse|error {
@@ -43,7 +44,7 @@ service /admin on new http:Listener(8080) {
 
     @http:ResourceConfig {
         cors: {
-            allowOrigins: ["http://localhost:3000"]
+            allowOrigins: origins.allowedOrigins
         }
     }
     resource function put organisation(models:Organization organization) returns models:OrgCreationResponse|error {
@@ -77,7 +78,7 @@ service /admin on new http:Listener(8080) {
     # + return - return value description
     @http:ResourceConfig {
         cors: {
-            allowOrigins: ["http://localhost:3000"]
+            allowOrigins: origins.allowedOrigins
         }
     }
     resource function post orgContent(http:Request request, string orgName) returns string|error {
@@ -115,11 +116,7 @@ service /admin on new http:Listener(8080) {
         }
         string _ = check utils:createOrgAssets(assetMappings);
 
-        if !(models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
-            check utils:pushContentS3(imageDir, "text/plain");
-            check utils:pushContentS3(stylesheetDir, "text/css");
-            log:printInfo("Added content to S3 successfully");
-        } else {
+        if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
@@ -130,6 +127,10 @@ service /admin on new http:Listener(8080) {
                 );
             }
             string _ = check utils:storeOrgImages(orgImages, orgId);
+        } else {
+            check utils:pushContentS3(imageDir, "text/plain");
+            check utils:pushContentS3(stylesheetDir, "text/css");
+            log:printInfo("Added content to S3 successfully");
         }
         check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
@@ -157,29 +158,26 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
 
-        if (models:awsAccessKeyId.equalsIgnoreCaseAscii("")) {
-            check utils:pushContentS3(imageDir, "text/plain");
-            check utils:pushContentS3(stylesheetDir, "text/css");
-            log:printInfo("Added content to S3 successfully");
-        } else {
-            file:MetaData[] content = [];
-            content.push(...templateDir);
-            content.push(...stylesheetDir);
-            models:OrganizationAssets[] assetMappings = [];
-            foreach var file in content {
-                string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-                if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
-                    string pageContent = check io:fileReadString(file.absPath);
-                    models:OrganizationAssets assetMapping = {
-                        pageType: pageType,
-                        pageContent: pageContent,
-                        orgId: orgId,
-                        orgName: orgName
-                    };
-                    assetMappings.push(assetMapping);
-                }
+        file:MetaData[] content = [];
+        content.push(...templateDir);
+        content.push(...stylesheetDir);
+        models:OrganizationAssets[] assetMappings = [];
+        foreach var file in content {
+            string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+            if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
+                string pageContent = check io:fileReadString(file.absPath);
+                models:OrganizationAssets assetMapping = {
+                    pageType: pageType,
+                    pageContent: pageContent,
+                    orgId: orgId,
+                    orgName: orgName
+                };
+                assetMappings.push(assetMapping);
             }
-            string _ = check utils:updateOrgAssets(assetMappings);
+        }
+        string _ = check utils:updateOrgAssets(assetMappings);
+
+        if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
@@ -190,6 +188,10 @@ service /admin on new http:Listener(8080) {
                 );
             }
             string _ = check utils:updateOrgImages(orgImages, orgId);
+        } else {
+            check utils:pushContentS3(imageDir, "text/plain");
+            check utils:pushContentS3(stylesheetDir, "text/css");
+            log:printInfo("Added content to S3 successfully");
         }
         check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
