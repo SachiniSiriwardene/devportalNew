@@ -393,7 +393,7 @@ public function retrieveAPIContent(string apiID, string orgName ) returns string
     store:ApiContent[] contents = check from var content in apiContent
         where content.apimetadataApiId == apiID && content.apimetadataOrganizationName == orgName
         select content;
-    if (contents.length() == 0) {
+    if (contents.length() !== 0) {
        return  contents[0].apiContent;
     } else {
         return "API content not found";
