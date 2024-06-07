@@ -9,7 +9,7 @@ public type ThrottlingPolicy record {|
     string policyName;
     string description;
     string apimetadataApiId;
-    string apimetadataOrganizationName;
+    string apimetadataOrgId;
 
 |};
 
@@ -19,7 +19,7 @@ public type ThrottlingPolicyOptionalized record {|
     string policyName?;
     string description?;
     string apimetadataApiId?;
-    string apimetadataOrganizationName?;
+    string apimetadataOrgId?;
 |};
 
 public type ThrottlingPolicyWithRelations record {|
@@ -37,7 +37,7 @@ public type ThrottlingPolicyUpdate record {|
     string policyName?;
     string description?;
     string apimetadataApiId?;
-    string apimetadataOrganizationName?;
+    string apimetadataOrgId?;
 |};
 
 public type RateLimitingPolicy record {|
@@ -66,7 +66,7 @@ public type Review record {|
     int rating;
     string comment;
     string apifeedbackApiId;
-    string apifeedbackOrganizationName;
+    string apifeedbackOrgId;
     string reviewedbyUserId;
 |};
 
@@ -75,7 +75,7 @@ public type ReviewOptionalized record {|
     int rating?;
     string comment?;
     string apifeedbackApiId?;
-    string apifeedbackOrganizationName?;
+    string apifeedbackOrgId?;
     string reviewedbyUserId?;
 |};
 
@@ -93,16 +93,16 @@ public type ReviewUpdate record {|
     int rating?;
     string comment?;
     string apifeedbackApiId?;
-    string apifeedbackOrganizationName?;
+    string apifeedbackOrgId?;
     string reviewedbyUserId?;
 |};
 
 public type ApiMetadata record {|
     readonly string apiId;
-    string orgId;
+    readonly string orgId;
     string apiName;
     string metadata;
-    readonly string organizationName;
+    string organizationName;
     string apiCategory;
     string openApiDefinition;
 
@@ -140,9 +140,9 @@ public type ApiMetadataTargetType typedesc<ApiMetadataWithRelations>;
 public type ApiMetadataInsert ApiMetadata;
 
 public type ApiMetadataUpdate record {|
-    string orgId?;
     string apiName?;
     string metadata?;
+    string organizationName?;
     string apiCategory?;
     string openApiDefinition?;
     string productionUrl?;
@@ -151,17 +151,15 @@ public type ApiMetadataUpdate record {|
 |};
 
 public type ApiContent record {|
-    readonly string contentId;
+    string apiId;
+    string orgId;
     string apiContent;
-    string apimetadataApiId;
-    string apimetadataOrganizationName;
 |};
 
 public type ApiContentOptionalized record {|
-    string contentId?;
+    string apiId?;
+    string orgId?;
     string apiContent?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type ApiContentWithRelations record {|
@@ -174,27 +172,25 @@ public type ApiContentTargetType typedesc<ApiContentWithRelations>;
 public type ApiContentInsert ApiContent;
 
 public type ApiContentUpdate record {|
+    string apiId?;
+    string orgId?;
     string apiContent?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type ApiImages record {|
-    readonly string imageId;
+    readonly string imagePath;
+    string apiId;
+    string orgId;
     string key;
-    string value;
-    byte[] image?;
-    string apimetadataApiId;
-    string apimetadataOrganizationName;
+    byte[] image;
 |};
 
 public type ApiImagesOptionalized record {|
-    string imageId?;
+    string imagePath?;
+    string apiId?;
+    string orgId?;
     string key?;
-    string value?;
     byte[] image?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type ApiImagesWithRelations record {|
@@ -207,25 +203,22 @@ public type ApiImagesTargetType typedesc<ApiImagesWithRelations>;
 public type ApiImagesInsert ApiImages;
 
 public type ApiImagesUpdate record {|
+    string apiId?;
+    string orgId?;
     string key?;
-    string value?;
     byte[] image?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type OrgImages record {|
-    readonly string imageId;
-    string fileName;
+    string orgId;
+    readonly string fileName;
     byte[] image;
-    string organizationOrgId;
 |};
 
 public type OrgImagesOptionalized record {|
-    string imageId?;
+    string orgId?;
     string fileName?;
     byte[] image?;
-    string organizationOrgId?;
 |};
 
 public type OrgImagesWithRelations record {|
@@ -238,25 +231,22 @@ public type OrgImagesTargetType typedesc<OrgImagesWithRelations>;
 public type OrgImagesInsert OrgImages;
 
 public type OrgImagesUpdate record {|
-    string fileName?;
+    string orgId?;
     byte[] image?;
-    string organizationOrgId?;
 |};
 
 public type AdditionalProperties record {|
-    readonly string propertyId;
-    string key;
+    string apiId;
+    string orgId;
+    readonly string key;
     string value;
-    string apimetadataApiId;
-    string apimetadataOrganizationName;
 |};
 
 public type AdditionalPropertiesOptionalized record {|
-    string propertyId?;
+    string apiId?;
+    string orgId?;
     string key?;
     string value?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type AdditionalPropertiesWithRelations record {|
@@ -269,10 +259,9 @@ public type AdditionalPropertiesTargetType typedesc<AdditionalPropertiesWithRela
 public type AdditionalPropertiesInsert AdditionalProperties;
 
 public type AdditionalPropertiesUpdate record {|
-    string key?;
+    string apiId?;
+    string orgId?;
     string value?;
-    string apimetadataApiId?;
-    string apimetadataOrganizationName?;
 |};
 
 public type IdentityProvider record {|
@@ -479,7 +468,7 @@ public type UserUpdate record {|
 public type Subscription record {|
     readonly string subscriptionId;
     string apiApiId;
-    string apiOrganizationName;
+    string apiOrgId;
     string userUserId;
     string organizationOrgId;
     string subscriptionPolicyId;
@@ -488,7 +477,7 @@ public type Subscription record {|
 public type SubscriptionOptionalized record {|
     string subscriptionId?;
     string apiApiId?;
-    string apiOrganizationName?;
+    string apiOrgId?;
     string userUserId?;
     string organizationOrgId?;
     string subscriptionPolicyId?;
@@ -508,7 +497,7 @@ public type SubscriptionInsert Subscription;
 
 public type SubscriptionUpdate record {|
     string apiApiId?;
-    string apiOrganizationName?;
+    string apiOrgId?;
     string userUserId?;
     string organizationOrgId?;
     string subscriptionPolicyId?;

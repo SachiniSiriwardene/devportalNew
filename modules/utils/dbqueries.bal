@@ -67,11 +67,12 @@ public function getAPIId(string orgName, string apiName) returns string|error {
 public function getAPIImages(string orgName, string apiName) returns store:ApiImages[]|error {
 
     string apiId = check getAPIId(orgName, apiName);
+    string orgId = check getOrgId(orgName);
     stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
 
     //retrieve the api id
     store:ApiImages[] images = check from var image in apiImages
-        where image.apimetadataApiId == apiId
+        where image.apiId == apiId && image.orgId == orgId
         select image;
 
     if (images.length() == 0) {
@@ -187,8 +188,8 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
 
-    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
-    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
+    check addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    check addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
 
     if (listResult.length() == 0) {
         return error("API creation failed");
@@ -198,8 +199,8 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
 
 public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, string orgName) returns string|error {
 
-    addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
-    addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
+    check addThrottlingPolicy(apiMetaData.throttlingPolicies ?: [], apiID, orgName);
+    check addAdditionalProperties(apiMetaData.apiInfo.additionalProperties, apiID, orgName);
     string roles = "";
     if (apiMetaData.apiInfo.hasKey("authorizedRoles")) {
 
@@ -208,7 +209,6 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     }
     string orgId = check getOrgId(apiMetaData.apiInfo.orgName);
     store:ApiMetadataUpdate metadataRecord = {
-        orgId: orgId,
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
         openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
@@ -217,7 +217,7 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
         authorizedRoles: roles
     };
 
-    store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgName].put(metadataRecord);
+    store:ApiMetadata listResult = check dbClient->/apimetadata/[apiID]/[orgId].put(metadataRecord);
 
     if (listResult.length() == 0) {
         return error("API metadata update failed");
@@ -225,9 +225,10 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     return listResult.apiId;
 }
 
-public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) {
+public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies, string apiID, string orgName) returns error? {
 
     store:ThrottlingPolicy[] throttlingPolicyRecords = [];
+    string orgId = check getOrgId(orgName);
     foreach var policy in throttlingPolicies {
         throttlingPolicyRecords.push({
             apimetadataApiId: apiID,
@@ -235,7 +236,7 @@ public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies
             'type: policy.'type,
             policyName: policy.policyName,
             description: policy.description,
-            apimetadataOrganizationName: orgName
+            apimetadataOrgId: orgId
         });
     }
 
@@ -248,63 +249,74 @@ public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies
     }
 }
 
-public function addAdditionalProperties(map<string> additionalProperties, string apiID, string orgName) {
+public function addAdditionalProperties(map<string> additionalProperties, string apiID, string orgName) returns error? {
 
     store:AdditionalPropertiesInsert[] additionalPropertiesRecords = [];
-
+    string orgId = check getOrgId(orgName);
     foreach var propertyKey in additionalProperties.keys() {
         additionalPropertiesRecords.push({
-            apimetadataApiId: apiID,
-            propertyId: uuid:createType1AsString(),
             'key: propertyKey,
             value: <string>additionalProperties.get(propertyKey),
-            apimetadataOrganizationName: orgName
+            apiId: apiID,
+            orgId: orgId
         });
     }
     if (additionalPropertiesRecords.length() != 0) {
         do {
-            string[] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
+            string[][] propResults = check dbClient->/additionalproperties.post(additionalPropertiesRecords);
         } on fail var e {
             log:printError("Error occurred while adding additional properties: " + e.message());
         }
     }
 }
 
-public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) {
+public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) returns error? {
+
+    string orgId = check getOrgId(orgName);
     store:ApiContentInsert[] apiContentRecord = [];
 
     apiContentRecord.push({
-        apimetadataApiId: apiID,
-        contentId: uuid:createType1AsString(),
-        apimetadataOrganizationName: orgName,
+        apiId: apiID,
+        orgId: orgId,
         apiContent: apiAssets.apiContent
     });
 
     if (apiContentRecord.length() != 0) {
         do {
-            string[] contentResults = check dbClient->/apicontents.post(apiContentRecord);
+            string[][] contentResults = check dbClient->/apicontents.post(apiContentRecord);
         } on fail var e {
             log:printError("Error occurred while adding API content: " + e.message());
         }
     }
 }
 
-public function addApiImages(map<string> images, string apiID, string orgName) {
+public function updateApiContent(models:APIAssets apiAssets, string apiID, string orgName) returns string|error? {
+
+    string orgId = check getOrgId(orgName);
+    _ = check dbClient->/apicontents/[apiID]/[orgId].put(
+        {
+            apiContent: apiAssets.apiContent
+        }
+    );
+    return "API Image upload success";
+}
+
+public function addApiImages(map<string> images, string apiID, string orgName) returns error? {
 
     store:ApiImagesInsert[] apiImagesRecord = [];
-
+    string orgId = check getOrgId(orgName);
     foreach var propertyKey in images.keys() {
         apiImagesRecord.push({
-            apimetadataApiId: apiID,
-            imageId: uuid:createType1AsString(),
             'key: propertyKey,
-            value: <string>images.get(propertyKey),
-            apimetadataOrganizationName: orgName
+            imagePath: <string>images.get(propertyKey),
+            apiId: apiID,
+            orgId: orgId,
+            image: []
         });
     }
     if (apiImagesRecord.length() != 0) {
         do {
-            string[] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+            string[][] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
         } on fail var e {
             log:printError("Error occurred while adding API images: " + e.message());
         }
@@ -313,19 +325,15 @@ public function addApiImages(map<string> images, string apiID, string orgName) {
 
 public function updateApiImages(models:APIImages[] imageRecords, string apiID, string orgName) returns string|error {
 
+    string orgId = check getOrgId(orgName);
     foreach var apiImage in imageRecords {
-        stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
-
-        //retrieve the api id
-        store:ApiImages[] images = check from var image in apiImages
-            where image.apimetadataApiId == apiID && image.value == apiImage.imageName && image.apimetadataOrganizationName == orgName
-            select image;
-        if (images.length() !== 0) {
-            store:ApiImages imageRecord = images[0];
-            _ = check dbClient->/apiimages/[imageRecord.imageId].put({
+        store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[apiImage.imageName]/[apiID]/[orgId].put(
+            {
                 image: apiImage.image
             }
-            );
+        );
+        if apiImages is error {
+            return "Error occurred while updating API images";
         }
     }
     return "API Image upload success";
@@ -338,35 +346,26 @@ public function storeOrgImages(models:OrgImages[] orgImages, string orgId) retur
         orgImageRecords.push({
             fileName: image.imageName,
             image: image.image,
-            imageId: uuid:createType1AsString(),
-            organizationOrgId: orgId
+            orgId: orgId
         });
     }
-    string[] listResult = check dbClient->/orgimages.post(orgImageRecords);
+    string[][] listResult = check dbClient->/orgimages.post(orgImageRecords);
     log:printInfo("Organization images stored");
 
     if (listResult.length() == 0) {
         return error("Organization image creation failed");
     }
-    return listResult[0];
+    return listResult[0][0];
 }
 
 public function updateOrgImages(models:OrgImages[] orgImages, string orgId) returns string|error {
 
     foreach var image in orgImages {
-        stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
-        store:OrgImages[] retrievedImage = check from var content in orgContent
-            where content.organizationOrgId == orgId && content.fileName == image.imageName
-            select content;
-        if (retrievedImage.length() !== 0) {
-            store:OrgImages|persist:Error org = dbClient->/orgimages/[retrievedImage[0].imageId].put({
-                fileName: image.imageName,
-                image: image.image,
-                organizationOrgId: orgId
-            });
-            if (org is error) {
-                return "Error occurred while updating organization images";
-            }
+        store:OrgImages|persist:Error org = dbClient->/orgimages/[orgId]/[image.imageName].put({
+            image: image.image
+        });
+        if (org is error) {
+            return "Error occurred while updating organization images";
         }
     }
     return "Organization images updated";
@@ -374,32 +373,18 @@ public function updateOrgImages(models:OrgImages[] orgImages, string orgId) retu
 
 public function retrieveAPIImages(string imagePath, string apiID, string orgName) returns byte[]|error {
 
-    stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
-    byte[] retrievedImage = [];
+    string orgId = check getOrgId(orgName);
     string filePath = "/resources/images/" + imagePath;
-    store:ApiImages[] images = check from var image in apiImages
-        where image.apimetadataApiId == apiID && image.value == filePath && image.apimetadataOrganizationName == orgName
-        select image;
-    if (images.length() !== 0) {
-        store:ApiImages imageRecord = images[0];
-        retrievedImage = imageRecord.image ?: [];
-    }
-    return retrievedImage;
+    store:ApiImagesWithRelations apiImages = check dbClient->/apiimages/[filePath]/[apiID]/[orgId];
+    return apiImages.image ?: [];
 }
 
-public function retrieveAPIContent(string apiID, string orgName ) returns string|error {
+public function retrieveAPIContent(string apiID, string orgName) returns string|error {
 
-    stream<store:ApiContent, persist:Error?> apiContent = dbClient->/apicontents.get();
-    store:ApiContent[] contents = check from var content in apiContent
-        where content.apimetadataApiId == apiID && content.apimetadataOrganizationName == orgName
-        select content;
-    if (contents.length() == 0) {
-       return  contents[0].apiContent;
-    } else {
-        return "API content not found";
-    }
-
-    }
+    string orgId = check getOrgId(orgName);
+    store:ApiContentWithRelations apiContent = check dbClient->/apicontents/[apiID]/[orgId];
+    return apiContent.apiContent ?: "API content not found";
+}
 
 public function deleteAPI(string apiID, string orgName) returns string|error? {
 
@@ -411,22 +396,16 @@ public function deleteAPI(string apiID, string orgName) returns string|error? {
 
 }
 
-public function retrieveOrgFiles(string fileName, string orgId) returns store:OrganizationAssets[]|error? {
+public function retrieveOrgFiles(string fileName, string orgId) returns string|error? {
 
-    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
-    store:OrganizationAssets[] contents = check from var content in orgContent
-        where content.organizationOrgId == orgId && content.pageType == fileName
-        select content;
-    return contents;
+    store:OrganizationAssetsWithRelations orgContent = check dbClient->/organizationassets/[fileName]/[orgId];
+    return orgContent.pageContent ?: "File not found";
 }
 
-public function retrieveOrgImages(string fileName, string orgId) returns store:OrgImages[]|error? {
+public function retrieveOrgImages(string fileName, string orgId) returns byte[]|string|error? {
 
-    stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
-    store:OrgImages[] orgImages = check from var content in orgContent
-        where content.organizationOrgId == orgId && content.fileName == fileName
-        select content;
-    return orgImages;
+    store:OrgImagesWithRelations orgContent = check dbClient->/orgimages/[orgId]/[fileName];
+    return orgContent.image ?: "File not found";
 }
 
 public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {

@@ -21,7 +21,10 @@ service /apiMetadata on new http:Listener(9090) {
     resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:createAPIMetadata(metadata);
-        utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        error? apiImages = utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        if apiImages is error {
+
+        }
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -35,7 +38,10 @@ service /apiMetadata on new http:Listener(9090) {
     resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
-        utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        error? apiImages = utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        if apiImages is error {
+
+        }
         http:Response response = new;
         response.setPayload({apiId: apiId});
         return response;
@@ -89,7 +95,7 @@ service /apiMetadata on new http:Listener(9090) {
         map<string> apiImagesRecord = {};
 
         foreach var property in apiImages {
-            apiImagesRecord[property.key ?: ""] = property.value ?: "";
+            apiImagesRecord[property.key ?: ""] = property.imagePath ?: "";
         }
         string apiDefinition = check apiMetaData.openApiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
@@ -185,7 +191,7 @@ service /apiMetadata on new http:Listener(9090) {
             map<string> apiImagesRecord = {};
 
             foreach var property in apiImages {
-                apiImagesRecord[property.key ?: ""] = property.value ?: "";
+                apiImagesRecord[property.key ?: ""] = property.imagePath ?: "";
             }
 
             string apiDefinition = check apiMetaData.openApiDefinition ?: "";
@@ -253,10 +259,61 @@ service /apiMetadata on new http:Listener(9090) {
         }
 
         check file:remove(orgName, file:RECURSIVE);
-        utils:addApiContent(apiAssets, apiId, orgName);
+        error? apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        if apiContent is error {
+            return "Asset update failed";
+        }
         io:println("API content added successfully");
         return "API asset updated";
     }
+
+    resource function put apiContent(http:Request request, string orgName, string apiName) returns string|error {
+
+        string apiId = check utils:getAPIId(orgName, apiName);
+
+        byte[] binaryPayload = check request.getBinaryPayload();
+        string path = "./zip";
+        string targetPath = "./" + orgName + "/";
+        check io:fileWriteBytes(path, binaryPayload);
+        error? result = check zip:extract(path, targetPath);
+
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
+
+        models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
+        apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
+
+        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
+        check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+
+        models:APIImages[] apiImages = [];
+        foreach var file in imageDir {
+
+            string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
+            apiImages.push({
+                image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
+                imageKey: ""
+            }
+            );
+        }
+        if (storage.equalsIgnoreCaseAscii("DB")) {
+            _ = check utils:updateApiImages(apiImages, apiId, orgName);
+
+        } else {
+            check utils:pushContentS3(imageDir, "text/plain");
+        }
+
+        check file:remove(orgName, file:RECURSIVE);
+        error? apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        if apiContent is error {
+            return "Asset update failed";
+        }
+        io:println("API content added successfully");
+        return "API asset updated";
+    }
+
+
 
     resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
 

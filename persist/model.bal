@@ -1,6 +1,6 @@
 import ballerina/persist as _;
 import ballerina/persist as _;
-
+import ballerinax/persist.sql;
 # Description.
 #
 # + policyId - field description  
@@ -61,10 +61,10 @@ public type Review record {|
 # + authorizedRoles - field description
 public type ApiMetadata record {|
     readonly string apiId;
-    string orgId;
+    readonly string orgId;
     string apiName;
     string metadata;
-    readonly string organizationName;
+    string organizationName;
     string apiCategory;
     string openApiDefinition;
     AdditionalProperties[] additionalProperties;
@@ -80,32 +80,39 @@ public type ApiMetadata record {|
 
 
 public type ApiContent record {|
-    readonly string contentId;
+    readonly string apiId;
+    readonly string orgId;
+    @sql:Relation {keys: ["apiId", "orgId"]}
+    ApiMetadata apimetadata;
     string apiContent;
-	ApiMetadata apimetadata;
+	
 |};
 
 public type ApiImages record {|
-    readonly string imageId;
-    string key;
-    string value;
-    byte[] image;
+    readonly string imagePath;
+    readonly string apiId;
+    readonly string orgId;
+    @sql:Relation {keys: ["apiId", "orgId"]}
 	ApiMetadata apimetadata;
+    string key;
+    byte[] image;
 |};
 
 public type OrgImages record {|
-    readonly string imageId;
-    string fileName;
-    byte[] image;
+    readonly string orgId;
+    @sql:Relation {keys: ["orgId"]}
 	Organization organization;
+    readonly string fileName;
+    byte[] image;
 |};
 
 public type AdditionalProperties record {|
-    readonly string propertyId;
-    string key;
+    readonly string apiId;
+    readonly string orgId;
+    @sql:Relation {keys: ["apiId", "orgId"]}
+	ApiMetadata apimetadata;
+    readonly string key;
     string value;
-    ApiMetadata apimetadata;
-
 |};
 
 # Identity Provider configured for dev portal.

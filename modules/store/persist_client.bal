@@ -43,7 +43,7 @@ public isolated client class Client {
                 policyName: {columnName: "policyName"},
                 description: {columnName: "description"},
                 apimetadataApiId: {columnName: "apimetadataApiId"},
-                apimetadataOrganizationName: {columnName: "apimetadataOrganizationName"},
+                apimetadataOrgId: {columnName: "apimetadataOrgId"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -56,14 +56,14 @@ public isolated client class Client {
                 "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}},
                 "subscription.subscriptionId": {relation: {entityName: "subscription", refField: "subscriptionId"}},
                 "subscription.apiApiId": {relation: {entityName: "subscription", refField: "apiApiId"}},
-                "subscription.apiOrganizationName": {relation: {entityName: "subscription", refField: "apiOrganizationName"}},
+                "subscription.apiOrgId": {relation: {entityName: "subscription", refField: "apiOrgId"}},
                 "subscription.userUserId": {relation: {entityName: "subscription", refField: "userUserId"}},
                 "subscription.organizationOrgId": {relation: {entityName: "subscription", refField: "organizationOrgId"}},
                 "subscription.subscriptionPolicyId": {relation: {entityName: "subscription", refField: "subscriptionPolicyId"}}
             },
             keyFields: ["policyId"],
             joinMetadata: {
-                apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY},
+                apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apimetadataApiId", "apimetadataOrgId"], 'type: psql:ONE_TO_MANY},
                 subscription: {entity: Subscription, fieldName: "subscription", refTable: "Subscription", refColumns: ["subscriptionPolicyId"], joinColumns: ["policyId"], 'type: psql:ONE_TO_ONE}
             }
         },
@@ -85,7 +85,7 @@ public isolated client class Client {
                 rating: {columnName: "rating"},
                 comment: {columnName: "comment"},
                 apifeedbackApiId: {columnName: "apifeedbackApiId"},
-                apifeedbackOrganizationName: {columnName: "apifeedbackOrganizationName"},
+                apifeedbackOrgId: {columnName: "apifeedbackOrgId"},
                 reviewedbyUserId: {columnName: "reviewedbyUserId"},
                 "apiFeedback.apiId": {relation: {entityName: "apiFeedback", refField: "apiId"}},
                 "apiFeedback.orgId": {relation: {entityName: "apiFeedback", refField: "orgId"}},
@@ -104,7 +104,7 @@ public isolated client class Client {
             },
             keyFields: ["reviewId"],
             joinMetadata: {
-                apiFeedback: {entity: ApiMetadata, fieldName: "apiFeedback", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apifeedbackApiId", "apifeedbackOrganizationName"], 'type: psql:ONE_TO_MANY},
+                apiFeedback: {entity: ApiMetadata, fieldName: "apiFeedback", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apifeedbackApiId", "apifeedbackOrgId"], 'type: psql:ONE_TO_MANY},
                 reviewedBy: {entity: User, fieldName: "reviewedBy", refTable: "User", refColumns: ["userId"], joinColumns: ["reviewedbyUserId"], 'type: psql:ONE_TO_MANY}
             }
         },
@@ -122,58 +122,54 @@ public isolated client class Client {
                 productionUrl: {columnName: "productionUrl"},
                 sandboxUrl: {columnName: "sandboxUrl"},
                 authorizedRoles: {columnName: "authorizedRoles"},
-                "additionalProperties[].propertyId": {relation: {entityName: "additionalProperties", refField: "propertyId"}},
+                "additionalProperties[].apiId": {relation: {entityName: "additionalProperties", refField: "apiId"}},
+                "additionalProperties[].orgId": {relation: {entityName: "additionalProperties", refField: "orgId"}},
                 "additionalProperties[].key": {relation: {entityName: "additionalProperties", refField: "key"}},
                 "additionalProperties[].value": {relation: {entityName: "additionalProperties", refField: "value"}},
-                "additionalProperties[].apimetadataApiId": {relation: {entityName: "additionalProperties", refField: "apimetadataApiId"}},
-                "additionalProperties[].apimetadataOrganizationName": {relation: {entityName: "additionalProperties", refField: "apimetadataOrganizationName"}},
                 "throttlingPolicies[].policyId": {relation: {entityName: "throttlingPolicies", refField: "policyId"}},
                 "throttlingPolicies[].type": {relation: {entityName: "throttlingPolicies", refField: "type"}},
                 "throttlingPolicies[].policyName": {relation: {entityName: "throttlingPolicies", refField: "policyName"}},
                 "throttlingPolicies[].description": {relation: {entityName: "throttlingPolicies", refField: "description"}},
                 "throttlingPolicies[].apimetadataApiId": {relation: {entityName: "throttlingPolicies", refField: "apimetadataApiId"}},
-                "throttlingPolicies[].apimetadataOrganizationName": {relation: {entityName: "throttlingPolicies", refField: "apimetadataOrganizationName"}},
+                "throttlingPolicies[].apimetadataOrgId": {relation: {entityName: "throttlingPolicies", refField: "apimetadataOrgId"}},
                 "reviews[].reviewId": {relation: {entityName: "reviews", refField: "reviewId"}},
                 "reviews[].rating": {relation: {entityName: "reviews", refField: "rating"}},
                 "reviews[].comment": {relation: {entityName: "reviews", refField: "comment"}},
                 "reviews[].apifeedbackApiId": {relation: {entityName: "reviews", refField: "apifeedbackApiId"}},
-                "reviews[].apifeedbackOrganizationName": {relation: {entityName: "reviews", refField: "apifeedbackOrganizationName"}},
+                "reviews[].apifeedbackOrgId": {relation: {entityName: "reviews", refField: "apifeedbackOrgId"}},
                 "reviews[].reviewedbyUserId": {relation: {entityName: "reviews", refField: "reviewedbyUserId"}},
                 "subscriptions[].subscriptionId": {relation: {entityName: "subscriptions", refField: "subscriptionId"}},
                 "subscriptions[].apiApiId": {relation: {entityName: "subscriptions", refField: "apiApiId"}},
-                "subscriptions[].apiOrganizationName": {relation: {entityName: "subscriptions", refField: "apiOrganizationName"}},
+                "subscriptions[].apiOrgId": {relation: {entityName: "subscriptions", refField: "apiOrgId"}},
                 "subscriptions[].userUserId": {relation: {entityName: "subscriptions", refField: "userUserId"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}},
-                "apiContent[].contentId": {relation: {entityName: "apiContent", refField: "contentId"}},
+                "apiContent[].apiId": {relation: {entityName: "apiContent", refField: "apiId"}},
+                "apiContent[].orgId": {relation: {entityName: "apiContent", refField: "orgId"}},
                 "apiContent[].apiContent": {relation: {entityName: "apiContent", refField: "apiContent"}},
-                "apiContent[].apimetadataApiId": {relation: {entityName: "apiContent", refField: "apimetadataApiId"}},
-                "apiContent[].apimetadataOrganizationName": {relation: {entityName: "apiContent", refField: "apimetadataOrganizationName"}},
-                "apiImages[].imageId": {relation: {entityName: "apiImages", refField: "imageId"}},
+                "apiImages[].imagePath": {relation: {entityName: "apiImages", refField: "imagePath"}},
+                "apiImages[].apiId": {relation: {entityName: "apiImages", refField: "apiId"}},
+                "apiImages[].orgId": {relation: {entityName: "apiImages", refField: "orgId"}},
                 "apiImages[].key": {relation: {entityName: "apiImages", refField: "key"}},
-                "apiImages[].value": {relation: {entityName: "apiImages", refField: "value"}},
-                "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}},
-                "apiImages[].apimetadataApiId": {relation: {entityName: "apiImages", refField: "apimetadataApiId"}},
-                "apiImages[].apimetadataOrganizationName": {relation: {entityName: "apiImages", refField: "apimetadataOrganizationName"}}
+                "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}}
             },
-            keyFields: ["apiId", "organizationName"],
+            keyFields: ["apiId", "orgId"],
             joinMetadata: {
-                additionalProperties: {entity: AdditionalProperties, fieldName: "additionalProperties", refTable: "AdditionalProperties", refColumns: ["apimetadataApiId", "apimetadataOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE},
-                throttlingPolicies: {entity: ThrottlingPolicy, fieldName: "throttlingPolicies", refTable: "ThrottlingPolicy", refColumns: ["apimetadataApiId", "apimetadataOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE},
-                reviews: {entity: Review, fieldName: "reviews", refTable: "Review", refColumns: ["apifeedbackApiId", "apifeedbackOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE},
-                subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["apiApiId", "apiOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE},
-                apiContent: {entity: ApiContent, fieldName: "apiContent", refTable: "ApiContent", refColumns: ["apimetadataApiId", "apimetadataOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE},
-                apiImages: {entity: ApiImages, fieldName: "apiImages", refTable: "ApiImages", refColumns: ["apimetadataApiId", "apimetadataOrganizationName"], joinColumns: ["apiId", "organizationName"], 'type: psql:MANY_TO_ONE}
+                additionalProperties: {entity: AdditionalProperties, fieldName: "additionalProperties", refTable: "AdditionalProperties", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE},
+                throttlingPolicies: {entity: ThrottlingPolicy, fieldName: "throttlingPolicies", refTable: "ThrottlingPolicy", refColumns: ["apimetadataApiId", "apimetadataOrgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE},
+                reviews: {entity: Review, fieldName: "reviews", refTable: "Review", refColumns: ["apifeedbackApiId", "apifeedbackOrgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE},
+                subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["apiApiId", "apiOrgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE},
+                apiContent: {entity: ApiContent, fieldName: "apiContent", refTable: "ApiContent", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE},
+                apiImages: {entity: ApiImages, fieldName: "apiImages", refTable: "ApiImages", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:MANY_TO_ONE}
             }
         },
         [API_CONTENT]: {
             entityName: "ApiContent",
             tableName: "ApiContent",
             fieldMetadata: {
-                contentId: {columnName: "contentId"},
+                apiId: {columnName: "apiId"},
+                orgId: {columnName: "orgId"},
                 apiContent: {columnName: "apiContent"},
-                apimetadataApiId: {columnName: "apimetadataApiId"},
-                apimetadataOrganizationName: {columnName: "apimetadataOrganizationName"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -185,19 +181,18 @@ public isolated client class Client {
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
                 "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
-            keyFields: ["contentId"],
-            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
+            keyFields: ["apiId", "orgId"],
+            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:ONE_TO_MANY}}
         },
         [API_IMAGES]: {
             entityName: "ApiImages",
             tableName: "ApiImages",
             fieldMetadata: {
-                imageId: {columnName: "imageId"},
+                imagePath: {columnName: "imagePath"},
+                apiId: {columnName: "apiId"},
+                orgId: {columnName: "orgId"},
                 key: {columnName: "key"},
-                value: {columnName: "value"},
                 image: {columnName: "image"},
-                apimetadataApiId: {columnName: "apimetadataApiId"},
-                apimetadataOrganizationName: {columnName: "apimetadataOrganizationName"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -209,34 +204,32 @@ public isolated client class Client {
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
                 "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
-            keyFields: ["imageId"],
-            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
+            keyFields: ["imagePath", "apiId", "orgId"],
+            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:ONE_TO_MANY}}
         },
         [ORG_IMAGES]: {
             entityName: "OrgImages",
             tableName: "OrgImages",
             fieldMetadata: {
-                imageId: {columnName: "imageId"},
+                orgId: {columnName: "orgId"},
                 fileName: {columnName: "fileName"},
                 image: {columnName: "image"},
-                organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
-            keyFields: ["imageId"],
-            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
+            keyFields: ["orgId", "fileName"],
+            joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["orgId"], 'type: psql:ONE_TO_MANY}}
         },
         [ADDITIONAL_PROPERTIES]: {
             entityName: "AdditionalProperties",
             tableName: "AdditionalProperties",
             fieldMetadata: {
-                propertyId: {columnName: "propertyId"},
+                apiId: {columnName: "apiId"},
+                orgId: {columnName: "orgId"},
                 key: {columnName: "key"},
                 value: {columnName: "value"},
-                apimetadataApiId: {columnName: "apimetadataApiId"},
-                apimetadataOrganizationName: {columnName: "apimetadataOrganizationName"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
                 "apimetadata.apiName": {relation: {entityName: "apimetadata", refField: "apiName"}},
@@ -248,8 +241,8 @@ public isolated client class Client {
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
                 "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
-            keyFields: ["propertyId"],
-            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apimetadataApiId", "apimetadataOrganizationName"], 'type: psql:ONE_TO_MANY}}
+            keyFields: ["apiId", "orgId", "key"],
+            joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:ONE_TO_MANY}}
         },
         [IDENTITY_PROVIDER]: {
             entityName: "IdentityProvider",
@@ -318,21 +311,20 @@ public isolated client class Client {
                 "identityProvider[].organizationOrgId": {relation: {entityName: "identityProvider", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionId": {relation: {entityName: "subscriptions", refField: "subscriptionId"}},
                 "subscriptions[].apiApiId": {relation: {entityName: "subscriptions", refField: "apiApiId"}},
-                "subscriptions[].apiOrganizationName": {relation: {entityName: "subscriptions", refField: "apiOrganizationName"}},
+                "subscriptions[].apiOrgId": {relation: {entityName: "subscriptions", refField: "apiOrgId"}},
                 "subscriptions[].userUserId": {relation: {entityName: "subscriptions", refField: "userUserId"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionpolicyPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionpolicyPolicyId"}},
-                "orgImages[].imageId": {relation: {entityName: "orgImages", refField: "imageId"}},
+                "orgImages[].orgId": {relation: {entityName: "orgImages", refField: "orgId"}},
                 "orgImages[].fileName": {relation: {entityName: "orgImages", refField: "fileName"}},
-                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}},
-                "orgImages[].organizationOrgId": {relation: {entityName: "orgImages", refField: "organizationOrgId"}}
+                "orgImages[].image": {relation: {entityName: "orgImages", refField: "image"}}
             },
             keyFields: ["orgId"],
             joinMetadata: {
                 organizationAssets: {entity: OrganizationAssets, fieldName: "organizationAssets", refTable: "OrganizationAssets", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 identityProvider: {entity: IdentityProvider, fieldName: "identityProvider", refTable: "IdentityProvider", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
                 subscriptions: {entity: Subscription, fieldName: "subscriptions", refTable: "Subscription", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE},
-                orgImages: {entity: OrgImages, fieldName: "orgImages", refTable: "OrgImages", refColumns: ["organizationOrgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
+                orgImages: {entity: OrgImages, fieldName: "orgImages", refTable: "OrgImages", refColumns: ["orgId"], joinColumns: ["orgId"], 'type: psql:MANY_TO_ONE}
             }
         },
         [ORGANIZATION_ASSETS]: {
@@ -387,11 +379,11 @@ public isolated client class Client {
                 "reviews[].rating": {relation: {entityName: "reviews", refField: "rating"}},
                 "reviews[].comment": {relation: {entityName: "reviews", refField: "comment"}},
                 "reviews[].apifeedbackApiId": {relation: {entityName: "reviews", refField: "apifeedbackApiId"}},
-                "reviews[].apifeedbackOrganizationName": {relation: {entityName: "reviews", refField: "apifeedbackOrganizationName"}},
+                "reviews[].apifeedbackOrgId": {relation: {entityName: "reviews", refField: "apifeedbackOrgId"}},
                 "reviews[].reviewedbyUserId": {relation: {entityName: "reviews", refField: "reviewedbyUserId"}},
                 "subscriptions[].subscriptionId": {relation: {entityName: "subscriptions", refField: "subscriptionId"}},
                 "subscriptions[].apiApiId": {relation: {entityName: "subscriptions", refField: "apiApiId"}},
-                "subscriptions[].apiOrganizationName": {relation: {entityName: "subscriptions", refField: "apiOrganizationName"}},
+                "subscriptions[].apiOrgId": {relation: {entityName: "subscriptions", refField: "apiOrgId"}},
                 "subscriptions[].userUserId": {relation: {entityName: "subscriptions", refField: "userUserId"}},
                 "subscriptions[].organizationOrgId": {relation: {entityName: "subscriptions", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionPolicyId": {relation: {entityName: "subscriptions", refField: "subscriptionPolicyId"}}
@@ -409,7 +401,7 @@ public isolated client class Client {
             fieldMetadata: {
                 subscriptionId: {columnName: "subscriptionId"},
                 apiApiId: {columnName: "apiApiId"},
-                apiOrganizationName: {columnName: "apiOrganizationName"},
+                apiOrgId: {columnName: "apiOrgId"},
                 userUserId: {columnName: "userUserId"},
                 organizationOrgId: {columnName: "organizationOrgId"},
                 subscriptionPolicyId: {columnName: "subscriptionPolicyId"},
@@ -436,11 +428,11 @@ public isolated client class Client {
                 "subscriptionPolicy.policyName": {relation: {entityName: "subscriptionPolicy", refField: "policyName"}},
                 "subscriptionPolicy.description": {relation: {entityName: "subscriptionPolicy", refField: "description"}},
                 "subscriptionPolicy.apimetadataApiId": {relation: {entityName: "subscriptionPolicy", refField: "apimetadataApiId"}},
-                "subscriptionPolicy.apimetadataOrganizationName": {relation: {entityName: "subscriptionPolicy", refField: "apimetadataOrganizationName"}}
+                "subscriptionPolicy.apimetadataOrgId": {relation: {entityName: "subscriptionPolicy", refField: "apimetadataOrgId"}}
             },
             keyFields: ["subscriptionId"],
             joinMetadata: {
-                api: {entity: ApiMetadata, fieldName: "api", refTable: "ApiMetadata", refColumns: ["apiId", "organizationName"], joinColumns: ["apiApiId", "apiOrganizationName"], 'type: psql:ONE_TO_MANY},
+                api: {entity: ApiMetadata, fieldName: "api", refTable: "ApiMetadata", refColumns: ["apiId", "orgId"], joinColumns: ["apiApiId", "apiOrgId"], 'type: psql:ONE_TO_MANY},
                 user: {entity: User, fieldName: "user", refTable: "User", refColumns: ["userId"], joinColumns: ["userUserId"], 'type: psql:ONE_TO_MANY},
                 organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY},
                 subscriptionPolicy: {entity: ThrottlingPolicy, fieldName: "subscriptionPolicy", refTable: "ThrottlingPolicy", refColumns: ["policyId"], joinColumns: ["subscriptionPolicyId"], 'type: psql:ONE_TO_ONE}
@@ -595,7 +587,7 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get apimetadata/[string apiId]/[string organizationName](ApiMetadataTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get apimetadata/[string apiId]/[string orgId](ApiMetadataTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
@@ -607,25 +599,25 @@ public isolated client class Client {
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from ApiMetadataInsert inserted in data
-            select [inserted.apiId, inserted.organizationName];
+            select [inserted.apiId, inserted.orgId];
     }
 
-    isolated resource function put apimetadata/[string apiId]/[string organizationName](ApiMetadataUpdate value) returns ApiMetadata|persist:Error {
+    isolated resource function put apimetadata/[string apiId]/[string orgId](ApiMetadataUpdate value) returns ApiMetadata|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_METADATA);
         }
-        _ = check sqlClient.runUpdateQuery({"apiId": apiId, "organizationName": organizationName}, value);
-        return self->/apimetadata/[apiId]/[organizationName].get();
+        _ = check sqlClient.runUpdateQuery({"apiId": apiId, "orgId": orgId}, value);
+        return self->/apimetadata/[apiId]/[orgId].get();
     }
 
-    isolated resource function delete apimetadata/[string apiId]/[string organizationName]() returns ApiMetadata|persist:Error {
-        ApiMetadata result = check self->/apimetadata/[apiId]/[organizationName].get();
+    isolated resource function delete apimetadata/[string apiId]/[string orgId]() returns ApiMetadata|persist:Error {
+        ApiMetadata result = check self->/apimetadata/[apiId]/[orgId].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_METADATA);
         }
-        _ = check sqlClient.runDeleteQuery({"apiId": apiId, "organizationName": organizationName});
+        _ = check sqlClient.runDeleteQuery({"apiId": apiId, "orgId": orgId});
         return result;
     }
 
@@ -634,37 +626,37 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get apicontents/[string contentId](ApiContentTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get apicontents/[string apiId]/[string orgId](ApiContentTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post apicontents(ApiContentInsert[] data) returns string[]|persist:Error {
+    isolated resource function post apicontents(ApiContentInsert[] data) returns [string, string][]|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_CONTENT);
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from ApiContentInsert inserted in data
-            select inserted.contentId;
+            select [inserted.apiId, inserted.orgId];
     }
 
-    isolated resource function put apicontents/[string contentId](ApiContentUpdate value) returns ApiContent|persist:Error {
+    isolated resource function put apicontents/[string apiId]/[string orgId](ApiContentUpdate value) returns ApiContent|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_CONTENT);
         }
-        _ = check sqlClient.runUpdateQuery(contentId, value);
-        return self->/apicontents/[contentId].get();
+        _ = check sqlClient.runUpdateQuery({"apiId": apiId, "orgId": orgId}, value);
+        return self->/apicontents/[apiId]/[orgId].get();
     }
 
-    isolated resource function delete apicontents/[string contentId]() returns ApiContent|persist:Error {
-        ApiContent result = check self->/apicontents/[contentId].get();
+    isolated resource function delete apicontents/[string apiId]/[string orgId]() returns ApiContent|persist:Error {
+        ApiContent result = check self->/apicontents/[apiId]/[orgId].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_CONTENT);
         }
-        _ = check sqlClient.runDeleteQuery(contentId);
+        _ = check sqlClient.runDeleteQuery({"apiId": apiId, "orgId": orgId});
         return result;
     }
 
@@ -673,37 +665,37 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get apiimages/[string imageId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get apiimages/[string imagePath]/[string apiId]/[string orgId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post apiimages(ApiImagesInsert[] data) returns string[]|persist:Error {
+    isolated resource function post apiimages(ApiImagesInsert[] data) returns [string, string, string][]|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_IMAGES);
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from ApiImagesInsert inserted in data
-            select inserted.imageId;
+            select [inserted.imagePath, inserted.apiId, inserted.orgId];
     }
 
-    isolated resource function put apiimages/[string imageId](ApiImagesUpdate value) returns ApiImages|persist:Error {
+    isolated resource function put apiimages/[string imagePath]/[string apiId]/[string orgId](ApiImagesUpdate value) returns ApiImages|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_IMAGES);
         }
-        _ = check sqlClient.runUpdateQuery(imageId, value);
-        return self->/apiimages/[imageId].get();
+        _ = check sqlClient.runUpdateQuery({"imagePath": imagePath, "apiId": apiId, "orgId": orgId}, value);
+        return self->/apiimages/[imagePath]/[apiId]/[orgId].get();
     }
 
-    isolated resource function delete apiimages/[string imageId]() returns ApiImages|persist:Error {
-        ApiImages result = check self->/apiimages/[imageId].get();
+    isolated resource function delete apiimages/[string imagePath]/[string apiId]/[string orgId]() returns ApiImages|persist:Error {
+        ApiImages result = check self->/apiimages/[imagePath]/[apiId]/[orgId].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_IMAGES);
         }
-        _ = check sqlClient.runDeleteQuery(imageId);
+        _ = check sqlClient.runDeleteQuery({"imagePath": imagePath, "apiId": apiId, "orgId": orgId});
         return result;
     }
 
@@ -712,37 +704,37 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get orgimages/[string imageId](OrgImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get orgimages/[string orgId]/[string fileName](OrgImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post orgimages(OrgImagesInsert[] data) returns string[]|persist:Error {
+    isolated resource function post orgimages(OrgImagesInsert[] data) returns [string, string][]|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ORG_IMAGES);
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from OrgImagesInsert inserted in data
-            select inserted.imageId;
+            select [inserted.orgId, inserted.fileName];
     }
 
-    isolated resource function put orgimages/[string imageId](OrgImagesUpdate value) returns OrgImages|persist:Error {
+    isolated resource function put orgimages/[string orgId]/[string fileName](OrgImagesUpdate value) returns OrgImages|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ORG_IMAGES);
         }
-        _ = check sqlClient.runUpdateQuery(imageId, value);
-        return self->/orgimages/[imageId].get();
+        _ = check sqlClient.runUpdateQuery({"orgId": orgId, "fileName": fileName}, value);
+        return self->/orgimages/[orgId]/[fileName].get();
     }
 
-    isolated resource function delete orgimages/[string imageId]() returns OrgImages|persist:Error {
-        OrgImages result = check self->/orgimages/[imageId].get();
+    isolated resource function delete orgimages/[string orgId]/[string fileName]() returns OrgImages|persist:Error {
+        OrgImages result = check self->/orgimages/[orgId]/[fileName].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ORG_IMAGES);
         }
-        _ = check sqlClient.runDeleteQuery(imageId);
+        _ = check sqlClient.runDeleteQuery({"orgId": orgId, "fileName": fileName});
         return result;
     }
 
@@ -751,37 +743,37 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get additionalproperties/[string propertyId](AdditionalPropertiesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get additionalproperties/[string apiId]/[string orgId]/[string key](AdditionalPropertiesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
 
-    isolated resource function post additionalproperties(AdditionalPropertiesInsert[] data) returns string[]|persist:Error {
+    isolated resource function post additionalproperties(AdditionalPropertiesInsert[] data) returns [string, string, string][]|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ADDITIONAL_PROPERTIES);
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from AdditionalPropertiesInsert inserted in data
-            select inserted.propertyId;
+            select [inserted.apiId, inserted.orgId, inserted.key];
     }
 
-    isolated resource function put additionalproperties/[string propertyId](AdditionalPropertiesUpdate value) returns AdditionalProperties|persist:Error {
+    isolated resource function put additionalproperties/[string apiId]/[string orgId]/[string key](AdditionalPropertiesUpdate value) returns AdditionalProperties|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ADDITIONAL_PROPERTIES);
         }
-        _ = check sqlClient.runUpdateQuery(propertyId, value);
-        return self->/additionalproperties/[propertyId].get();
+        _ = check sqlClient.runUpdateQuery({"apiId": apiId, "orgId": orgId, "key": key}, value);
+        return self->/additionalproperties/[apiId]/[orgId]/[key].get();
     }
 
-    isolated resource function delete additionalproperties/[string propertyId]() returns AdditionalProperties|persist:Error {
-        AdditionalProperties result = check self->/additionalproperties/[propertyId].get();
+    isolated resource function delete additionalproperties/[string apiId]/[string orgId]/[string key]() returns AdditionalProperties|persist:Error {
+        AdditionalProperties result = check self->/additionalproperties/[apiId]/[orgId]/[key].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ADDITIONAL_PROPERTIES);
         }
-        _ = check sqlClient.runDeleteQuery(propertyId);
+        _ = check sqlClient.runDeleteQuery({"apiId": apiId, "orgId": orgId, "key": key});
         return result;
     }
 

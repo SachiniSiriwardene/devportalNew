@@ -210,9 +210,9 @@ service /admin on new http:Listener(8080) {
         mime:Entity file = new;
         http:Response response = new;
         if (filename.endsWith("html") || filename.endsWith("css")) {
-            store:OrganizationAssets[] contents = check utils:retrieveOrgFiles(filename, orgId) ?: [];
-            if (contents.length() > 0) {
-                file.setBody(contents[0].pageContent);
+            string|error? fileContent = utils:retrieveOrgFiles(filename, orgId);
+            if (!(fileContent is error)) {
+                file.setBody(fileContent);
                 response.setEntity(file);
                 check response.setContentType("application/octet-stream");
                 response.setHeader("Content-Type", "text/css");
@@ -223,9 +223,9 @@ service /admin on new http:Listener(8080) {
                 response.setPayload("Requested file not found");
             }
         } else {
-            store:OrgImages[] images = check utils:retrieveOrgImages(filename, orgId) ?: [];
-            if (images.length() > 0) {
-                file.setBody(images[0].image);
+            byte[]|string|error? retrieveOrgImage = utils:retrieveOrgImages(filename, orgId);
+            if retrieveOrgImage is byte[] {
+                file.setBody(retrieveOrgImage);
                 response.setEntity(file);
                 check response.setContentType("application/octet-stream");
                 response.setHeader("Content-Type", "application/octet-stream");
