@@ -4,13 +4,14 @@ WORKDIR /app/build
 
 COPY ./target/bin/devportal.jar .
 
-RUN native-image -jar devportal.jar -H:Name=devportal --no-fallback -H:+StaticExecutableWithDynamicLibC
+RUN native-image -jar devportal.jar --no-fallback
 
-FROM gcr.io/distroless/base
+FROM debian:stable-slim
 
 WORKDIR /home/ballerina
 
 EXPOSE 8080
 COPY --from=build /app/build/devportal .
 
-CMD ["./devportal.jar"]
+CMD ["sh", "-c", "echo 'Executing the devportal backend' && ./devportal"]
+

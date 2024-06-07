@@ -58,7 +58,11 @@ service /admin on new http:Listener(8080) {
         };
         return org;
     }
-
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: origins.allowedOrigins
+        }
+    }
     resource function get organisation(string orgName) returns models:OrgCreationResponse|error {
 
         store:OrganizationWithRelations organization = check utils:getOrgDetails(orgName);
@@ -143,6 +147,11 @@ service /admin on new http:Listener(8080) {
     # + request - parameter description  
     # + orgName - parameter description
     # + return - return value description
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: origins.allowedOrigins
+        }
+    }
     resource function put orgContent(http:Request request, string orgName) returns string|error {
 
         string orgId = check utils:getOrgId(orgName);
