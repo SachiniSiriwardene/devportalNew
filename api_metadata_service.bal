@@ -49,7 +49,8 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
+        string orgId = check utils:getOrgId(orgName);
+        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
         store:ApiContentOptionalized[] apiContent = apiMetaData.apiContent ?: [];
@@ -126,7 +127,8 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get apiDefinition(string apiID, string orgName) returns json|error {
 
-        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgName].get();
+        string orgId = check utils:getOrgId(orgName);
+        store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
         string apiDefinition = apiMetaData.openApiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
         log:printInfo("API definition returned");
@@ -242,18 +244,19 @@ service /apiMetadata on new http:Listener(9090) {
 
         models:APIImages[] apiImages = [];
         foreach var file in imageDir {
-
             string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-            apiImages.push({
-                image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
-                imageKey: ""
+            imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
+            if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                apiImages.push({
+                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                    imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
+                    imageKey: ""
+                }
+                );
             }
-            );
         }
         if (storage.equalsIgnoreCaseAscii("DB")) {
             _ = check utils:updateApiImages(apiImages, apiId, orgName);
-
         } else {
             check utils:pushContentS3(imageDir, "text/plain");
         }
@@ -290,30 +293,34 @@ service /apiMetadata on new http:Listener(9090) {
         foreach var file in imageDir {
 
             string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-            apiImages.push({
-                image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
-                imageKey: ""
+            imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
+            if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                apiImages.push({
+                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                    imageName: imageName,
+                    imageKey: ""
+                }
+                );
             }
-            );
         }
         if (storage.equalsIgnoreCaseAscii("DB")) {
-            _ = check utils:updateApiImages(apiImages, apiId, orgName);
-
+            string|error apiImagesResult = utils:updateApiImages(apiImages, apiId, orgName);
+            if apiImagesResult is error {
+                log:printError(apiImagesResult.toString());
+            }
         } else {
             check utils:pushContentS3(imageDir, "text/plain");
         }
 
         check file:remove(orgName, file:RECURSIVE);
-        error? apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        string|error? apiContent = utils:updateApiContent(apiAssets, apiId, orgName);
         if apiContent is error {
+            log:printError(apiContent.toString());
             return "Asset update failed";
         }
         io:println("API content added successfully");
         return "API asset updated";
     }
-
-
 
     resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
 
@@ -322,8 +329,10 @@ service /apiMetadata on new http:Listener(9090) {
             string content = check utils:retrieveAPIContent(apiID, orgName);
             file.setBody(content);
         } else {
-            byte[] image = check utils:retrieveAPIImages(filename, apiID, orgName);
-            if (image.length() != 0) {
+            byte[]|string|error? image = check utils:retrieveAPIImages(filename, apiID, orgName);
+
+            if (image is byte[]) {
+                log:printInfo("Image sent");
                 file.setBody(image);
             } else {
                 file.setBody("File not found");

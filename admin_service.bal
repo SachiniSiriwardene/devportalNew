@@ -91,7 +91,7 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" + orgName;
+        string targetPath = "./" ;
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -158,7 +158,7 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" + orgName;
+        string targetPath = "./" ;
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -219,7 +219,7 @@ service /admin on new http:Listener(8080) {
         mime:Entity file = new;
         http:Response response = new;
         if (filename.endsWith("html") || filename.endsWith("css")) {
-            string|error? fileContent = utils:retrieveOrgFiles(filename, orgId);
+            string|error? fileContent = utils:retrieveOrgFiles(filename, orgName);
             if (!(fileContent is error)) {
                 file.setBody(fileContent);
                 response.setEntity(file);

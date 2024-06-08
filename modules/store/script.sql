@@ -13,8 +13,8 @@ DROP TABLE IF EXISTS "IdentityProvider";
 DROP TABLE IF EXISTS "AdditionalProperties";
 DROP TABLE IF EXISTS "ApiContent";
 DROP TABLE IF EXISTS "ThrottlingPolicy";
-DROP TABLE IF EXISTS "Organization";
 DROP TABLE IF EXISTS "OrgImages";
+DROP TABLE IF EXISTS "Organization";
 DROP TABLE IF EXISTS "ApiMetadata";
 DROP TABLE IF EXISTS "RateLimitingPolicy";
 DROP TABLE IF EXISTS "Application";
@@ -72,13 +72,13 @@ CREATE TABLE "ThrottlingPolicy" (
 	"policyName" VARCHAR(191) NOT NULL,
 	"description" VARCHAR(191) NOT NULL,
 	"apimetadataApiId" VARCHAR(191) NOT NULL,
-	"apimetadataOrganizationName" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("apimetadataApiId", "apimetadataOrganizationName") REFERENCES "ApiMetadata"("apiId", "organizationName"),
+	"apimetadataOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
 	PRIMARY KEY("policyId")
 );
 
 CREATE TABLE "ApiContent" (
-	"apiContent" VARCHAR(191) NOT NULL,
+	"apiContent" TEXT NOT NULL,
 	"apiId" VARCHAR(191) NOT NULL,
 	"orgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("apiId", "orgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
@@ -145,8 +145,8 @@ CREATE TABLE "Review" (
 	"rating" INT NOT NULL,
 	"comment" VARCHAR(191) NOT NULL,
 	"apifeedbackApiId" VARCHAR(191) NOT NULL,
-	"apifeedbackOrganizationName" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("apifeedbackApiId", "apifeedbackOrganizationName") REFERENCES "ApiMetadata"("apiId", "organizationName"),
+	"apifeedbackOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("apifeedbackApiId", "apifeedbackOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
 	"reviewedbyUserId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("reviewedbyUserId") REFERENCES "User"("userId"),
 	PRIMARY KEY("reviewId")

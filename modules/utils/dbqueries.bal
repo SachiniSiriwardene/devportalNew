@@ -282,11 +282,7 @@ public function addApiContent(models:APIAssets apiAssets, string apiID, string o
     });
 
     if (apiContentRecord.length() != 0) {
-        do {
-            string[][] contentResults = check dbClient->/apicontents.post(apiContentRecord);
-        } on fail var e {
-            log:printError("Error occurred while adding API content: " + e.message());
-        }
+        string[][] contentResults = check dbClient->/apicontents.post(apiContentRecord);
     }
 }
 
@@ -374,16 +370,36 @@ public function updateOrgImages(models:OrgImages[] orgImages, string orgId) retu
 public function retrieveAPIImages(string imagePath, string apiID, string orgName) returns byte[]|error {
 
     string orgId = check getOrgId(orgName);
+    stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
     string filePath = "/resources/images/" + imagePath;
-    store:ApiImagesWithRelations apiImages = check dbClient->/apiimages/[filePath]/[apiID]/[orgId];
-    return apiImages.image ?: [];
+    log:printInfo(filePath);
+    log:printInfo(orgId);
+    log:printInfo(apiID);
+
+    store:ApiImages[] images = check from var image in apiImages
+        where image.apiId == apiID && image.imagePath == filePath && image.orgId == orgId
+        select image;
+    log:printInfo(images.length().toString());
+    log:printInfo(images[0].image.toString());
+    if (images.length() !== 0) {
+        log:printInfo("image retrieved");
+        return images[0].image;
+    }
+    return [];
 }
 
 public function retrieveAPIContent(string apiID, string orgName) returns string|error {
 
     string orgId = check getOrgId(orgName);
-    store:ApiContentWithRelations apiContent = check dbClient->/apicontents/[apiID]/[orgId];
-    return apiContent.apiContent ?: "API content not found";
+    stream<store:ApiContent, persist:Error?> apiContent = dbClient->/apicontents.get();
+    store:ApiContent[] contents = check from var content in apiContent
+        where content.apiId == apiID && content.orgId == orgId
+        select content;
+    if (contents.length() !== 0) {
+        return contents[0].apiContent;
+    } else {
+        return "API content not found";
+    }
 }
 
 public function deleteAPI(string apiID, string orgName) returns string|error? {
@@ -396,16 +412,31 @@ public function deleteAPI(string apiID, string orgName) returns string|error? {
 
 }
 
-public function retrieveOrgFiles(string fileName, string orgId) returns string|error? {
+public function retrieveOrgFiles(string fileName, string orgName) returns string|error? {
 
-    store:OrganizationAssetsWithRelations orgContent = check dbClient->/organizationassets/[fileName]/[orgId];
-    return orgContent.pageContent ?: "File not found";
+    string orgId = check getOrgId(orgName);
+    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
+    store:OrganizationAssets[] contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.pageType == fileName
+        select content;
+    if (contents.length() == 0) {
+        return "File not found";
+    } else {
+        return contents[0].pageContent;
+    }
 }
 
 public function retrieveOrgImages(string fileName, string orgId) returns byte[]|string|error? {
 
-    store:OrgImagesWithRelations orgContent = check dbClient->/orgimages/[orgId]/[fileName];
-    return orgContent.image ?: "File not found";
+    stream<store:OrgImages, persist:Error?> orgContent = dbClient->/orgimages.get();
+    store:OrgImages[] orgImages = check from var content in orgContent
+        where content.orgId == orgId && content.fileName == fileName
+        select content;
+    if (orgImages.length() == 0) {
+        return "File not found";
+    } else {
+        return orgImages[0].image;
+    }
 }
 
 public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {
