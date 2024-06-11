@@ -89,12 +89,12 @@ public type ApiContent record {|
 |};
 
 public type ApiImages record {|
-    readonly string imagePath;
+    readonly string imageTag;
     readonly string apiId;
     readonly string orgId;
     @sql:Relation {keys: ["apiId", "orgId"]}
 	ApiMetadata apimetadata;
-    string key;
+    string imagePath;
     byte[] image;
 |};
 

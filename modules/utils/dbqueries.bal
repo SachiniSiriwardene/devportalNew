@@ -303,7 +303,7 @@ public function addApiImages(map<string> images, string apiID, string orgName) r
     string orgId = check getOrgId(orgName);
     foreach var propertyKey in images.keys() {
         apiImagesRecord.push({
-            'key: propertyKey,
+            imageTag: propertyKey,
             imagePath: <string>images.get(propertyKey),
             apiId: apiID,
             orgId: orgId,
@@ -323,9 +323,32 @@ public function updateApiImages(models:APIImages[] imageRecords, string apiID, s
 
     string orgId = check getOrgId(orgName);
     foreach var apiImage in imageRecords {
-        store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[apiImage.imageName]/[apiID]/[orgId].put(
+        stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
+        store:ApiImages[] images = check from var image in apiImages
+            where image.apiId == apiID && image.imagePath == apiImage.imageName && image.orgId == orgId
+            select image;
+        if (images.length() != 0) {
+            store:ApiImages|persist:Error updatedImage = dbClient->/apiimages/[images[0].imageTag]/[apiID]/[orgId].put(
+                {
+                    image: apiImage.image
+                }
+            );
+            if updatedImage is error {
+                return "Error occurred while updating API images";
+            }
+        }
+    }
+    return "API Image upload success";
+}
+
+public function updateApiImagePath(map<string> images, string apiID, string orgName) returns string|error {
+
+    string orgId = check getOrgId(orgName);
+    foreach var propertyKey in images.keys() {
+
+        store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[propertyKey]/[apiID]/[orgId].put(
             {
-                image: apiImage.image
+                imagePath: <string>images.get(propertyKey)
             }
         );
         if apiImages is error {
@@ -372,17 +395,11 @@ public function retrieveAPIImages(string imagePath, string apiID, string orgName
     string orgId = check getOrgId(orgName);
     stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
     string filePath = "/resources/images/" + imagePath;
-    log:printInfo(filePath);
-    log:printInfo(orgId);
-    log:printInfo(apiID);
-
     store:ApiImages[] images = check from var image in apiImages
         where image.apiId == apiID && image.imagePath == filePath && image.orgId == orgId
         select image;
-    log:printInfo(images.length().toString());
-    log:printInfo(images[0].image.toString());
     if (images.length() !== 0) {
-        log:printInfo("image retrieved");
+        log:printInfo("Image retrieved");
         return images[0].image;
     }
     return [];

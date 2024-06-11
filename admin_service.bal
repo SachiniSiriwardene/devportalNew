@@ -58,6 +58,7 @@ service /admin on new http:Listener(8080) {
         };
         return org;
     }
+
     @http:ResourceConfig {
         cors: {
             allowOrigins: origins.allowedOrigins
@@ -91,7 +92,7 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" ;
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -124,11 +125,14 @@ service /admin on new http:Listener(8080) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-                orgImages.push({
-                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                    imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length())
+                imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
+                if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
+                    orgImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName
+                    }
+                    );
                 }
-                );
             }
             string _ = check utils:storeOrgImages(orgImages, orgId);
         } else {
@@ -158,7 +162,7 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" ;
+        string targetPath = "./" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -190,11 +194,14 @@ service /admin on new http:Listener(8080) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-                orgImages.push({
-                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                    imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length())
+                imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
+                if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
+                    orgImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length())
+                    }
+                    );
                 }
-                );
             }
             string _ = check utils:updateOrgImages(orgImages, orgId);
         } else {

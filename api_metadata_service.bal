@@ -38,9 +38,10 @@ service /apiMetadata on new http:Listener(9090) {
     resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
 
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
-        error? apiImages = utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
-        if apiImages is error {
-
+        string|error apiImageUpdateResponse
+         = utils:updateApiImagePath(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        if apiImageUpdateResponse is error {
+            log:printError(apiImageUpdateResponse.toString());
         }
         http:Response response = new;
         response.setPayload({apiId: apiId});
@@ -96,7 +97,7 @@ service /apiMetadata on new http:Listener(9090) {
         map<string> apiImagesRecord = {};
 
         foreach var property in apiImages {
-            apiImagesRecord[property.key ?: ""] = property.imagePath ?: "";
+            apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
         string apiDefinition = check apiMetaData.openApiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
@@ -193,7 +194,7 @@ service /apiMetadata on new http:Listener(9090) {
             map<string> apiImagesRecord = {};
 
             foreach var property in apiImages {
-                apiImagesRecord[property.key ?: ""] = property.imagePath ?: "";
+                apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
             }
 
             string apiDefinition = check apiMetaData.openApiDefinition ?: "";
@@ -250,7 +251,7 @@ service /apiMetadata on new http:Listener(9090) {
                 apiImages.push({
                     image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
                     imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
-                    imageKey: ""
+                    imageTag: ""
                 }
                 );
             }
@@ -298,7 +299,7 @@ service /apiMetadata on new http:Listener(9090) {
                 apiImages.push({
                     image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
                     imageName: imageName,
-                    imageKey: ""
+                    imageTag: ""
                 }
                 );
             }

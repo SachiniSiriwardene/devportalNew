@@ -71,7 +71,7 @@ public type APIAssets record {|
 
 public type APIImages record {|
     string imageName;
-    string imageKey;
+    string imageTag;
     byte[] image;
 |};
 

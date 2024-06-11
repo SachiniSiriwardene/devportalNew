@@ -147,10 +147,10 @@ public isolated client class Client {
                 "apiContent[].apiId": {relation: {entityName: "apiContent", refField: "apiId"}},
                 "apiContent[].orgId": {relation: {entityName: "apiContent", refField: "orgId"}},
                 "apiContent[].apiContent": {relation: {entityName: "apiContent", refField: "apiContent"}},
-                "apiImages[].imagePath": {relation: {entityName: "apiImages", refField: "imagePath"}},
+                "apiImages[].imageTag": {relation: {entityName: "apiImages", refField: "imageTag"}},
                 "apiImages[].apiId": {relation: {entityName: "apiImages", refField: "apiId"}},
                 "apiImages[].orgId": {relation: {entityName: "apiImages", refField: "orgId"}},
-                "apiImages[].key": {relation: {entityName: "apiImages", refField: "key"}},
+                "apiImages[].imagePath": {relation: {entityName: "apiImages", refField: "imagePath"}},
                 "apiImages[].image": {relation: {entityName: "apiImages", refField: "image"}}
             },
             keyFields: ["apiId", "orgId"],
@@ -188,10 +188,10 @@ public isolated client class Client {
             entityName: "ApiImages",
             tableName: "ApiImages",
             fieldMetadata: {
-                imagePath: {columnName: "imagePath"},
+                imageTag: {columnName: "imageTag"},
                 apiId: {columnName: "apiId"},
                 orgId: {columnName: "orgId"},
-                key: {columnName: "key"},
+                imagePath: {columnName: "imagePath"},
                 image: {columnName: "image"},
                 "apimetadata.apiId": {relation: {entityName: "apimetadata", refField: "apiId"}},
                 "apimetadata.orgId": {relation: {entityName: "apimetadata", refField: "orgId"}},
@@ -204,7 +204,7 @@ public isolated client class Client {
                 "apimetadata.sandboxUrl": {relation: {entityName: "apimetadata", refField: "sandboxUrl"}},
                 "apimetadata.authorizedRoles": {relation: {entityName: "apimetadata", refField: "authorizedRoles"}}
             },
-            keyFields: ["imagePath", "apiId", "orgId"],
+            keyFields: ["imageTag", "apiId", "orgId"],
             joinMetadata: {apimetadata: {entity: ApiMetadata, fieldName: "apimetadata", refTable: "", refColumns: ["apiId", "orgId"], joinColumns: ["apiId", "orgId"], 'type: psql:ONE_TO_MANY}}
         },
         [ORG_IMAGES]: {
@@ -665,7 +665,7 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get apiimages/[string imagePath]/[string apiId]/[string orgId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get apiimages/[string imageTag]/[string apiId]/[string orgId](ApiImagesTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
@@ -677,25 +677,25 @@ public isolated client class Client {
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from ApiImagesInsert inserted in data
-            select [inserted.imagePath, inserted.apiId, inserted.orgId];
+            select [inserted.imageTag, inserted.apiId, inserted.orgId];
     }
 
-    isolated resource function put apiimages/[string imagePath]/[string apiId]/[string orgId](ApiImagesUpdate value) returns ApiImages|persist:Error {
+    isolated resource function put apiimages/[string imageTag]/[string apiId]/[string orgId](ApiImagesUpdate value) returns ApiImages|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_IMAGES);
         }
-        _ = check sqlClient.runUpdateQuery({"imagePath": imagePath, "apiId": apiId, "orgId": orgId}, value);
-        return self->/apiimages/[imagePath]/[apiId]/[orgId].get();
+        _ = check sqlClient.runUpdateQuery({"imageTag": imageTag, "apiId": apiId, "orgId": orgId}, value);
+        return self->/apiimages/[imageTag]/[apiId]/[orgId].get();
     }
 
-    isolated resource function delete apiimages/[string imagePath]/[string apiId]/[string orgId]() returns ApiImages|persist:Error {
-        ApiImages result = check self->/apiimages/[imagePath]/[apiId]/[orgId].get();
+    isolated resource function delete apiimages/[string imageTag]/[string apiId]/[string orgId]() returns ApiImages|persist:Error {
+        ApiImages result = check self->/apiimages/[imageTag]/[apiId]/[orgId].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(API_IMAGES);
         }
-        _ = check sqlClient.runDeleteQuery({"imagePath": imagePath, "apiId": apiId, "orgId": orgId});
+        _ = check sqlClient.runDeleteQuery({"imageTag": imageTag, "apiId": apiId, "orgId": orgId});
         return result;
     }
 

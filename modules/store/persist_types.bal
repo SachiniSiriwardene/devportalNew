@@ -178,18 +178,18 @@ public type ApiContentUpdate record {|
 |};
 
 public type ApiImages record {|
-    readonly string imagePath;
+    readonly string imageTag;
     string apiId;
     string orgId;
-    string key;
+    string imagePath;
     byte[] image;
 |};
 
 public type ApiImagesOptionalized record {|
-    string imagePath?;
+    string imageTag?;
     string apiId?;
     string orgId?;
-    string key?;
+    string imagePath?;
     byte[] image?;
 |};
 
@@ -205,7 +205,7 @@ public type ApiImagesInsert ApiImages;
 public type ApiImagesUpdate record {|
     string apiId?;
     string orgId?;
-    string key?;
+    string imagePath?;
     byte[] image?;
 |};
 
