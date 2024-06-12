@@ -216,17 +216,17 @@ service /admin on new http:Listener(8080) {
 
     # Retrieve landing pages.
     #
-    # + filename - parameter description  
+    # + fileName - parameter description  
     # + orgName - parameter description  
     # + request - parameter description
     # + return - return value description
-    resource function get [string filename](string orgName, http:Request request) returns error|http:Response {
+    resource function get orgFiles(string orgName, string fileName,http:Request request) returns error|http:Response {
 
         string orgId = check utils:getOrgId(orgName);
         mime:Entity file = new;
         http:Response response = new;
-        if (filename.endsWith("html") || filename.endsWith("css")) {
-            string|error? fileContent = utils:retrieveOrgFiles(filename, orgName);
+        if (fileName.endsWith("html") || fileName.endsWith("css")) {
+            string|error? fileContent = utils:retrieveOrgFiles(fileName, orgName);
             if (!(fileContent is error)) {
                 file.setBody(fileContent);
                 response.setEntity(file);
@@ -239,7 +239,7 @@ service /admin on new http:Listener(8080) {
                 response.setPayload("Requested file not found");
             }
         } else {
-            byte[]|string|error? retrieveOrgImage = utils:retrieveOrgImages(filename, orgId);
+            byte[]|string|error? retrieveOrgImage = utils:retrieveOrgImages(fileName, orgId);
             if retrieveOrgImage is byte[] {
                 file.setBody(retrieveOrgImage);
                 response.setEntity(file);
