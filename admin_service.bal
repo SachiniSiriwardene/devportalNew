@@ -198,7 +198,7 @@ service /admin on new http:Listener(8080) {
                 if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
                     orgImages.push({
                         image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                        imageName: imageName.substring(0, <int>(imageName.lastIndexOf(".") + 1))
+                        imageName: imageName
                     }
                     );
                 }
