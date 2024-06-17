@@ -369,15 +369,39 @@ public function updateApiImagePath(map<string> images, string apiID, string orgN
 
     string orgId = check getOrgId(orgName);
     foreach var propertyKey in images.keys() {
-
-        store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[propertyKey]/[apiID]/[orgId].put(
-            {
-                imagePath: <string>images.get(propertyKey)
+        stream<store:ApiImages, persist:Error?> storedImages = dbClient->/apiimages.get();
+        store:ApiImages[] retriedImage = check from var apiImage in storedImages
+            where apiImage.orgId == orgId && apiImage.imageTag == propertyKey
+            select apiImage;
+        if (retriedImage.length() != 0) {
+            store:ApiImages|persist:Error apiImages = dbClient->/apiimages/[propertyKey]/[apiID]/[orgId].put(
+                {
+                    imagePath: <string>images.get(propertyKey)
+                }
+            );
+            if apiImages is error {
+                return "Error occurred while updating API images";
             }
-        );
-        if apiImages is error {
-            return "Error occurred while updating API images";
+        } else {
+            // if no recorod for api image
+            store:ApiImagesInsert[] apiImagesRecord = [];
+            apiImagesRecord.push({
+                imageTag: propertyKey,
+                imagePath: <string>images.get(propertyKey),
+                apiId: apiID,
+                orgId: orgId,
+                image: []
+            });
+
+            if (apiImagesRecord.length() != 0) {
+                do {
+                    string[][] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+                } on fail var e {
+                    log:printError("Error occurred while adding API images: " + e.message());
+                }
+            }
         }
+
     }
     return "API Image upload success";
 }
