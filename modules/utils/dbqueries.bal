@@ -328,14 +328,38 @@ public function updateApiImages(models:APIImages[] imageRecords, string apiID, s
             where image.apiId == apiID && image.imagePath == apiImage.imageName && image.orgId == orgId
             select image;
         if (images.length() != 0) {
-            store:ApiImages|persist:Error updatedImage = dbClient->/apiimages/[images[0].imageTag]/[apiID]/[orgId].put(
-                {
-                    image: apiImage.image
-                }
-            );
-            if updatedImage is error {
+            do {
+                store:ApiImages updatedImage = check dbClient->/apiimages/[images[0].imageTag]/[apiID]/[orgId].put(
+                    {
+                        image: apiImage.image
+                    }
+                );
+
+            } on fail var e {
+                log:printError("Error occurred while updating API images: " + e.message());
                 return "Error occurred while updating API images";
             }
+
+        } else {
+            store:ApiImagesInsert[] apiImagesRecord = [];
+            foreach var image in imageRecords {
+                apiImagesRecord.push({
+                    imageTag: image.imageTag,
+                    imagePath: image.imageName,
+                    apiId: apiID,
+                    orgId: orgId,
+                    image: image.image
+                });
+            }
+            if (apiImagesRecord.length() != 0) {
+                do {
+                    string[][] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
+                } on fail var e {
+                    log:printError("Error occurred while adding API images: " + e.message());
+
+                }
+            }
+
         }
     }
     return "API Image upload success";
@@ -380,12 +404,28 @@ public function storeOrgImages(models:OrgImages[] orgImages, string orgId) retur
 public function updateOrgImages(models:OrgImages[] orgImages, string orgId) returns string|error {
 
     foreach var image in orgImages {
-        store:OrgImages|persist:Error org = dbClient->/orgimages/[orgId]/[image.imageName].put({
-            image: image.image
-        });
-        if (org is error) {
-            return "Error occurred while updating organization images";
+        stream<store:OrgImages, persist:Error?> storedImages = dbClient->/orgimages.get();
+        store:OrgImages[] images = check from var orgImage in storedImages
+            where orgImage.orgId == orgId && orgImage.fileName == image.imageName
+            select orgImage;
+        if (images.length() != 0) {
+            store:OrgImages|persist:Error org = dbClient->/orgimages/[orgId]/[image.imageName].put({
+                image: image.image
+            });
+            if (org is error) {
+                return "Error occurred while updating organization images";
+            }
+        } else {
+            store:OrgImagesInsert[] orgImageRecords = [];
+            orgImageRecords.push({
+                fileName: image.imageName,
+                image: image.image,
+                orgId: orgId
+            });
+            string[][] listResult = check dbClient->/orgimages.post(orgImageRecords);
+
         }
+
     }
     return "Organization images updated";
 }
