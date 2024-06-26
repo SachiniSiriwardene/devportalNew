@@ -210,7 +210,7 @@ service /admin on new http:Listener(8080) {
             check utils:pushContentS3(stylesheetDir, "text/css");
             log:printInfo("Added content to S3 successfully");
         }
-        check file:remove(orgName, file:RECURSIVE);
+         check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
     }
@@ -221,6 +221,11 @@ service /admin on new http:Listener(8080) {
     # + orgName - parameter description  
     # + request - parameter description
     # + return - return value description
+    @http:ResourceConfig {
+        cors: {
+            allowOrigins: origins.allowedOrigins
+        }
+    }
     resource function get orgFiles(string orgName, string fileName,http:Request request) returns error|http:Response {
 
         string orgId = check utils:getOrgId(orgName);
