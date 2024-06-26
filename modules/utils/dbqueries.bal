@@ -143,12 +143,35 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
 public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns string|error {
 
     foreach var asset in orgContent {
-        store:OrganizationAssets|persist:Error org = dbClient->/organizationassets/[asset.pageType]/[asset.orgName].put({
-            organizationOrgId: asset.orgId,
-            pageContent: asset.pageContent
-        });
-        if (org is error) {
-            return "Error occurred while updating organization assets";
+        stream<store:OrganizationAssets, persist:Error?> storedOrgAssets = dbClient->/organizationassets.get();
+        store:OrganizationAssets[] existingAsset = check from var storedAsset in storedOrgAssets
+            where storedAsset.pageType == asset.pageType && storedAsset.orgName == asset.orgName
+            select storedAsset;
+        if (existingAsset.length() != 0) {
+            do {
+                store:OrganizationAssets org = check dbClient->/organizationassets/[asset.pageType]/[asset.orgName].put({
+                    organizationOrgId: asset.orgId,
+                    pageContent: asset.pageContent
+                });
+            } on fail var e {
+                log:printError("Error while updating org assets: " + e.message());
+                return ("Error while updating org assets"+ e.message());
+            }
+        } else {
+            store:OrganizationAssetsInsert[] orgAssetRecord = [];
+            orgAssetRecord.push({
+                organizationOrgId: asset.orgId,
+                pageType: asset.pageType,
+                orgName: asset.orgName,
+                pageContent: asset.pageContent
+            });
+            do {
+                string[][] contentResults = check dbClient->/organizationassets.post(orgAssetRecord);
+            } on fail var e {
+                log:printError("Error occurred while adding API images: " + e.message());
+
+            }
+
         }
     }
     return "Organization assets upated";

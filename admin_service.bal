@@ -178,6 +178,7 @@ service /admin on new http:Listener(8080) {
         foreach var file in content {
             string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
             if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
+                
                 string pageContent = check io:fileReadString(file.absPath);
                 models:OrganizationAssets assetMapping = {
                     pageType: pageType,
