@@ -125,7 +125,8 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
             pageType: asset.pageType,
             pageContent: asset.pageContent,
             organizationOrgId: asset.orgId,
-            orgName: asset.orgName
+            orgName: asset.orgName,
+            pageName: asset.pageName
         };
         orgAssets.push(storeAsset);
     }
@@ -163,13 +164,14 @@ public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns 
                 organizationOrgId: asset.orgId,
                 pageType: asset.pageType,
                 orgName: asset.orgName,
-                pageContent: asset.pageContent
+                pageContent: asset.pageContent,
+                pageName: asset.pageName
             });
             do {
                 string[][] contentResults = check dbClient->/organizationassets.post(orgAssetRecord);
             } on fail var e {
-                log:printError("Error occurred while adding API images: " + e.message());
-
+                log:printError("Error occurred while adding organization assets: " + e.message());
+                return ("Error while adding org assets"+ e.message());
             }
 
         }
@@ -521,12 +523,27 @@ public function retrieveOrgFiles(string fileName, string orgName) returns string
     string orgId = check getOrgId(orgName);
     stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
     store:OrganizationAssets[] contents = check from var content in orgContent
-        where content.organizationOrgId == orgId && content.pageType == fileName
+        where content.organizationOrgId == orgId && content.pageName == fileName
         select content;
     if (contents.length() == 0) {
         return "File not found";
     } else {
         return contents[0].pageContent;
+    }
+}
+
+public function retrieveOrgFileType(string fileType, string orgName) returns store:OrganizationAssets[]|error? {
+
+    string orgId = check getOrgId(orgName);
+    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
+    store:OrganizationAssets[] contents = [];
+    contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.pageType == fileType
+        select content;
+    if (contents.length() == 0) {
+        return contents;
+    } else {
+        return contents;
     }
 }
 

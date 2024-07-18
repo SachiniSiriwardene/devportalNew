@@ -297,8 +297,9 @@ public isolated client class Client {
                 organizationName: {columnName: "organizationName"},
                 isPublic: {columnName: "isPublic"},
                 authenticatedPages: {columnName: "authenticatedPages"},
-                "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
+                "organizationAssets[].pageName": {relation: {entityName: "organizationAssets", refField: "pageName"}},
                 "organizationAssets[].orgName": {relation: {entityName: "organizationAssets", refField: "orgName"}},
+                "organizationAssets[].pageType": {relation: {entityName: "organizationAssets", refField: "pageType"}},
                 "organizationAssets[].pageContent": {relation: {entityName: "organizationAssets", refField: "pageContent"}},
                 "organizationAssets[].organizationOrgId": {relation: {entityName: "organizationAssets", refField: "organizationOrgId"}},
                 "identityProvider[].idpID": {relation: {entityName: "identityProvider", refField: "idpID"}},
@@ -331,8 +332,9 @@ public isolated client class Client {
             entityName: "OrganizationAssets",
             tableName: "OrganizationAssets",
             fieldMetadata: {
-                pageType: {columnName: "pageType"},
+                pageName: {columnName: "pageName"},
                 orgName: {columnName: "orgName"},
+                pageType: {columnName: "pageType"},
                 pageContent: {columnName: "pageContent"},
                 organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
@@ -340,7 +342,7 @@ public isolated client class Client {
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
-            keyFields: ["pageType", "orgName"],
+            keyFields: ["pageName", "orgName"],
             joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
         [APPLICATION_PROPERTIES]: {
@@ -899,7 +901,7 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get organizationassets/[string pageType]/[string orgName](OrganizationAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get organizationassets/[string pageName]/[string orgName](OrganizationAssetsTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
@@ -911,25 +913,25 @@ public isolated client class Client {
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from OrganizationAssetsInsert inserted in data
-            select [inserted.pageType, inserted.orgName];
+            select [inserted.pageName, inserted.orgName];
     }
 
-    isolated resource function put organizationassets/[string pageType]/[string orgName](OrganizationAssetsUpdate value) returns OrganizationAssets|persist:Error {
+    isolated resource function put organizationassets/[string pageName]/[string orgName](OrganizationAssetsUpdate value) returns OrganizationAssets|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ORGANIZATION_ASSETS);
         }
-        _ = check sqlClient.runUpdateQuery({"pageType": pageType, "orgName": orgName}, value);
-        return self->/organizationassets/[pageType]/[orgName].get();
+        _ = check sqlClient.runUpdateQuery({"pageName": pageName, "orgName": orgName}, value);
+        return self->/organizationassets/[pageName]/[orgName].get();
     }
 
-    isolated resource function delete organizationassets/[string pageType]/[string orgName]() returns OrganizationAssets|persist:Error {
-        OrganizationAssets result = check self->/organizationassets/[pageType]/[orgName].get();
+    isolated resource function delete organizationassets/[string pageName]/[string orgName]() returns OrganizationAssets|persist:Error {
+        OrganizationAssets result = check self->/organizationassets/[pageName]/[orgName].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(ORGANIZATION_ASSETS);
         }
-        _ = check sqlClient.runDeleteQuery({"pageType": pageType, "orgName": orgName});
+        _ = check sqlClient.runDeleteQuery({"pageName": pageName, "orgName": orgName});
         return result;
     }
 

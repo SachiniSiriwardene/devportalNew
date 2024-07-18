@@ -99,7 +99,7 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             if (relativePath.endsWith(".md")) {
                 apiAssets.apiContent = check io:fileReadString(relativePath);
-            }else {
+            } else {
                 apiAssets.apiImages.push(relativePath);
             }
         }
@@ -119,6 +119,23 @@ public function createAmazonS3Client() returns s3:Client|error {
     return check new (amazonS3Config);
 }
 
-public function storeOrganizationContent() {
-    
+public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string pageType, string orgId, string orgName)
+returns models:OrganizationAssets[]|error {
+
+    foreach var file in directory {
+        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
+            string pageContent = check io:fileReadString(file.absPath);
+            models:OrganizationAssets assetMapping = {
+                pageType: pageType,
+                pageContent: pageContent,
+                orgId: orgId,
+                orgName: orgName,
+                pageName: fileName
+            };
+            assetMappings.push(assetMapping);
+
+        }
+    }
+    return assetMappings;
 }

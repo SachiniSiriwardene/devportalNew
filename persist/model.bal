@@ -176,8 +176,9 @@ public type Organization record {|
 # + pageContent - field description  
 # + organization - field description
 public type OrganizationAssets record {|
-    readonly string pageType;
+    readonly string pageName;
     readonly string orgName;
+    string pageType;
     string pageContent;
     Organization organization;
 |};

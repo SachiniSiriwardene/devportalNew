@@ -97,29 +97,34 @@ service /admin on new http:Listener(8080) {
 
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/resources/template");
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
+        //types- template/layout/markdown/partial
 
-        file:MetaData[] content = [];
-        content.push(...templateDir);
-        content.push(...stylesheetDir);
+        file:MetaData[] layoutDir = check file:readDir("./" + orgName + "/views/layouts");
+        file:MetaData[] partialDir = check file:readDir("./" + orgName + "/views/partials");
+
+        file:MetaData[] markdownDir = check file:readDir("./" + orgName + "/content");
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
+        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
+
+        // file:MetaData[] content = [];
+        // content.push(...templateDir);
+        // content.push(...stylesheetDir);
         models:OrganizationAssets[] assetMappings = [];
 
-        foreach var file in content {
-            string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-            if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
-                string pageContent = check io:fileReadString(file.absPath);
-                models:OrganizationAssets assetMapping = {
-                    pageType: pageType,
-                    pageContent: pageContent,
-                    orgId: orgId,
-                    orgName: orgName
-                };
-                assetMappings.push(assetMapping);
-            }
-        }
+        _ = check utils:getAssetmapping(layoutDir, assetMappings, "layout", orgId, orgName);
+        _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
+        check file:remove(orgName + "/views/layouts", file:RECURSIVE);
+        check file:remove(orgName + "/views/partials", file:RECURSIVE);
+        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
+
+        _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
+
+        _ = check utils:getAssetmapping(markdownDir, assetMappings, "markdown", orgId, orgName);
+        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
+
         string _ = check utils:createOrgAssets(assetMappings);
+
+
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
@@ -178,13 +183,14 @@ service /admin on new http:Listener(8080) {
         foreach var file in content {
             string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
             if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
-                
+
                 string pageContent = check io:fileReadString(file.absPath);
                 models:OrganizationAssets assetMapping = {
                     pageType: pageType,
                     pageContent: pageContent,
                     orgId: orgId,
-                    orgName: orgName
+                    orgName: orgName,
+                    pageName: pageType
                 };
                 assetMappings.push(assetMapping);
             }
@@ -210,7 +216,7 @@ service /admin on new http:Listener(8080) {
             check utils:pushContentS3(stylesheetDir, "text/css");
             log:printInfo("Added content to S3 successfully");
         }
-         check file:remove(orgName, file:RECURSIVE);
+        check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
     }
@@ -226,12 +232,12 @@ service /admin on new http:Listener(8080) {
             allowOrigins: origins.allowedOrigins
         }
     }
-    resource function get orgFiles(string orgName, string fileName,http:Request request) returns error|http:Response {
+    resource function get orgFiles(string orgName, string fileName, http:Request request) returns error|http:Response {
 
         string orgId = check utils:getOrgId(orgName);
         mime:Entity file = new;
         http:Response response = new;
-        if (fileName.endsWith("html") || fileName.endsWith("css")) {
+        if (fileName.endsWith("html") || fileName.endsWith("css") || fileName.endsWith("hbs") || fileName.endsWith("md")) {
             string|error? fileContent = utils:retrieveOrgFiles(fileName, orgName);
             if (!(fileContent is error)) {
                 file.setBody(fileContent);
@@ -259,6 +265,13 @@ service /admin on new http:Listener(8080) {
             }
         }
         return response;
+    }
+
+     resource function get orgFileType(string orgName, string fileType, http:Request request) returns store:OrganizationAssets[]|error{
+
+        store:OrganizationAssets[] fileContent = check utils:retrieveOrgFileType(fileType, orgName) ?: [];
+        
+        return fileContent;
     }
 
     # Store the identity provider details for the developer portal.
