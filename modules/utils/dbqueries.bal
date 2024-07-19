@@ -483,7 +483,7 @@ public function retrieveAPIImages(string imagePath, string apiID, string orgName
 
     string orgId = check getOrgId(orgName);
     stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
-    string filePath = "/resources/images/" + imagePath;
+    string filePath = "/images/" + imagePath;
     store:ApiImages[] images = check from var image in apiImages
         where image.apiId == apiID && image.imagePath == filePath && image.orgId == orgId
         select image;

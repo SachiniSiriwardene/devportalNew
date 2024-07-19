@@ -323,14 +323,14 @@ service /apiMetadata on new http:Listener(9090) {
         return "API asset updated";
     }
 
-    resource function get [string filename](string orgName, string apiID, http:Request request) returns error|http:Response {
+    resource function get apiFiles(string orgName, string apiID,string fileName, http:Request request) returns error|http:Response {
 
         mime:Entity file = new;
-        if (filename.endsWith(".md")) {
+        if (fileName.endsWith(".md")) {
             string content = check utils:retrieveAPIContent(apiID, orgName);
             file.setBody(content);
         } else {
-            byte[]|string|error? image = check utils:retrieveAPIImages(filename, apiID, orgName);
+            byte[]|string|error? image = check utils:retrieveAPIImages(fileName, apiID, orgName);
 
             if (image is byte[]) {
                 log:printInfo("Image sent");
