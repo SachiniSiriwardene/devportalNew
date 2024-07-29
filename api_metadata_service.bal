@@ -323,7 +323,7 @@ service /apiMetadata on new http:Listener(9090) {
         return "API asset updated";
     }
 
-    resource function get apiFiles(string orgName, string apiID,string fileName, http:Request request) returns error|http:Response {
+    resource function get apiFiles(string orgName, string apiID, string fileName, http:Request request) returns error|http:Response {
 
         mime:Entity file = new;
         if (fileName.endsWith(".md")) {

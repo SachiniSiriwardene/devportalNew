@@ -126,7 +126,8 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
             pageContent: asset.pageContent,
             organizationOrgId: asset.orgId,
             orgName: asset.orgName,
-            pageName: asset.pageName
+            pageName: asset.pageName,
+            filePath: asset.fileName
         };
         orgAssets.push(storeAsset);
     }
@@ -156,7 +157,7 @@ public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns 
                 });
             } on fail var e {
                 log:printError("Error while updating org assets: " + e.message());
-                return ("Error while updating org assets"+ e.message());
+                return ("Error while updating org assets" + e.message());
             }
         } else {
             store:OrganizationAssetsInsert[] orgAssetRecord = [];
@@ -165,13 +166,14 @@ public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns 
                 pageType: asset.pageType,
                 orgName: asset.orgName,
                 pageContent: asset.pageContent,
-                pageName: asset.pageName
+                pageName: asset.pageName,
+                filePath: asset.fileName
             });
             do {
                 string[][] contentResults = check dbClient->/organizationassets.post(orgAssetRecord);
             } on fail var e {
                 log:printError("Error occurred while adding organization assets: " + e.message());
-                return ("Error while adding org assets"+ e.message());
+                return ("Error while adding org assets" + e.message());
             }
 
         }
@@ -544,6 +546,22 @@ public function retrieveOrgFileType(string fileType, string orgName) returns sto
         return contents;
     } else {
         return contents;
+    }
+}
+
+
+public function retrieveOrgTemplateFile(string filePath, string orgName) returns string|error? {
+
+    string orgId = check getOrgId(orgName);
+    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
+    store:OrganizationAssets[] contents = [];
+    contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.filePath == filePath
+        select content;
+    if (contents.length() != 0) {
+        return contents[0].pageContent;
+    } else {
+        return "File not found";
     }
 }
 

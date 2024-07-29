@@ -124,8 +124,6 @@ service /admin on new http:Listener(8080) {
 
         string _ = check utils:createOrgAssets(assetMappings);
 
-
-
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
@@ -182,6 +180,9 @@ service /admin on new http:Listener(8080) {
         models:OrganizationAssets[] assetMappings = [];
         foreach var file in content {
             string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+            string fileName = file.absPath.substring(<int>(file.absPath.indexOf("/")), file.absPath.length());
+            io:println(fileName);
+
             if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
 
                 string pageContent = check io:fileReadString(file.absPath);
@@ -190,7 +191,8 @@ service /admin on new http:Listener(8080) {
                     pageContent: pageContent,
                     orgId: orgId,
                     orgName: orgName,
-                    pageName: pageType
+                    pageName: pageType,
+                    fileName: fileName
                 };
                 assetMappings.push(assetMapping);
             }
@@ -267,10 +269,24 @@ service /admin on new http:Listener(8080) {
         return response;
     }
 
-     resource function get orgFileType(string orgName, string fileType, http:Request request) returns store:OrganizationAssets[]|error{
+    resource function get orgFileType(string orgName, string fileType, string? filePath, http:Request request) returns
+    store:OrganizationAssets[]|error|http:Response {
 
         store:OrganizationAssets[] fileContent = check utils:retrieveOrgFileType(fileType, orgName) ?: [];
-        
+
+        if (fileType.equalsIgnoreCaseAscii("template")) {
+            mime:Entity file = new;
+            http:Response response = new;
+            string templateFile = check utils:retrieveOrgTemplateFile(filePath ?: "", orgName) ?: "";
+            file.setBody(templateFile);
+            response.setEntity(file);
+            check response.setContentType("application/octet-stream");
+            response.setHeader("Content-Type", "text/css");
+            response.setHeader("Content-Description", "File Transfer");
+            response.setHeader("Transfer-Encoding", "chunked");
+            return response;
+
+        }
         return fileContent;
     }
 

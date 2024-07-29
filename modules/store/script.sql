@@ -166,6 +166,7 @@ CREATE TABLE "OrganizationAssets" (
 	"pageType" VARCHAR(191) NOT NULL,
 	"pageName" VARCHAR(191) NOT NULL,
 	"pageContent" TEXT NOT NULL,
+    "filePath" VARCHAR(191) NOT NULL,
 	"orgName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),

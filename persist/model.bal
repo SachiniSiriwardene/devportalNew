@@ -179,6 +179,7 @@ public type OrganizationAssets record {|
     readonly string pageName;
     readonly string orgName;
     string pageType;
+    string filePath;
     string pageContent;
     Organization organization;
 |};

@@ -122,19 +122,32 @@ public function createAmazonS3Client() returns s3:Client|error {
 public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string pageType, string orgId, string orgName)
 returns models:OrganizationAssets[]|error {
 
-    foreach var file in directory {
-        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
-            string pageContent = check io:fileReadString(file.absPath);
-            models:OrganizationAssets assetMapping = {
-                pageType: pageType,
-                pageContent: pageContent,
-                orgId: orgId,
-                orgName: orgName,
-                pageName: fileName
-            };
-            assetMappings.push(assetMapping);
+    foreach var item in directory {
 
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check getAssetmapping(meta, assetMappings, pageType, orgId, orgName);
+        } else {
+            string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
+            string filePath = "";
+            if (item.absPath.includesMatch(re `/views`)) {
+                filePath = item.absPath.substring(<int>(item.absPath.indexOf("/views") + 6), item.absPath.indexOf(".hbs") ?: 0);
+            }
+
+            log:printInfo(filePath);
+
+            if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
+                string pageContent = check io:fileReadString(item.absPath);
+                models:OrganizationAssets assetMapping = {
+                    pageType: pageType,
+                    pageContent: pageContent,
+                    orgId: orgId,
+                    orgName: orgName,
+                    pageName: fileName,
+                    fileName: filePath
+                };
+                assetMappings.push(assetMapping);
+            }
         }
     }
     return assetMappings;
