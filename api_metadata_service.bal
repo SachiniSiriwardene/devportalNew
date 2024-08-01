@@ -50,7 +50,11 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
+                        log:printInfo("APIIIII");
+
         string orgId = check utils:getOrgId(orgName);
+                log:printInfo(orgId);
+
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
@@ -112,6 +116,7 @@ service /apiMetadata on new http:Listener(9090) {
             apiInfo: {
                 apiName: apiMetaData.apiName ?: "",
                 apiCategory: apiMetaData.apiCategory ?: "",
+                tags: regex:split(apiMetaData?.tags ?: "", " "),
                 openApiDefinition: openApiDefinition,
                 additionalProperties: properties,
                 reviews: reviews,
@@ -210,6 +215,7 @@ service /apiMetadata on new http:Listener(9090) {
                 apiInfo: {
                     apiName: apiMetaData.apiName ?: "",
                     apiCategory: apiMetaData.apiCategory ?: "",
+                    tags: regex:split(apiMetaData?.tags ?: "", " "),
                     openApiDefinition: apiMetaData.openApiDefinition ?: "",
                     additionalProperties: properties,
                     reviews: reviews,

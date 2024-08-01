@@ -9,6 +9,7 @@ public type ApiInfo record {
     string orgName;
     string apiName;
     string apiCategory;
+    string tags;
     json openApiDefinition;
     map<string> additionalProperties;
     string[] authorizedRoles?;
@@ -19,6 +20,7 @@ public type ApiInfoResponse record {
     string orgName;
     string apiName;
     string apiCategory;
+    string[] tags;
     string apiVersion;
     string[] authorizedRoles?;
     json openApiDefinition;

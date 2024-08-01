@@ -66,6 +66,7 @@ public type ApiMetadata record {|
     string metadata;
     string organizationName;
     string apiCategory;
+    string tags;
     string openApiDefinition;
     AdditionalProperties[] additionalProperties;
     ThrottlingPolicy[] throttlingPolicies;

@@ -210,7 +210,8 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         organizationName: apiMetaData.apiInfo.orgName,
-        authorizedRoles: roles
+        authorizedRoles: roles,
+        tags: apiMetaData.apiInfo.tags
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
