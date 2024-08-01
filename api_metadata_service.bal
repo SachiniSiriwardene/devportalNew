@@ -50,11 +50,7 @@ service /apiMetadata on new http:Listener(9090) {
 
     resource function get api(string apiID, string orgName) returns models:ApiMetadataResponse|error {
 
-                        log:printInfo("APIIIII");
-
         string orgId = check utils:getOrgId(orgName);
-                log:printInfo(orgId);
-
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
         store:ThrottlingPolicyOptionalized[] policies = apiMetaData.throttlingPolicies ?: [];
         store:AdditionalPropertiesWithRelations[] additionalProperties = apiMetaData.additionalProperties ?: [];
