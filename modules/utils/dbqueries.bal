@@ -579,21 +579,27 @@ public function retrieveOrgImages(string fileName, string orgId) returns byte[]|
     }
 }
 
-public function addIdentityProvider(models:IdentityProvider identityProvider) returns string|error {
+public function addIdentityProvider(models:IdentityProvider identityProvider, string orgName) returns string|error {
 
-    string orgId = check getOrgId(identityProvider.orgName);
+    log:printInfo(identityProvider.toString());
+    string orgId = check getOrgId(orgName);
     store:IdentityProviderInsert idp = {
+        idpId: uuid:createType1AsString(),
         organizationOrgId: orgId,
-        idpID: uuid:createType1AsString(),
-        name: identityProvider.name,
+        orgName: orgName,
         issuer: identityProvider.issuer,
+        authorizationURL: identityProvider.authorizationURL,
+        tokenURL: identityProvider.tokenURL,
+        userInfoURL: identityProvider.userInfoURL,
         clientId: identityProvider.clientId,
         clientSecret: identityProvider.clientSecret,
-        id: identityProvider.id,
-        'type: identityProvider.'type
+        callbackURL: identityProvider.callbackURL,
+        scope: identityProvider.scope,
+        signUpURL: identityProvider.signUpURL
     };
+    log:printInfo(idp.toString());
     string[] listResult = check dbClient->/identityproviders.post([idp]);
-    return listResult[0];
+    return idp.idpId;
 }
 
 public function getIdentityProviders(string orgName) returns store:IdentityProviderWithRelations[]|error {

@@ -127,13 +127,17 @@ public type AdditionalProperties record {|
 # + clientSecret - field description  
 # + organization - field description
 public type IdentityProvider record {|
-    readonly string idpID;
-    string id;
-    string name;
-    string 'type; 
+    readonly string idpId;
+    string orgName;
     string issuer;
-    string clientId;
+    string authorizationURL;
+    string tokenURL; 
+    string userInfoURL;
     string clientSecret;
+    string clientId;
+    string callbackURL;
+    string scope;
+    string signUpURL;
     Organization organization;
 |};
 

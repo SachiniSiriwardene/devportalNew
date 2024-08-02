@@ -254,20 +254,24 @@ public isolated client class Client {
             entityName: "IdentityProvider",
             tableName: "IdentityProvider",
             fieldMetadata: {
-                idpID: {columnName: "idpID"},
-                id: {columnName: "id"},
-                name: {columnName: "name"},
-                'type: {columnName: "type"},
+                idpId: {columnName: "idpId"},
+                orgName: {columnName: "orgName"},
                 issuer: {columnName: "issuer"},
-                clientId: {columnName: "clientId"},
+                authorizationURL: {columnName: "authorizationURL"},
+                tokenURL: {columnName: "tokenURL"},
+                userInfoURL: {columnName: "userInfoURL"},
                 clientSecret: {columnName: "clientSecret"},
+                clientId: {columnName: "clientId"},
+                callbackURL: {columnName: "callbackURL"},
+                scope: {columnName: "scope"},
+                signUpURL: {columnName: "signUpURL"},
                 organizationOrgId: {columnName: "organizationOrgId"},
                 "organization.orgId": {relation: {entityName: "organization", refField: "orgId"}},
                 "organization.organizationName": {relation: {entityName: "organization", refField: "organizationName"}},
                 "organization.isPublic": {relation: {entityName: "organization", refField: "isPublic"}},
                 "organization.authenticatedPages": {relation: {entityName: "organization", refField: "authenticatedPages"}}
             },
-            keyFields: ["idpID"],
+            keyFields: ["idpId"],
             joinMetadata: {organization: {entity: Organization, fieldName: "organization", refTable: "Organization", refColumns: ["orgId"], joinColumns: ["organizationOrgId"], 'type: psql:ONE_TO_MANY}}
         },
         [APPLICATION]: {
@@ -309,13 +313,17 @@ public isolated client class Client {
                 "organizationAssets[].filePath": {relation: {entityName: "organizationAssets", refField: "filePath"}},
                 "organizationAssets[].pageContent": {relation: {entityName: "organizationAssets", refField: "pageContent"}},
                 "organizationAssets[].organizationOrgId": {relation: {entityName: "organizationAssets", refField: "organizationOrgId"}},
-                "identityProvider[].idpID": {relation: {entityName: "identityProvider", refField: "idpID"}},
-                "identityProvider[].id": {relation: {entityName: "identityProvider", refField: "id"}},
-                "identityProvider[].name": {relation: {entityName: "identityProvider", refField: "name"}},
-                "identityProvider[].type": {relation: {entityName: "identityProvider", refField: "type"}},
+                "identityProvider[].idpId": {relation: {entityName: "identityProvider", refField: "idpId"}},
+                "identityProvider[].orgName": {relation: {entityName: "identityProvider", refField: "orgName"}},
                 "identityProvider[].issuer": {relation: {entityName: "identityProvider", refField: "issuer"}},
-                "identityProvider[].clientId": {relation: {entityName: "identityProvider", refField: "clientId"}},
+                "identityProvider[].authorizationURL": {relation: {entityName: "identityProvider", refField: "authorizationURL"}},
+                "identityProvider[].tokenURL": {relation: {entityName: "identityProvider", refField: "tokenURL"}},
+                "identityProvider[].userInfoURL": {relation: {entityName: "identityProvider", refField: "userInfoURL"}},
                 "identityProvider[].clientSecret": {relation: {entityName: "identityProvider", refField: "clientSecret"}},
+                "identityProvider[].clientId": {relation: {entityName: "identityProvider", refField: "clientId"}},
+                "identityProvider[].callbackURL": {relation: {entityName: "identityProvider", refField: "callbackURL"}},
+                "identityProvider[].scope": {relation: {entityName: "identityProvider", refField: "scope"}},
+                "identityProvider[].signUpURL": {relation: {entityName: "identityProvider", refField: "signUpURL"}},
                 "identityProvider[].organizationOrgId": {relation: {entityName: "identityProvider", refField: "organizationOrgId"}},
                 "subscriptions[].subscriptionId": {relation: {entityName: "subscriptions", refField: "subscriptionId"}},
                 "subscriptions[].apiApiId": {relation: {entityName: "subscriptions", refField: "apiApiId"}},
@@ -793,7 +801,7 @@ public isolated client class Client {
         name: "query"
     } external;
 
-    isolated resource function get identityproviders/[string idpID](IdentityProviderTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
+    isolated resource function get identityproviders/[string idpId](IdentityProviderTargetType targetType = <>) returns targetType|persist:Error = @java:Method {
         'class: "io.ballerina.stdlib.persist.sql.datastore.PostgreSQLProcessor",
         name: "queryOne"
     } external;
@@ -805,25 +813,25 @@ public isolated client class Client {
         }
         _ = check sqlClient.runBatchInsertQuery(data);
         return from IdentityProviderInsert inserted in data
-            select inserted.idpID;
+            select inserted.idpId;
     }
 
-    isolated resource function put identityproviders/[string idpID](IdentityProviderUpdate value) returns IdentityProvider|persist:Error {
+    isolated resource function put identityproviders/[string idpId](IdentityProviderUpdate value) returns IdentityProvider|persist:Error {
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(IDENTITY_PROVIDER);
         }
-        _ = check sqlClient.runUpdateQuery(idpID, value);
-        return self->/identityproviders/[idpID].get();
+        _ = check sqlClient.runUpdateQuery(idpId, value);
+        return self->/identityproviders/[idpId].get();
     }
 
-    isolated resource function delete identityproviders/[string idpID]() returns IdentityProvider|persist:Error {
-        IdentityProvider result = check self->/identityproviders/[idpID].get();
+    isolated resource function delete identityproviders/[string idpId]() returns IdentityProvider|persist:Error {
+        IdentityProvider result = check self->/identityproviders/[idpId].get();
         psql:SQLClient sqlClient;
         lock {
             sqlClient = self.persistClients.get(IDENTITY_PROVIDER);
         }
-        _ = check sqlClient.runDeleteQuery(idpID);
+        _ = check sqlClient.runDeleteQuery(idpId);
         return result;
     }
 

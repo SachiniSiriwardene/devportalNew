@@ -92,7 +92,7 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
-        string targetPath = "./" + orgName;
+        string targetPath = "./";
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -291,17 +291,25 @@ service /admin on new http:Listener(8080) {
     #
     # + identityProvider - IDP details
     # + return - return value description
-    resource function post identityProvider(@http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
+    resource function post identityProvider(string orgName, @http:Payload models:IdentityProvider identityProvider) returns models:IdentityProviderResponse|error {
 
-        string identityProviderResult = check utils:addIdentityProvider(identityProvider);
+        log:printInfo("Adding identity provider");
+        string identityProviderResult = check utils:addIdentityProvider(identityProvider, orgName);
+
+        log:printInfo(identityProviderResult);
 
         models:IdentityProviderResponse createdIDP = {
-            id: identityProvider.id,
+            id: identityProviderResult,
+            orgName: orgName,
+            issuer: identityProvider.issuer,
+            authorizationURL: identityProvider.authorizationURL,
+            tokenURL: identityProvider.tokenURL,
+            userInfoURL: identityProvider.userInfoURL,
             clientId: identityProvider.clientId,
-            name: identityProvider.name,
             clientSecret: identityProvider.clientSecret,
-            'type: identityProvider.'type,
-            issuer: identityProvider.issuer
+            callbackURL: identityProvider.callbackURL,
+            scope: identityProvider.scope,
+            signUpURL: identityProvider.signUpURL
         };
         return createdIDP;
     }
@@ -316,12 +324,17 @@ service /admin on new http:Listener(8080) {
         models:IdentityProviderResponse[] idps = [];
         foreach var idp in idpList {
             models:IdentityProviderResponse identityProvider = {
-                name: idp.name ?: "",
+                id: idp.idpId ?: "",
+                orgName: idp.orgName ?: "",
                 issuer: idp.issuer ?: "",
+                authorizationURL: idp.authorizationURL ?: "",
+                tokenURL: idp.tokenURL ?: "",
+                userInfoURL: idp.userInfoURL ?: "",
                 clientId: idp.clientId ?: "",
                 clientSecret: idp.clientSecret ?: "",
-                id: idp.id ?: "",
-                'type: idp.'type ?: ""
+                callbackURL: idp.callbackURL ?: "",
+                scope: idp.scope ?: "",
+                signUpURL: idp.signUpURL ?: ""
             };
             idps.push(identityProvider);
 

@@ -268,24 +268,32 @@ public type AdditionalPropertiesUpdate record {|
 |};
 
 public type IdentityProvider record {|
-    readonly string idpID;
-    string id;
-    string name;
-    string 'type;
+    readonly string idpId;
+    string orgName;
     string issuer;
-    string clientId;
+    string authorizationURL;
+    string tokenURL;
+    string userInfoURL;
     string clientSecret;
+    string clientId;
+    string callbackURL;
+    string scope;
+    string signUpURL;
     string organizationOrgId;
 |};
 
 public type IdentityProviderOptionalized record {|
-    string idpID?;
-    string id?;
-    string name?;
-    string 'type?;
+    string idpId?;
+    string orgName?;
     string issuer?;
-    string clientId?;
+    string authorizationURL?;
+    string tokenURL?;
+    string userInfoURL?;
     string clientSecret?;
+    string clientId?;
+    string callbackURL?;
+    string scope?;
+    string signUpURL?;
     string organizationOrgId?;
 |};
 
@@ -299,12 +307,16 @@ public type IdentityProviderTargetType typedesc<IdentityProviderWithRelations>;
 public type IdentityProviderInsert IdentityProvider;
 
 public type IdentityProviderUpdate record {|
-    string id?;
-    string name?;
-    string 'type?;
+    string orgName?;
     string issuer?;
-    string clientId?;
+    string authorizationURL?;
+    string tokenURL?;
+    string userInfoURL?;
     string clientSecret?;
+    string clientId?;
+    string callbackURL?;
+    string scope?;
+    string signUpURL?;
     string organizationOrgId?;
 |};
 

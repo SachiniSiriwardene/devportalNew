@@ -97,16 +97,20 @@ CREATE TABLE "AdditionalProperties" (
 );
 
 CREATE TABLE "IdentityProvider" (
-	"idpID" VARCHAR(191) NOT NULL,
-	"id" VARCHAR(191) NOT NULL,
-	"name" VARCHAR(191) NOT NULL,
-	"type" VARCHAR(191) NOT NULL,
+	"idpId" VARCHAR(191) NOT NULL,
+	"orgName" VARCHAR(191) NOT NULL,
 	"issuer" VARCHAR(191) NOT NULL,
+	"authorizationURL" VARCHAR(191) NOT NULL,
+	"tokenURL" VARCHAR(191) NOT NULL,
+	"userInfoURL" VARCHAR(191) NOT NULL,
 	"clientId" VARCHAR(191) NOT NULL,
 	"clientSecret" VARCHAR(191) NOT NULL,
+	"callbackURL" VARCHAR(191) NOT NULL,
+	"scope" VARCHAR(191) NOT NULL,
+	"signUpURL" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	PRIMARY KEY("idpID")
+	PRIMARY KEY("idpId")
 );
 
 CREATE TABLE "ApplicationProperties" (

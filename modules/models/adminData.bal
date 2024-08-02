@@ -103,13 +103,15 @@ public type ThemeResponse record {
 # + clientId - field description  
 # + clientSecret - field description
 public type IdentityProvider record {
-    string orgName;
-    string id;
-    string name;
-    string 'type; 
     string issuer;
+    string authorizationURL;
+    string tokenURL; 
+    string userInfoURL;
     string clientId;
     string clientSecret;
+    string callbackURL;
+    string scope;
+    string signUpURL;
 };
 
 
@@ -123,12 +125,17 @@ public type IdentityProvider record {
 # + clientId - field description  
 # + clientSecret - field description
 public type IdentityProviderResponse record {
-     string id;
-    string name;
-    string 'type; 
-    string issuer;
+    string id;
     string clientId;
+    string orgName;
+    string issuer;
+    string authorizationURL;
+    string tokenURL; 
+    string userInfoURL;
     string clientSecret;
+    string callbackURL;
+    string scope;
+    string signUpURL;
 };
 
 

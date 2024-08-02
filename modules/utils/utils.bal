@@ -130,7 +130,7 @@ returns models:OrganizationAssets[]|error {
         } else {
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             string filePath = "";
-            if (item.absPath.includesMatch(re `/views`)) {
+            if (item.absPath.includesMatch(re `/views`) && !fileName.endsWith(".DS_Store")) {
                 filePath = item.absPath.substring(<int>(item.absPath.indexOf("/views") + 6), item.absPath.indexOf(".hbs") ?: 0);
             }
 
