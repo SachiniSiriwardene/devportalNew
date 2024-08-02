@@ -105,9 +105,6 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
 
-        // file:MetaData[] content = [];
-        // content.push(...templateDir);
-        // content.push(...stylesheetDir);
         models:OrganizationAssets[] assetMappings = [];
 
         _ = check utils:getAssetmapping(layoutDir, assetMappings, "layout", orgId, orgName);

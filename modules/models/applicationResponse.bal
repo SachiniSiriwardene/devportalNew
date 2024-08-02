@@ -60,9 +60,9 @@ public distinct service class ApplicationPropertiesResponse {
 
 public distinct service class UserResponse {
 
-    private final readonly & User user;
+    private final readonly & ApplicationUser user;
 
-    function init(User entryRecord) {
+    function init(ApplicationUser entryRecord) {
         self.user = entryRecord.cloneReadOnly();
     }
 
