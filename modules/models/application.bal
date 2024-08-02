@@ -11,12 +11,21 @@
 public type Application record {|
     readonly string appId;
     string applicationName;
+    string description;
     ApplicationProperties[] appProperties;
     string addedAPIs;
-    User[] accessControl;
+    ApplicationUser[] accessControl;
     string sandBoxKey;
     string productionKey;
     string idpId;
+|};
+
+public type ApplicationKeys record {|
+    string sandboxClientId;
+    string sanboxClientSecret;
+    string productionClientId;
+    string productionClientSecret;
+
 |};
 
 public type APISubscription record {|
@@ -34,9 +43,10 @@ public type ApplicationProperties record {
     string value;
 };
 
-public type User record {|
+public type ApplicationUser record {|
     string role;
     string userName;
+    boolean appOwner;
 |};
 
 
