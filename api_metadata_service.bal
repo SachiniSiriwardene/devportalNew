@@ -328,8 +328,9 @@ service /apiMetadata on new http:Listener(9090) {
     resource function get apiFiles(string orgName, string apiID, string fileName, http:Request request) returns error|http:Response {
 
         mime:Entity file = new;
-        if (fileName.endsWith(".md")) {
+        if (fileName.endsWith(".html") || fileName.endsWith(".hbs")) {
             string content = check utils:retrieveAPIContent(apiID, orgName);
+            log:printInfo("File sent");
             file.setBody(content);
         } else {
             byte[]|string|error? image = check utils:retrieveAPIImages(fileName, apiID, orgName);

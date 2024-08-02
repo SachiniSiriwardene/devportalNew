@@ -97,7 +97,7 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             _ = check readAPIContent(meta, orgname, apiName, apiAssets);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
-            if (relativePath.endsWith(".md")) {
+            if (relativePath.endsWith(".hbs")) {
                 apiAssets.apiContent = check io:fileReadString(relativePath);
             } else {
                 apiAssets.apiImages.push(relativePath);

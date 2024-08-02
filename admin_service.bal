@@ -102,7 +102,6 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] layoutDir = check file:readDir("./" + orgName + "/views/layouts");
         file:MetaData[] partialDir = check file:readDir("./" + orgName + "/views/partials");
 
-        file:MetaData[] markdownDir = check file:readDir("./" + orgName + "/content");
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
         file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
 
@@ -118,8 +117,6 @@ service /admin on new http:Listener(8080) {
         file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
 
         _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
-
-        _ = check utils:getAssetmapping(markdownDir, assetMappings, "markdown", orgId, orgName);
         _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
 
         string _ = check utils:createOrgAssets(assetMappings);
