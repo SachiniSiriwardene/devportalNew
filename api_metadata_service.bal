@@ -212,7 +212,7 @@ service /apiMetadata on new http:Listener(9090) {
                     apiName: apiMetaData.apiName ?: "",
                     apiCategory: apiMetaData.apiCategory ?: "",
                     tags: regex:split(apiMetaData?.tags ?: "", " "),
-                    openApiDefinition: apiMetaData.openApiDefinition ?: "",
+                    openApiDefinition: openApiDefinition ?: "",
                     additionalProperties: properties,
                     reviews: reviews,
                     orgName: apiMetaData.organizationName ?: "",
