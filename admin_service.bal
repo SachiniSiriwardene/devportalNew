@@ -116,21 +116,37 @@ service /admin on new http:Listener(8080) {
         _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
         _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
 
-        string _ = check utils:createOrgAssets(assetMappings);
-
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
                 imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
                 if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
-                    orgImages.push({
-                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                        imageName: imageName
+                    if (imageName.endsWith(".svg")) {
+                        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+                        string filePath = "";
+                        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
+                            string pageContent = check io:fileReadString(file.absPath);
+                            models:OrganizationAssets assetMapping = {
+                                pageType: "image",
+                                pageContent: pageContent,
+                                orgId: orgId,
+                                orgName: orgName,
+                                pageName: fileName,
+                                fileName: filePath
+                            };
+                            assetMappings.push(assetMapping);
+                        }
+                    } else {
+                        orgImages.push({
+                            image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                            imageName: imageName
+                        }
+                        );
                     }
-                    );
                 }
             }
+            string _ = check utils:createOrgAssets(assetMappings);
             string _ = check utils:storeOrgImages(orgImages, orgId);
         } else {
             check utils:pushContentS3(imageDir, "text/plain");
@@ -164,34 +180,23 @@ service /admin on new http:Listener(8080) {
 
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/resources/template");
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/resources/stylesheet");
+        file:MetaData[] layoutDir = check file:readDir("./" + orgName + "/views/layouts");
+        file:MetaData[] partialDir = check file:readDir("./" + orgName + "/views/partials");
 
-        file:MetaData[] content = [];
-        content.push(...templateDir);
-        content.push(...stylesheetDir);
+        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
+        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
+
         models:OrganizationAssets[] assetMappings = [];
-        foreach var file in content {
-            string pageType = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-            string fileName = file.absPath.substring(<int>(file.absPath.indexOf("/")), file.absPath.length());
-            io:println(fileName);
 
-            if (!pageType.equalsIgnoreCaseAscii(".DS_Store")) {
+        _ = check utils:getAssetmapping(layoutDir, assetMappings, "layout", orgId, orgName);
+        _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
 
-                string pageContent = check io:fileReadString(file.absPath);
-                models:OrganizationAssets assetMapping = {
-                    pageType: pageType,
-                    pageContent: pageContent,
-                    orgId: orgId,
-                    orgName: orgName,
-                    pageName: pageType,
-                    fileName: fileName
-                };
-                assetMappings.push(assetMapping);
-            }
-        }
-        string _ = check utils:updateOrgAssets(assetMappings);
+        check file:remove(orgName + "/views/layouts", file:RECURSIVE);
+        check file:remove(orgName + "/views/partials", file:RECURSIVE);
+        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
+
+        _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
+        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
@@ -199,13 +204,31 @@ service /admin on new http:Listener(8080) {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
                 imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
                 if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
-                    orgImages.push({
-                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                        imageName: imageName
+                    if (imageName.endsWith(".svg")) {
+                        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
+                        string filePath = "";
+                        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
+                            string pageContent = check io:fileReadString(file.absPath);
+                            models:OrganizationAssets assetMapping = {
+                                pageType: "image",
+                                pageContent: pageContent,
+                                orgId: orgId,
+                                orgName: orgName,
+                                pageName: fileName,
+                                fileName: filePath
+                            };
+                            assetMappings.push(assetMapping);
+                        }
+                    } else {
+                        orgImages.push({
+                            image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                            imageName: imageName
+                        }
+                        );
                     }
-                    );
                 }
             }
+            string _ = check utils:updateOrgAssets(assetMappings);
             string _ = check utils:updateOrgImages(orgImages, orgId);
         } else {
             check utils:pushContentS3(imageDir, "text/plain");
@@ -215,6 +238,60 @@ service /admin on new http:Listener(8080) {
         check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
+
+    }
+
+    resource function post additionalAPIContent(http:Request request, string orgName, string apiName) returns string|error {
+
+        string apiId = check utils:getAPIId(orgName, apiName);
+
+        byte[] binaryPayload = check request.getBinaryPayload();
+        string path = "./zip";
+        string targetPath = "./" + orgName + "/";
+        check io:fileWriteBytes(path, binaryPayload);
+        error? result = check zip:extract(path, targetPath);
+
+        file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
+
+        models:APIAssets[] apiAssets = [];
+        apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
+
+        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
+
+        boolean dirExists = check file:test("./" + orgName + "/" + apiName + "/images", file:EXISTS);
+
+        if (dirExists) {
+            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
+            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+
+            models:APIImages[] apiImages = [];
+            foreach var file in imageDir {
+                string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
+                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
+                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                    apiImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length()),
+                        imageTag: ""
+                    }
+                    );
+                }
+            }
+            if (storage.equalsIgnoreCaseAscii("DB")) {
+                _ = check utils:updateApiImages(apiImages, apiId, orgName);
+            } else {
+                check utils:pushContentS3(imageDir, "text/plain");
+            }
+        }
+
+        check file:remove(orgName, file:RECURSIVE);
+        string|error apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        
+        if apiContent is error {
+            return "Asset update failed";
+        }
+        io:println("API content added successfully");
+        return "API asset updated";
     }
 
     # Retrieve landing pages.
@@ -233,13 +310,17 @@ service /admin on new http:Listener(8080) {
         string orgId = check utils:getOrgId(orgName);
         mime:Entity file = new;
         http:Response response = new;
-        if (fileName.endsWith("html") || fileName.endsWith("css") || fileName.endsWith("hbs") || fileName.endsWith("md")) {
+        if (fileName.endsWith("html") || fileName.endsWith("css") || fileName.endsWith("hbs") || fileName.endsWith("md") || fileName.endsWith("svg")) {
             string|error? fileContent = utils:retrieveOrgFiles(fileName, orgName);
             if (!(fileContent is error)) {
                 file.setBody(fileContent);
                 response.setEntity(file);
                 check response.setContentType("application/octet-stream");
-                response.setHeader("Content-Type", "text/css");
+                if (fileName.endsWith("svg")) {
+                    response.setHeader("Content-Type", "image/svg+xml");
+                } else {
+                    response.setHeader("Content-Type", "text/css");
+                }
                 response.setHeader("Content-Description", "File Transfer");
                 response.setHeader("Transfer-Encoding", "chunked");
             } else {

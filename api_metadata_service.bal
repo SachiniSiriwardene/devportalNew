@@ -39,7 +39,7 @@ service /apiMetadata on new http:Listener(9090) {
 
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
         string|error apiImageUpdateResponse
-         = utils:updateApiImagePath(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        = utils:updateApiImagePath(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
         if apiImageUpdateResponse is error {
             log:printError(apiImageUpdateResponse.toString());
         }
@@ -238,34 +238,54 @@ service /apiMetadata on new http:Listener(9090) {
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
 
-        models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
-        apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
+        models:APIAssets[] apiAssets = [];
+        apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
 
-        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
-        check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+        log:printInfo("APIAssets ".'join(apiAssets.length().toString()));
 
-        models:APIImages[] apiImages = [];
-        foreach var file in imageDir {
-            string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-            imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
-            if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
-                apiImages.push({
-                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                    imageName: imageName.substring(<int>(imageName.indexOf("/")), imageName.length()),
-                    imageTag: ""
-                }
-                );
+        //store only md files given by the api developer
+        foreach var item in apiAssets {
+            if (!item.fileName.endsWith("md")) {
+                int index = apiAssets.indexOf(item) ?: 0;
+                models:APIAssets remove = apiAssets.remove(index);
             }
         }
-        if (storage.equalsIgnoreCaseAscii("DB")) {
-            _ = check utils:updateApiImages(apiImages, apiId, orgName);
-        } else {
-            check utils:pushContentS3(imageDir, "text/plain");
+
+        log:printInfo("APIAssets removed ".'join(apiAssets.length().toString()));
+
+        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
+
+        boolean dirExists = check file:test("./" + orgName + "/" + apiName + "/images", file:EXISTS);
+
+        if (dirExists) {
+            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
+            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+
+            models:APIImages[] apiImages = [];
+            foreach var file in imageDir {
+                string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
+                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
+                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                    apiImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length()),
+                        imageTag: ""
+                    }
+                    );
+                }
+            }
+            if (storage.equalsIgnoreCaseAscii("DB")) {
+                _ = check utils:updateApiImages(apiImages, apiId, orgName);
+            } else {
+                check utils:pushContentS3(imageDir, "text/plain");
+            }
         }
 
         check file:remove(orgName, file:RECURSIVE);
-        error? apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        string|error apiContent = utils:addApiContent(apiAssets, apiId, orgName);
+        if apiContent is string {
+
+        }
         if apiContent is error {
             return "Asset update failed";
         }
@@ -276,7 +296,6 @@ service /apiMetadata on new http:Listener(9090) {
     resource function put apiContent(http:Request request, string orgName, string apiName) returns string|error {
 
         string apiId = check utils:getAPIId(orgName, apiName);
-
         byte[] binaryPayload = check request.getBinaryPayload();
         string path = "./zip";
         string targetPath = "./" + orgName + "/";
@@ -285,34 +304,44 @@ service /apiMetadata on new http:Listener(9090) {
 
         file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
 
-        models:APIAssets apiAssets = {apiContent: "", apiImages: [], apiId: apiId};
-        apiAssets = check utils:readAPIContent(directories, orgName, apiName, apiAssets);
+        models:APIAssets[] apiAssets = [];
+        apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
 
-        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
-        check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
-
-        models:APIImages[] apiImages = [];
-        foreach var file in imageDir {
-
-            string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
-            imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
-            if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
-                apiImages.push({
-                    image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                    imageName: imageName,
-                    imageTag: ""
-                }
-                );
+        //store only md files given by the api developer
+        foreach var item in apiAssets {
+            if (!item.fileName.endsWith("md")) {
+                int index = apiAssets.indexOf(item) ?: 0;
+                models:APIAssets remove = apiAssets.remove(index);
             }
         }
-        if (storage.equalsIgnoreCaseAscii("DB")) {
-            string|error apiImagesResult = utils:updateApiImages(apiImages, apiId, orgName);
-            if apiImagesResult is error {
-                log:printError(apiImagesResult.toString());
+        check file:createDir("./" + orgName + "/resources/images", file:RECURSIVE);
+        boolean dirExists = check file:test("/" + orgName + "/" + apiName + "/images", file:EXISTS);
+
+        if (dirExists) {
+            check file:copy("./" + orgName + "/" + apiName + "/images", "./" + orgName + "/resources/images");
+            file:MetaData[] imageDir = check file:readDir("./" + orgName + "/resources/images");
+
+            models:APIImages[] apiImages = [];
+            foreach var file in imageDir {
+                string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
+                imageName = imageName.substring(<int>(imageName.indexOf("/")), imageName.length());
+                if (!imageName.equalsIgnoreCaseAscii("/resources/images/.DS_Store")) {
+                    apiImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName,
+                        imageTag: ""
+                    }
+                    );
+                }
             }
-        } else {
-            check utils:pushContentS3(imageDir, "text/plain");
+            if (storage.equalsIgnoreCaseAscii("DB")) {
+                string|error apiImagesResult = utils:updateApiImages(apiImages, apiId, orgName);
+                if apiImagesResult is error {
+                    log:printError(apiImagesResult.toString());
+                }
+            } else {
+                check utils:pushContentS3(imageDir, "text/plain");
+            }
         }
 
         check file:remove(orgName, file:RECURSIVE);
@@ -328,28 +357,33 @@ service /apiMetadata on new http:Listener(9090) {
     resource function get apiFiles(string orgName, string apiID, string fileName, http:Request request) returns error|http:Response {
 
         mime:Entity file = new;
-        if (fileName.endsWith(".html") || fileName.endsWith(".hbs")) {
-            string content = check utils:retrieveAPIContent(apiID, orgName);
-            log:printInfo("File sent");
+        http:Response response = new;
+        if (fileName.endsWith(".html") || fileName.endsWith(".hbs") || fileName.endsWith(".md")) {
+            string content = check utils:retrieveAPIContent(apiID, orgName, fileName);
+            if (content.equalsIgnoreCaseAscii("API content not found") && fileName.endsWith(".hbs")) {
+                content = check utils:retrieveOrgFiles(fileName, orgName);
+            }
             file.setBody(content);
+            response.setEntity(file);
         } else {
             byte[]|string|error? image = check utils:retrieveAPIImages(fileName, apiID, orgName);
-
             if (image is byte[]) {
-                log:printInfo("Image sent");
-                file.setBody(image);
+                if (fileName.endsWith(".svg")) {
+                    string imageContent = check string:fromBytes(image);
+                    file.setBody(imageContent);
+                    response.setEntity(file);
+                    response.setHeader("Content-Type", "image/svg+xml");
+                } else {
+                    file.setBody(image);
+                    response.setEntity(file);
+                    response.setHeader("Content-Type", "application/octet-stream");
+                }
             } else {
                 file.setBody("File not found");
             }
         }
-
-        http:Response response = new;
-        response.setEntity(file);
-        check response.setContentType("application/octet-stream");
-        response.setHeader("Content-Type", "application/octet-stream");
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
-
         return response;
     }
 }

@@ -79,11 +79,13 @@ CREATE TABLE "ThrottlingPolicy" (
 );
 
 CREATE TABLE "ApiContent" (
-	"apiContent" TEXT NOT NULL,
-	"apiId" VARCHAR(191) NOT NULL,
-	"orgId" VARCHAR(191) NOT NULL,
-	FOREIGN KEY("apiId", "orgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
-	PRIMARY KEY("apiId","orgId")
+	"apiContentId" VARCHAR(191) NOT NULL,
+	"apiContent" text NOT NULL,
+	"fileName" VARCHAR(191) NOT NULL,
+	"apimetadataApiId" VARCHAR(191) NOT NULL,
+	"apimetadataOrgId" VARCHAR(191) NOT NULL,
+	FOREIGN KEY("apimetadataApiId", "apimetadataOrgId") REFERENCES "ApiMetadata"("apiId", "orgId"),
+	PRIMARY KEY("apiContentId")
 );
 
 CREATE TABLE "AdditionalProperties" (

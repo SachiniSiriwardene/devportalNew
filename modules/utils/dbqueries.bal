@@ -298,30 +298,54 @@ public function addAdditionalProperties(map<string> additionalProperties, string
     }
 }
 
-public function addApiContent(models:APIAssets apiAssets, string apiID, string orgName) returns error? {
+public function addApiContent(models:APIAssets[] apiAssets, string apiID, string orgName) returns string|error {
 
     string orgId = check getOrgId(orgName);
     store:ApiContentInsert[] apiContentRecord = [];
+    foreach var item in apiAssets {
+        apiContentRecord.push({
+            apiContent: item.apiContent,
+            apiContentId: uuid:createType1AsString(),
+            fileName: item.fileName,
+            apimetadataApiId: apiID,
+            apimetadataOrgId: orgId
+        });
 
-    apiContentRecord.push({
-        apiId: apiID,
-        orgId: orgId,
-        apiContent: apiAssets.apiContent
-    });
+        if (apiContentRecord.length() != 0) {
+            do {
+                string[] listResult = check dbClient->/apicontents.post(apiContentRecord);
+            } on fail var e {
+                log:printError("Error occurred while adding api content: " + e.message());
+                return  "API content creation failed";
+            }
 
-    if (apiContentRecord.length() != 0) {
-        string[][] contentResults = check dbClient->/apicontents.post(apiContentRecord);
+        }
     }
+    return "Content updated";
 }
 
-public function updateApiContent(models:APIAssets apiAssets, string apiID, string orgName) returns string|error? {
+public function updateApiContent(models:APIAssets[] apiAssets, string apiID, string orgName) returns string|error {
 
     string orgId = check getOrgId(orgName);
-    _ = check dbClient->/apicontents/[apiID]/[orgId].put(
-        {
-            apiContent: apiAssets.apiContent
+
+    foreach var item in apiAssets {
+        stream<store:ApiContent, persist:Error?> apiContent = dbClient->/apicontents.get();
+        store:ApiContent[] contents = check from var content in apiContent
+            where content.apimetadataApiId == apiID && content.apimetadataOrgId == orgId && content.fileName == item.fileName
+            select content;
+        if (contents.length() !== 0) {
+            do {
+                store:ApiContent|persist:Error unionResult = dbClient->/apicontents/[contents[0].apiContentId].put(
+                    {
+                        apiContent: item.apiContent
+                    }
+                );
+            } on fail var e {
+                log:printError("Error while updating API content: " + e.message());
+                return ("Error while updating org assets" + e.message());
+            }
         }
-    );
+    }
     return "API Image upload success";
 }
 
@@ -351,6 +375,7 @@ public function updateApiImages(models:APIImages[] imageRecords, string apiID, s
 
     string orgId = check getOrgId(orgName);
     foreach var apiImage in imageRecords {
+
         stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
         store:ApiImages[] images = check from var image in apiImages
             where image.apiId == apiID && image.imagePath == apiImage.imageName && image.orgId == orgId
@@ -486,7 +511,7 @@ public function retrieveAPIImages(string imagePath, string apiID, string orgName
 
     string orgId = check getOrgId(orgName);
     stream<store:ApiImages, persist:Error?> apiImages = dbClient->/apiimages.get();
-    string filePath = "/images/" + imagePath;
+    string filePath = imagePath;
     store:ApiImages[] images = check from var image in apiImages
         where image.apiId == apiID && image.imagePath == filePath && image.orgId == orgId
         select image;
@@ -497,12 +522,12 @@ public function retrieveAPIImages(string imagePath, string apiID, string orgName
     return [];
 }
 
-public function retrieveAPIContent(string apiID, string orgName) returns string|error {
+public function retrieveAPIContent(string apiID, string orgName, string fileName) returns string|error {
 
     string orgId = check getOrgId(orgName);
     stream<store:ApiContent, persist:Error?> apiContent = dbClient->/apicontents.get();
     store:ApiContent[] contents = check from var content in apiContent
-        where content.apiId == apiID && content.orgId == orgId
+        where content.apimetadataApiId == apiID && content.apimetadataOrgId == orgId && content.fileName == fileName
         select content;
     if (contents.length() !== 0) {
         return contents[0].apiContent;
@@ -521,7 +546,7 @@ public function deleteAPI(string apiID, string orgName) returns string|error? {
 
 }
 
-public function retrieveOrgFiles(string fileName, string orgName) returns string|error? {
+public function retrieveOrgFiles(string fileName, string orgName) returns string|error {
 
     string orgId = check getOrgId(orgName);
     stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
@@ -549,7 +574,6 @@ public function retrieveOrgFileType(string fileType, string orgName) returns sto
         return contents;
     }
 }
-
 
 public function retrieveOrgTemplateFile(string filePath, string orgName) returns string|error? {
 

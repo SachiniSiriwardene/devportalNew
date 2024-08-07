@@ -81,12 +81,10 @@ public type ApiMetadata record {|
 
 
 public type ApiContent record {|
-    readonly string apiId;
-    readonly string orgId;
-    @sql:Relation {keys: ["apiId", "orgId"]}
+    readonly string apiContentId;
     ApiMetadata apimetadata;
     string apiContent;
-	
+	string fileName;
 |};
 
 public type ApiImages record {|
@@ -176,8 +174,10 @@ public type Organization record {|
 
 # Assets needed for the org landing page.
 #
-# + pageType - field description  
+# + pageName - field description  
 # + orgName - field description  
+# + pageType - field description  
+# + filePath - field description  
 # + pageContent - field description  
 # + organization - field description
 public type OrganizationAssets record {|
