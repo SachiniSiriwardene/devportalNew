@@ -592,7 +592,6 @@ public function addIdentityProvider(models:IdentityProvider identityProvider, st
         tokenURL: identityProvider.tokenURL,
         userInfoURL: identityProvider.userInfoURL,
         clientId: identityProvider.clientId,
-        clientSecret: identityProvider.clientSecret,
         callbackURL: identityProvider.callbackURL,
         scope: identityProvider.scope,
         signUpURL: identityProvider.signUpURL

@@ -303,7 +303,6 @@ service /admin on new http:Listener(8080) {
             tokenURL: identityProvider.tokenURL,
             userInfoURL: identityProvider.userInfoURL,
             clientId: identityProvider.clientId,
-            clientSecret: identityProvider.clientSecret,
             callbackURL: identityProvider.callbackURL,
             scope: identityProvider.scope,
             signUpURL: identityProvider.signUpURL
@@ -328,7 +327,6 @@ service /admin on new http:Listener(8080) {
                 tokenURL: idp.tokenURL ?: "",
                 userInfoURL: idp.userInfoURL ?: "",
                 clientId: idp.clientId ?: "",
-                clientSecret: idp.clientSecret ?: "",
                 callbackURL: idp.callbackURL ?: "",
                 scope: idp.scope ?: "",
                 signUpURL: idp.signUpURL ?: ""

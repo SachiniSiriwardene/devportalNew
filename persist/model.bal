@@ -133,7 +133,6 @@ public type IdentityProvider record {|
     string authorizationURL;
     string tokenURL; 
     string userInfoURL;
-    string clientSecret;
     string clientId;
     string callbackURL;
     string scope;

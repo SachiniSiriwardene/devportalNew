@@ -104,7 +104,6 @@ CREATE TABLE "IdentityProvider" (
 	"tokenURL" VARCHAR(191) NOT NULL,
 	"userInfoURL" VARCHAR(191) NOT NULL,
 	"clientId" VARCHAR(191) NOT NULL,
-	"clientSecret" VARCHAR(191) NOT NULL,
 	"callbackURL" VARCHAR(191) NOT NULL,
 	"scope" VARCHAR(191) NOT NULL,
 	"signUpURL" VARCHAR(191) NOT NULL,

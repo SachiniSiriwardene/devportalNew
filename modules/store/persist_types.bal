@@ -274,7 +274,6 @@ public type IdentityProvider record {|
     string authorizationURL;
     string tokenURL;
     string userInfoURL;
-    string clientSecret;
     string clientId;
     string callbackURL;
     string scope;
@@ -289,7 +288,6 @@ public type IdentityProviderOptionalized record {|
     string authorizationURL?;
     string tokenURL?;
     string userInfoURL?;
-    string clientSecret?;
     string clientId?;
     string callbackURL?;
     string scope?;
@@ -312,7 +310,6 @@ public type IdentityProviderUpdate record {|
     string authorizationURL?;
     string tokenURL?;
     string userInfoURL?;
-    string clientSecret?;
     string clientId?;
     string callbackURL?;
     string scope?;
