@@ -68,6 +68,7 @@ public enum PAGES {
 public type APIAssets record {|
     string[] apiImages;
     string apiContent;
+    string fileName;
     string apiId;
 |};
 

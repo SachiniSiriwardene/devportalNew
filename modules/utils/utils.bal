@@ -69,7 +69,8 @@ public function readOrganizationContent(file:MetaData[] directories, string path
 }
 
 public function pushContentS3(file:MetaData[] directories, string contentType) returns error? {
-    io:println("Reading Content");
+
+    log:printDebug("Reading API Content");
     foreach var item in directories {
         s3:Client|error amazonS3Client = createAmazonS3Client();
         string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
@@ -89,22 +90,27 @@ public function pushContentS3(file:MetaData[] directories, string contentType) r
     }
 }
 
-public function readAPIContent(file:MetaData[] directories, string orgname, string apiName, models:APIAssets apiAssets) returns models:APIAssets|error {
-    io:println("Reading API Content");
+public function readAPIContent(file:MetaData[] directories, string orgname, string apiID, models:APIAssets[] apiAssets) returns models:APIAssets[]|error {
+
+    log:printDebug("Reading API Content");
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check readAPIContent(meta, orgname, apiName, apiAssets);
+            _ = check readAPIContent(meta, orgname, apiID, apiAssets);
         } else {
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
-            if (relativePath.endsWith(".hbs")) {
-                apiAssets.apiContent = check io:fileReadString(relativePath);
-            } else {
-                apiAssets.apiImages.push(relativePath);
+            string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
+            if (relativePath.endsWith("md") || relativePath.endsWith("hbs")) {
+                models:APIAssets assetMapping = {
+                    apiContent: check io:fileReadString(relativePath),
+                    fileName: fileName,
+                    apiImages: [],
+                    apiId: apiID
+                };
+                apiAssets.push(assetMapping);
             }
         }
     }
-
     return apiAssets;
 }
 

@@ -154,15 +154,19 @@ public type ApiMetadataUpdate record {|
 |};
 
 public type ApiContent record {|
-    string apiId;
-    string orgId;
+    readonly string apiContentId;
+    string apimetadataApiId;
+    string apimetadataOrgId;
     string apiContent;
+    string fileName;
 |};
 
 public type ApiContentOptionalized record {|
-    string apiId?;
-    string orgId?;
+    string apiContentId?;
+    string apimetadataApiId?;
+    string apimetadataOrgId?;
     string apiContent?;
+    string fileName?;
 |};
 
 public type ApiContentWithRelations record {|
@@ -175,9 +179,10 @@ public type ApiContentTargetType typedesc<ApiContentWithRelations>;
 public type ApiContentInsert ApiContent;
 
 public type ApiContentUpdate record {|
-    string apiId?;
-    string orgId?;
+    string apimetadataApiId?;
+    string apimetadataOrgId?;
     string apiContent?;
+    string fileName?;
 |};
 
 public type ApiImages record {|
