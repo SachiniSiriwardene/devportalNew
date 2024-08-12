@@ -125,22 +125,63 @@ public function createAmazonS3Client() returns s3:Client|error {
     return check new (amazonS3Config);
 }
 
-public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string pageType, string orgId, string orgName)
+public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string orgId, string orgName)
 returns models:OrganizationAssets[]|error {
 
+    string pageType = "";
+    string dirName = "";
+    string templateName = "";
     foreach var item in directory {
 
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getAssetmapping(meta, assetMappings, pageType, orgId, orgName);
+            _ = check getAssetmapping(meta, assetMappings, orgId, orgName);
         } else {
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             string filePath = "";
-            if (item.absPath.includesMatch(re `/views`) && !fileName.endsWith(".DS_Store")) {
-                filePath = item.absPath.substring(<int>(item.absPath.indexOf("/views") + 6), item.absPath.indexOf(".hbs") ?: 0);
-            }
+            if (!fileName.endsWith(".DS_Store")) {
+                // Find the last two directory name
+                io:println("item.absPath: " + item.absPath);
+                int lastSlashIndex = <int>item.absPath.lastIndexOf("/");
+                int secondLastSlashIndex = <int>item.absPath.lastIndexOf("/", lastSlashIndex - 1);
+                dirName = item.absPath.substring(secondLastSlashIndex + 1, lastSlashIndex);
 
-            log:printInfo(filePath);
+                if (fileName.endsWith(".css")) {
+                    pageType = "styles";   
+                    if (dirName == "layout") {
+                        templateName = "main";
+                    } else if (dirName == "partials") {
+                        int thirdLastSlashIndex = <int>item.absPath.lastIndexOf("/", secondLastSlashIndex - 1);
+                        var thirdDirName = item.absPath.substring(thirdLastSlashIndex + 1, secondLastSlashIndex);
+
+                        io:println("thirdDirName: " + thirdDirName);
+                        if (thirdDirName == orgName) {
+                            templateName = "main";
+                        } else {
+                            templateName = thirdDirName;
+                        }
+                    } else {
+                        templateName = dirName;
+                    }               
+                } else if (fileName.endsWith(".hbs") && dirName == "layout") {
+                    pageType = "layout";
+                    templateName = "main";
+                } else if (fileName.endsWith(".hbs") && dirName == "partials") {
+                    pageType = "partials";
+                    int thirdLastSlashIndex = <int>item.absPath.lastIndexOf("/", secondLastSlashIndex - 1);
+                    var thirdDirName = item.absPath.substring(thirdLastSlashIndex + 1, secondLastSlashIndex);
+
+                    io:println("thirdDirName: " + thirdDirName);
+                    if (thirdDirName == orgName) {
+                        templateName = "main";
+                    } else {
+                        templateName = thirdDirName;
+                    }
+                } else if (fileName.endsWith(".hbs")) {
+                    pageType = "template";
+                    templateName = dirName;
+                }
+            }
 
             if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
                 string pageContent = check io:fileReadString(item.absPath);
@@ -150,11 +191,34 @@ returns models:OrganizationAssets[]|error {
                     orgId: orgId,
                     orgName: orgName,
                     pageName: fileName,
-                    fileName: filePath
+                    fileName: templateName
                 };
                 assetMappings.push(assetMapping);
             }
         }
     }
     return assetMappings;
+}
+
+
+# Description.
+#
+# + directories - parameter description
+# + return - return value description
+public function addFileTypeContent(file:MetaData[] directories, file:MetaData[] stylesheetDir, string fileType) returns file:MetaData[]|error {
+    io:println("Reading API Content");
+    io:println(directories);
+    foreach var item in directories {
+        if (item.dir) {
+            file:MetaData[] meta = check file:readDir(item.absPath);
+            _ = check addFileTypeContent(meta, stylesheetDir, fileType);
+        } else {
+            string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
+            if (relativePath.endsWith(fileType)) {
+                stylesheetDir.push(item);
+            }
+        }
+    }
+
+    return stylesheetDir;
 }

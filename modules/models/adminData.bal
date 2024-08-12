@@ -47,18 +47,8 @@ public type Organization record {
 
     string orgName;
     boolean isPublic;
-    PAGES[] authenticatedPages?;
+    string[] authenticatedPages?;
 };
-
-public enum PAGES {
-    ORGLANDING,
-    APILANDING,
-    APITRYOUT,
-    APPLICATION,
-    APILISTING,
-    MONETIZATION,
-    FORUMS
-}
 
 # Assets needed for the api landing page.
 #

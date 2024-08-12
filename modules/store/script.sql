@@ -176,5 +176,5 @@ CREATE TABLE "OrganizationAssets" (
 	"orgName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	PRIMARY KEY("pageName","orgName")
+	PRIMARY KEY("pageName","orgName","filePath")
 );

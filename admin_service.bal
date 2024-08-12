@@ -99,53 +99,29 @@ service /admin on new http:Listener(8080) {
 
         //types- template/layout/markdown/partial
 
-        file:MetaData[] layoutDir = check file:readDir("./" + orgName + "/views/layouts");
-        file:MetaData[] partialDir = check file:readDir("./" + orgName + "/views/partials");
-
         file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
-        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
 
+        file:MetaData[] stylesheetDir = [];
         models:OrganizationAssets[] assetMappings = [];
-
-        _ = check utils:getAssetmapping(layoutDir, assetMappings, "layout", orgId, orgName);
-        _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
-        check file:remove(orgName + "/views/layouts", file:RECURSIVE);
-        check file:remove(orgName + "/views/partials", file:RECURSIVE);
-        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
-
-        _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
-        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
+
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
                 imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
                 if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
-                    if (imageName.endsWith(".svg")) {
-                        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-                        string filePath = "";
-                        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
-                            string pageContent = check io:fileReadString(file.absPath);
-                            models:OrganizationAssets assetMapping = {
-                                pageType: "image",
-                                pageContent: pageContent,
-                                orgId: orgId,
-                                orgName: orgName,
-                                pageName: fileName,
-                                fileName: filePath
-                            };
-                            assetMappings.push(assetMapping);
-                        }
-                    } else {
-                        orgImages.push({
-                            image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                            imageName: imageName
-                        }
-                        );
-                    }
+                    orgImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName
+                    });
                 }
             }
+            check file:remove(orgName + "/images", file:RECURSIVE);
+            file:MetaData[] dirContent = check file:readDir("./" + orgName);
+
+            _ = check utils:getAssetmapping(dirContent, assetMappings, orgId, orgName);
+
             string _ = check utils:createOrgAssets(assetMappings);
             string _ = check utils:storeOrgImages(orgImages, orgId);
         } else {
@@ -153,6 +129,15 @@ service /admin on new http:Listener(8080) {
             check utils:pushContentS3(stylesheetDir, "text/css");
             log:printInfo("Added content to S3 successfully");
         }
+
+        // _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
+        // check file:remove(orgName + "/layout", file:RECURSIVE);
+        // check file:remove(orgName + "/partials", file:RECURSIVE);
+        // file:MetaData[] templateDir = check file:readDir("./" + orgName + "/");
+
+        // _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
+        // _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
+
         check file:remove(orgName, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
@@ -188,15 +173,15 @@ service /admin on new http:Listener(8080) {
 
         models:OrganizationAssets[] assetMappings = [];
 
-        _ = check utils:getAssetmapping(layoutDir, assetMappings, "layout", orgId, orgName);
-        _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
+        _ = check utils:getAssetmapping(layoutDir, assetMappings, orgId, orgName);
+        _ = check utils:getAssetmapping(partialDir, assetMappings, orgId, orgName);
 
         check file:remove(orgName + "/views/layouts", file:RECURSIVE);
         check file:remove(orgName + "/views/partials", file:RECURSIVE);
         file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
 
-        _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
-        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
+        _ = check utils:getAssetmapping(templateDir, assetMappings, orgId, orgName);
+        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, orgId, orgName);
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
@@ -286,7 +271,7 @@ service /admin on new http:Listener(8080) {
 
         check file:remove(orgName, file:RECURSIVE);
         string|error apiContent = utils:addApiContent(apiAssets, apiId, orgName);
-        
+
         if apiContent is error {
             return "Asset update failed";
         }
