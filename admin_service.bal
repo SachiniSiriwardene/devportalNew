@@ -313,14 +313,18 @@ service /admin on new http:Listener(8080) {
                 response.setPayload("Requested file not found");
             }
         } else {
-            byte[]|string|error? retrieveOrgImage = utils:retrieveOrgImages(fileName, orgId);
-            if retrieveOrgImage is byte[] {
-                file.setBody(retrieveOrgImage);
-                response.setEntity(file);
-                check response.setContentType("application/octet-stream");
-                response.setHeader("Content-Type", "application/octet-stream");
-                response.setHeader("Content-Description", "File Transfer");
-                response.setHeader("Transfer-Encoding", "chunked");
+            byte[]|string|error? orgImage = utils:retrieveOrgImages(fileName, orgId);
+            if orgImage is byte[] {
+                if (fileName.endsWith(".svg")) {
+                    string imageContent = check string:fromBytes(orgImage);
+                    file.setBody(imageContent);
+                    response.setEntity(file);
+                    response.setHeader("Content-Type", "image/svg+xml");
+                } else {
+                    file.setBody(orgImage);
+                    response.setEntity(file);
+                    response.setHeader("Content-Type", "application/octet-stream");
+                }
             } else {
                 response.statusCode = 404;
                 response.setPayload("Requested file not found");
