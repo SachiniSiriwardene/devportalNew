@@ -575,13 +575,13 @@ public function retrieveOrgFileType(string fileType, string orgName) returns sto
     }
 }
 
-public function retrieveOrgTemplateFile(string filePath, string orgName) returns string|error? {
+public function retrieveOrgTemplateFile(string filePath, string orgName, string fileName) returns string|error? {
 
     string orgId = check getOrgId(orgName);
     stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
     store:OrganizationAssets[] contents = [];
     contents = check from var content in orgContent
-        where content.organizationOrgId == orgId && content.filePath == filePath
+        where content.organizationOrgId == orgId && content.filePath == filePath && content.pageName == fileName
         select content;
     if (contents.length() != 0) {
         return contents[0].pageContent;

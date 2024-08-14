@@ -22,6 +22,7 @@ type Origins record {|
 
 configurable Origins origins = ?;
 configurable string storage = ?;
+configurable string adminURL = ?;
 
 service /admin on new http:Listener(8080) {
 
@@ -120,7 +121,7 @@ service /admin on new http:Listener(8080) {
             check file:remove(orgName + "/images", file:RECURSIVE);
             file:MetaData[] dirContent = check file:readDir("./" + orgName);
 
-            _ = check utils:getAssetmapping(dirContent, assetMappings, orgId, orgName);
+            _ = check utils:getAssetmapping(dirContent, assetMappings, orgId, orgName, adminURL);
 
             string _ = check utils:createOrgAssets(assetMappings);
             string _ = check utils:storeOrgImages(orgImages, orgId);
@@ -173,15 +174,15 @@ service /admin on new http:Listener(8080) {
 
         models:OrganizationAssets[] assetMappings = [];
 
-        _ = check utils:getAssetmapping(layoutDir, assetMappings, orgId, orgName);
-        _ = check utils:getAssetmapping(partialDir, assetMappings, orgId, orgName);
+        _ = check utils:getAssetmapping(layoutDir, assetMappings, orgId, orgName, adminURL);
+        _ = check utils:getAssetmapping(partialDir, assetMappings, orgId, orgName, adminURL);
 
         check file:remove(orgName + "/views/layouts", file:RECURSIVE);
         check file:remove(orgName + "/views/partials", file:RECURSIVE);
         file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
 
-        _ = check utils:getAssetmapping(templateDir, assetMappings, orgId, orgName);
-        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, orgId, orgName);
+        _ = check utils:getAssetmapping(templateDir, assetMappings, orgId, orgName, adminURL);
+        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, orgId, orgName, adminURL);
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
@@ -295,17 +296,13 @@ service /admin on new http:Listener(8080) {
         string orgId = check utils:getOrgId(orgName);
         mime:Entity file = new;
         http:Response response = new;
-        if (fileName.endsWith("html") || fileName.endsWith("css") || fileName.endsWith("hbs") || fileName.endsWith("md") || fileName.endsWith("svg")) {
+        if (fileName.endsWith("html") || fileName.endsWith("css") || fileName.endsWith("hbs") || fileName.endsWith("md")) {
             string|error? fileContent = utils:retrieveOrgFiles(fileName, orgName);
             if (!(fileContent is error)) {
                 file.setBody(fileContent);
                 response.setEntity(file);
                 check response.setContentType("application/octet-stream");
-                if (fileName.endsWith("svg")) {
-                    response.setHeader("Content-Type", "image/svg+xml");
-                } else {
-                    response.setHeader("Content-Type", "text/css");
-                }
+                response.setHeader("Content-Type", "text/css");
                 response.setHeader("Content-Description", "File Transfer");
                 response.setHeader("Transfer-Encoding", "chunked");
             } else {
@@ -333,15 +330,15 @@ service /admin on new http:Listener(8080) {
         return response;
     }
 
-    resource function get orgFileType(string orgName, string fileType, string? filePath, http:Request request) returns
+    resource function get orgFileType(string orgName, string fileType, string? filePath, string? fileName, http:Request request) returns
     store:OrganizationAssets[]|error|http:Response {
 
         store:OrganizationAssets[] fileContent = check utils:retrieveOrgFileType(fileType, orgName) ?: [];
 
-        if (fileType.equalsIgnoreCaseAscii("template")) {
+        if (fileType.equalsIgnoreCaseAscii("template") || fileType.equalsIgnoreCaseAscii("layout")) {
             mime:Entity file = new;
             http:Response response = new;
-            string templateFile = check utils:retrieveOrgTemplateFile(filePath ?: "", orgName) ?: "";
+            string templateFile = check utils:retrieveOrgTemplateFile(filePath ?: "", orgName, fileName ?: "") ?: "";
             file.setBody(templateFile);
             response.setEntity(file);
             check response.setContentType("application/octet-stream");

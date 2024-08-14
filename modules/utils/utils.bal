@@ -5,6 +5,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
 import ballerinax/aws.s3;
+import ballerina/regex;
 
 public function handleContent(mime:Entity bodyPart) {
     // Get the media type from the body part retrieved from the request.
@@ -101,6 +102,7 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             if (relativePath.endsWith("md") || relativePath.endsWith("hbs")) {
+                log:printInfo(fileName);
                 models:APIAssets assetMapping = {
                     apiContent: check io:fileReadString(relativePath),
                     fileName: fileName,
@@ -125,7 +127,7 @@ public function createAmazonS3Client() returns s3:Client|error {
     return check new (amazonS3Config);
 }
 
-public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string orgId, string orgName)
+public function getAssetmapping(file:MetaData[] directory, models:OrganizationAssets[] assetMappings, string orgId, string orgName, string adminURL)
 returns models:OrganizationAssets[]|error {
 
     string pageType = "";
@@ -135,13 +137,13 @@ returns models:OrganizationAssets[]|error {
 
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
-            _ = check getAssetmapping(meta, assetMappings, orgId, orgName);
+            _ = check getAssetmapping(meta, assetMappings, orgId, orgName, adminURL);
         } else {
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             string filePath = "";
             if (!fileName.endsWith(".DS_Store")) {
                 // Find the last two directory name
-                io:println("item.absPath: " + item.absPath);
+                //io:println("item.absPath: " + item.absPath);
                 int lastSlashIndex = <int>item.absPath.lastIndexOf("/");
                 int secondLastSlashIndex = <int>item.absPath.lastIndexOf("/", lastSlashIndex - 1);
                 dirName = item.absPath.substring(secondLastSlashIndex + 1, lastSlashIndex);
@@ -153,8 +155,6 @@ returns models:OrganizationAssets[]|error {
                     } else if (dirName == "partials") {
                         int thirdLastSlashIndex = <int>item.absPath.lastIndexOf("/", secondLastSlashIndex - 1);
                         var thirdDirName = item.absPath.substring(thirdLastSlashIndex + 1, secondLastSlashIndex);
-
-                        io:println("thirdDirName: " + thirdDirName);
                         if (thirdDirName == orgName) {
                             templateName = "main";
                         } else {
@@ -162,7 +162,7 @@ returns models:OrganizationAssets[]|error {
                         }
                     } else {
                         templateName = dirName;
-                    }               
+                    }            
                 } else if (fileName.endsWith(".hbs") && dirName == "layout") {
                     pageType = "layout";
                     templateName = "main";
@@ -170,8 +170,6 @@ returns models:OrganizationAssets[]|error {
                     pageType = "partials";
                     int thirdLastSlashIndex = <int>item.absPath.lastIndexOf("/", secondLastSlashIndex - 1);
                     var thirdDirName = item.absPath.substring(thirdLastSlashIndex + 1, secondLastSlashIndex);
-
-                    io:println("thirdDirName: " + thirdDirName);
                     if (thirdDirName == orgName) {
                         templateName = "main";
                     } else {
@@ -185,6 +183,15 @@ returns models:OrganizationAssets[]|error {
 
             if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
                 string pageContent = check io:fileReadString(item.absPath);
+           
+                if(fileName.equalsIgnoreCaseAscii("main.css")) {
+                                 
+                    pageContent = regex:replaceAll(pageContent, "@import '", "@import url(\" ");
+                    pageContent = regex:replaceAll(pageContent, "';", "\");");
+                    pageContent = regex:replaceAll(pageContent,"\\/styles\\/", adminURL+ orgName + "&fileName=");
+                    // log:printInfo(pageContent);
+
+                }   
                 models:OrganizationAssets assetMapping = {
                     pageType: pageType,
                     pageContent: pageContent,
