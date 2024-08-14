@@ -32,7 +32,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiMetadataResponse'
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -55,6 +61,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ApiMetadata'
+        required: true
       responses:
         default:
           description: Any Response
@@ -63,7 +70,13 @@ paths:
               schema:
                 description: Any type of entity body
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -77,6 +90,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ApiMetadata'
+        required: true
       responses:
         default:
           description: Any Response
@@ -85,7 +99,80 @@ paths:
               schema:
                 description: Any type of entity body
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    delete:
+      operationId: deleteApi
+      parameters:
+      - name: apiID
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                type: string
+        "202":
+          description: Accepted
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /apiDefinition:
+    get:
+      operationId: getApidefinition
+      parameters:
+      - name: apiID
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -109,12 +196,55 @@ paths:
                 items:
                   $ref: '#/components/schemas/ApiMetadataResponse'
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
   /apiContent:
+    put:
+      operationId: putApicontent
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: query
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "200":
+          description: Ok
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
     post:
       operationId: postApicontent
       parameters:
@@ -141,111 +271,57 @@ paths:
               schema:
                 type: string
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /apiFiles:
+    get:
+      operationId: getApifiles
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: apiID
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: fileName
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    ApiArtifacts:
-      required:
-      - apiImages
-      type: object
-      properties:
-        apiImages:
-          type: object
-          additionalProperties:
-            type: string
-    ApiInfo:
-      required:
-      - additionalProperties
-      - apiArtifacts
-      - apiCategory
-      - apiName
-      - openApiDefinition
-      - orgName
-      type: object
-      properties:
-        orgName:
-          type: string
-        apiName:
-          type: string
-        apiCategory:
-          type: array
-          items:
-            type: string
-        openApiDefinition: {}
-        additionalProperties:
-          type: object
-          additionalProperties:
-            type: string
-        apiArtifacts:
-          $ref: '#/components/schemas/ApiArtifacts'
-    ThrottlingPolicy:
-      required:
-      - description
-      - policyName
-      - type
-      type: object
-      properties:
-        type:
-          type: string
-        policyName:
-          type: string
-        description:
-          type: string
-      description: Description.
-    ServerUrl:
-      required:
-      - productionUrl
-      - sandboxUrl
-      type: object
-      properties:
-        sandboxUrl:
-          type: string
-        productionUrl:
-          type: string
-      description: Description.
-    ApiMetadata:
-      required:
-      - apiInfo
-      - serverUrl
-      - throttlingPolicies
-      type: object
-      properties:
-        apiInfo:
-          $ref: '#/components/schemas/ApiInfo'
-        throttlingPolicies:
-          type: array
-          nullable: true
-          items:
-            $ref: '#/components/schemas/ThrottlingPolicy'
-        serverUrl:
-          $ref: '#/components/schemas/ServerUrl'
-      description: Description.
-    ErrorPayload:
-      type: object
-      properties:
-        reason:
-          type: string
-          description: Reason phrase
-        path:
-          type: string
-          description: Request path
-        method:
-          type: string
-          description: Method type of the request
-        message:
-          type: string
-          description: Error message
-        timestamp:
-          type: string
-          description: Timestamp of the error
-        status:
-          type: integer
-          description: Relevant HTTP status code
-          format: int32
     APIReview:
       required:
       - apiComment
@@ -269,6 +345,16 @@ components:
           type: string
         apiName:
           type: string
+      additionalProperties: false
+    ApiArtifacts:
+      required:
+      - apiImages
+      type: object
+      properties:
+        apiImages:
+          type: object
+          additionalProperties:
+            type: string
     ApiArtifactsResponse:
       required:
       - apiContent
@@ -283,6 +369,37 @@ components:
           type: object
           additionalProperties:
             type: string
+    ApiInfo:
+      required:
+      - additionalProperties
+      - apiArtifacts
+      - apiCategory
+      - apiName
+      - openApiDefinition
+      - orgName
+      - tags
+      type: object
+      properties:
+        orgName:
+          type: string
+        apiName:
+          type: string
+        apiCategory:
+          type: string
+        tags:
+          type: string
+        openApiDefinition:
+          type: object
+        additionalProperties:
+          type: object
+          additionalProperties:
+            type: string
+        authorizedRoles:
+          type: array
+          items:
+            type: string
+        apiArtifacts:
+          $ref: '#/components/schemas/ApiArtifacts'
     ApiInfoResponse:
       required:
       - additionalProperties
@@ -292,6 +409,7 @@ components:
       - apiVersion
       - openApiDefinition
       - orgName
+      - tags
       type: object
       properties:
         orgName:
@@ -299,12 +417,19 @@ components:
         apiName:
           type: string
         apiCategory:
+          type: string
+        tags:
           type: array
           items:
             type: string
         apiVersion:
           type: string
-        openApiDefinition: {}
+        authorizedRoles:
+          type: array
+          items:
+            type: string
+        openApiDefinition:
+          type: object
         reviews:
           type: array
           items:
@@ -315,6 +440,23 @@ components:
             type: string
         apiArtifacts:
           $ref: '#/components/schemas/ApiArtifactsResponse'
+    ApiMetadata:
+      required:
+      - apiInfo
+      - serverUrl
+      - throttlingPolicies
+      type: object
+      properties:
+        apiInfo:
+          $ref: '#/components/schemas/ApiInfo'
+        throttlingPolicies:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/ThrottlingPolicy'
+        serverUrl:
+          $ref: '#/components/schemas/ServerUrl'
+      description: Description.
     ApiMetadataResponse:
       required:
       - apiInfo
@@ -331,3 +473,51 @@ components:
             $ref: '#/components/schemas/ThrottlingPolicy'
         serverUrl:
           $ref: '#/components/schemas/ServerUrl'
+    ErrorPayload:
+      required:
+      - message
+      - method
+      - path
+      - reason
+      - status
+      - timestamp
+      type: object
+      properties:
+        timestamp:
+          type: string
+        status:
+          type: integer
+          format: int64
+        reason:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        method:
+          type: string
+    ServerUrl:
+      required:
+      - productionUrl
+      - sandboxUrl
+      type: object
+      properties:
+        sandboxUrl:
+          type: string
+        productionUrl:
+          type: string
+      description: Description.
+    ThrottlingPolicy:
+      required:
+      - description
+      - policyName
+      - type
+      type: object
+      properties:
+        type:
+          type: string
+        policyName:
+          type: string
+        description:
+          type: string
+      description: Description.

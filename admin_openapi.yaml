@@ -11,14 +11,68 @@ servers:
       default: "8080"
 paths:
   /organisation:
-    post:
-      operationId: postOrganisation
+    get:
+      operationId: getOrganisation
       parameters:
       - name: orgName
         in: query
         required: true
         schema:
           type: string
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgCreationResponse'
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    put:
+      operationId: putOrganisation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgCreationResponse'
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+    post:
+      operationId: postOrganisation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
       responses:
         "201":
           description: Created
@@ -27,7 +81,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/OrgCreationResponse'
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -39,7 +99,7 @@ paths:
       parameters:
       - name: orgName
         in: query
-        description: 'parameter description  '
+        description: parameter description
         required: true
         schema:
           type: string
@@ -52,11 +112,17 @@ paths:
         "200":
           description: Ok
           content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: InternalServerError
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrgContentResponse'
-        "500":
-          description: Internal server error
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -80,19 +146,63 @@ paths:
         "201":
           description: Created
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/OrgContentResponse'
+                type: string
         "500":
-          description: Internal server error
+          description: InternalServerError
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
-  /assets:
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /additionalAPIContent:
+    post:
+      operationId: postAdditionalapicontent
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: apiName
+        in: query
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              description: Any type of entity body
+      responses:
+        "201":
+          description: Created
+          content:
+            text/plain:
+              schema:
+                type: string
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /orgFiles:
     get:
-      summary: Get the asset paths for the org or api.
-      operationId: getAssets
+      summary: Retrieve landing pages.
+      operationId: getOrgfiles
       parameters:
       - name: orgName
         in: query
@@ -100,17 +210,78 @@ paths:
         required: true
         schema:
           type: string
+      - name: fileName
+        in: query
+        description: 'parameter description  '
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
+        "500":
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+  /orgFileType:
+    get:
+      operationId: getOrgfiletype
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: fileType
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: filePath
+        in: query
+        schema:
+          type: string
+          nullable: true
+      - name: fileName
+        in: query
+        schema:
+          type: string
+          nullable: true
       responses:
         "200":
           description: Ok
           content:
             application/json:
               schema:
-                oneOf:
-                - $ref: '#/components/schemas/OrganizationAssets'
-                - $ref: '#/components/schemas/APIAssets'
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrganizationAssets'
+        default:
+          description: Any Response
+          content:
+            '*/*':
+              schema:
+                description: Any type of entity body
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -120,7 +291,7 @@ paths:
       summary: Retrieve identity providers.
       operationId: getIdentityprovider
       parameters:
-      - name: orgId
+      - name: orgName
         in: query
         description: parameter description
         required: true
@@ -134,9 +305,15 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/IdentityProvider'
+                  $ref: '#/components/schemas/IdentityProviderResponse'
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
@@ -144,12 +321,19 @@ paths:
     post:
       summary: Store the identity provider details for the developer portal.
       operationId: postIdentityprovider
+      parameters:
+      - name: orgName
+        in: query
+        required: true
+        schema:
+          type: string
       requestBody:
         description: IDP details
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/IdentityProvider'
+        required: true
       responses:
         "201":
           description: Created
@@ -158,130 +342,110 @@ paths:
               schema:
                 $ref: '#/components/schemas/IdentityProviderResponse'
         "500":
-          description: Internal server error
+          description: InternalServerError
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorPayload'
+        "400":
+          description: BadRequest
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorPayload'
 components:
   schemas:
-    OrganizationAssets:
-      required:
-      - apiLandingPage
-      - apiStyleSheet
-      - markdown
-      - orgAssets
-      - orgId
-      - orgLandingPage
-      - orgStyleSheet
-      type: object
-      properties:
-        orgAssets:
-          type: array
-          items:
-            type: string
-        markdown:
-          type: array
-          items:
-            type: string
-        orgStyleSheet:
-          type: string
-        apiStyleSheet:
-          type: string
-        orgLandingPage:
-          type: string
-        apiLandingPage:
-          type: string
-        orgId:
-          type: string
-      description: Assets needed for the org landing page.
     ErrorPayload:
+      required:
+      - message
+      - method
+      - path
+      - reason
+      - status
+      - timestamp
       type: object
       properties:
-        reason:
-          type: string
-          description: Reason phrase
-        path:
-          type: string
-          description: Request path
-        method:
-          type: string
-          description: Method type of the request
-        message:
-          type: string
-          description: Error message
         timestamp:
           type: string
-          description: Timestamp of the error
         status:
           type: integer
-          description: Relevant HTTP status code
-          format: int32
-    APIAssets:
-      required:
-      - apiContent
-      - apiId
-      - apiImages
-      type: object
-      properties:
-        apiImages:
-          type: array
-          items:
-            type: string
-        apiContent:
-          type: array
-          items:
-            type: string
-        apiId:
+          format: int64
+        reason:
           type: string
-      description: Assets needed for the api landing page.
+        message:
+          type: string
+        path:
+          type: string
+        method:
+          type: string
     IdentityProvider:
       required:
-      - authorizeEndpoint
-      - envrionments
-      - introspectionEndpoint
+      - authorizationURL
+      - callbackURL
+      - clientId
       - issuer
-      - jwksEndpoint
-      - name
-      - orgId
-      - wellKnownEndpoint
+      - scope
+      - signUpURL
+      - tokenURL
+      - userInfoURL
       type: object
       properties:
-        orgId:
-          type: string
-        name:
-          type: string
-        wellKnownEndpoint:
-          type: string
-        introspectionEndpoint:
-          type: string
         issuer:
           type: string
-        jwksEndpoint:
+        authorizationURL:
           type: string
-        authorizeEndpoint:
+        tokenURL:
           type: string
-        envrionments:
-          type: array
-          items:
-            type: string
+        userInfoURL:
+          type: string
+        clientId:
+          type: string
+        callbackURL:
+          type: string
+        scope:
+          type: string
+        signUpURL:
+          type: string
       description: Identity Provider configured for dev portal.
     IdentityProviderResponse:
       required:
-      - createdAt
+      - authorizationURL
+      - callbackURL
+      - clientId
       - id
-      - idpName
+      - issuer
+      - orgName
+      - scope
+      - signUpURL
+      - tokenURL
+      - userInfoURL
       type: object
       properties:
         id:
           type: string
-        idpName:
+        clientId:
           type: string
-        createdAt:
+        orgName:
+          type: string
+        issuer:
+          type: string
+        authorizationURL:
+          type: string
+        tokenURL:
+          type: string
+        userInfoURL:
+          type: string
+        callbackURL:
+          type: string
+        scope:
+          type: string
+        signUpURL:
           type: string
       description: Response for IdentityProvider creaton.
     OrgCreationResponse:
       required:
+      - authenticatedPages
+      - isPublic
       - orgId
       - orgName
       type: object
@@ -290,15 +454,47 @@ components:
           type: string
         orgId:
           type: string
+        isPublic:
+          type: boolean
+        authenticatedPages:
+          type: array
+          items:
+            type: string
       description: Response for organization creation.
-    OrgContentResponse:
+    Organization:
       required:
-      - assetMappings
-      - timeUploaded
+      - isPublic
+      - orgName
       type: object
       properties:
-        assetMappings:
-          $ref: '#/components/schemas/OrganizationAssets'
-        timeUploaded:
+        orgName:
           type: string
-      description: Response for content storage.
+        isPublic:
+          type: boolean
+        authenticatedPages:
+          type: array
+          items:
+            type: string
+    OrganizationAssets:
+      required:
+      - filePath
+      - orgName
+      - organizationOrgId
+      - pageContent
+      - pageName
+      - pageType
+      type: object
+      properties:
+        pageName:
+          type: string
+        orgName:
+          type: string
+        pageType:
+          type: string
+        filePath:
+          type: string
+        pageContent:
+          type: string
+        organizationOrgId:
+          type: string
+      additionalProperties: false
