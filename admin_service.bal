@@ -98,15 +98,17 @@ service /admin on new http:Listener(8080) {
         string tmpDir = check file:createTempDir();
 
         string path = tmpDir+ "/tmp";
+        string targetPath = tmpDir + "/"+ orgName;
+
         log:printInfo(tmpDir);
 
         check io:fileWriteBytes(path, binaryPayload);
 
-        error? result = check zip:extract(path, orgName);
+        error? result = check zip:extract(path, targetPath);
 
         //types- template/layout/markdown/partial
 
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
+        file:MetaData[] imageDir = check file:readDir(targetPath + "/images");
 
         file:MetaData[] stylesheetDir = [];
         models:OrganizationAssets[] assetMappings = [];
@@ -124,8 +126,8 @@ service /admin on new http:Listener(8080) {
                     });
                 }
             }
-            check file:remove(orgName + "/images", file:RECURSIVE);
-            file:MetaData[] dirContent = check file:readDir("./" + orgName);
+            check file:remove(targetPath + "/images", file:RECURSIVE);
+            file:MetaData[] dirContent = check file:readDir(targetPath);
 
             _ = check utils:getAssetmapping(dirContent, assetMappings, orgId, orgName, adminURL);
 
@@ -145,7 +147,7 @@ service /admin on new http:Listener(8080) {
         // _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
         // _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
 
-        check file:remove(orgName, file:RECURSIVE);
+        check file:remove(targetPath, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
 
