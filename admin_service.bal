@@ -92,13 +92,13 @@ service /admin on new http:Listener(8080) {
         string orgId = check utils:getOrgId(orgName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        
+
         // string targetPath = "/tmp" + orgName;
 
         string tmpDir = check file:createTempDir();
 
-        string path = tmpDir+ "/tmp";
-        string targetPath = tmpDir + "/"+ orgName;
+        string path = tmpDir + "/tmp";
+        string targetPath = tmpDir + "/" + orgName;
 
         log:printInfo(tmpDir);
 
@@ -341,20 +341,25 @@ service /admin on new http:Listener(8080) {
     resource function get orgFileType(string orgName, string fileType, string? filePath, string? fileName, http:Request request) returns
     store:OrganizationAssets[]|error|http:Response {
 
-        store:OrganizationAssets[] fileContent = check utils:retrieveOrgFileType(fileType, orgName) ?: [];
-
-        if (fileType.equalsIgnoreCaseAscii("template") || fileType.equalsIgnoreCaseAscii("layout")) {
-            mime:Entity file = new;
-            http:Response response = new;
-            string templateFile = check utils:retrieveOrgTemplateFile(filePath ?: "", orgName, fileName ?: "") ?: "";
-            file.setBody(templateFile);
-            response.setEntity(file);
-            check response.setContentType("application/octet-stream");
-            response.setHeader("Content-Type", "text/css");
-            response.setHeader("Content-Description", "File Transfer");
-            response.setHeader("Transfer-Encoding", "chunked");
-            return response;
-
+        var params = request.getQueryParams();
+        store:OrganizationAssets[] fileContent = [];
+        if (params.hasKey("fileName")) {
+            if (fileType.equalsIgnoreCaseAscii("template") || fileType.equalsIgnoreCaseAscii("layout")) {
+                mime:Entity file = new;
+                http:Response response = new;
+                string templateFile = check utils:retrieveOrgTemplateFile(filePath ?: "", orgName, fileName ?: "") ?: "";
+                file.setBody(templateFile);
+                response.setEntity(file);
+                check response.setContentType("application/octet-stream");
+                response.setHeader("Content-Type", "text/css");
+                response.setHeader("Content-Description", "File Transfer");
+                response.setHeader("Transfer-Encoding", "chunked");
+                return response;
+            }
+        } else if (params.hasKey("filePath")) {
+            fileContent = check utils:retrieveOrgFilesFromPath(fileType, orgName, filePath ?: "") ?: [];
+        } else {
+            fileContent = check utils:retrieveOrgFileType(fileType, orgName) ?: [];
         }
         return fileContent;
     }

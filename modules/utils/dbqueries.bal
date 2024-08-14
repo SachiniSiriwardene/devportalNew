@@ -575,6 +575,23 @@ public function retrieveOrgFileType(string fileType, string orgName) returns sto
     }
 }
 
+
+public function retrieveOrgFilesFromPath(string fileType, string orgName, string filePath) returns store:OrganizationAssets[]|error? {
+
+    string orgId = check getOrgId(orgName);
+    stream<store:OrganizationAssets, persist:Error?> orgContent = dbClient->/organizationassets.get();
+    store:OrganizationAssets[] contents = [];
+    contents = check from var content in orgContent
+        where content.organizationOrgId == orgId && content.pageType == fileType && content.filePath == filePath
+        select content;
+    if (contents.length() == 0) {
+        log:printInfo("not found");
+        return contents;
+    } else {
+        return contents;
+    }
+}
+
 public function retrieveOrgTemplateFile(string filePath, string orgName, string fileName) returns string|error? {
 
     string orgId = check getOrgId(orgName);

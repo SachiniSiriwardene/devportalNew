@@ -175,12 +175,20 @@ returns models:OrganizationAssets[]|error {
                     } else {
                         templateName = thirdDirName;
                     }
+                } else if (fileName.endsWith(".md") && dirName == "content") {
+                    pageType = "markDown";
+                    int thirdLastSlashIndex = <int>item.absPath.lastIndexOf("/", secondLastSlashIndex - 1);
+                    var thirdDirName = item.absPath.substring(thirdLastSlashIndex + 1, secondLastSlashIndex);
+                    if (thirdDirName == orgName) {
+                        templateName = "main";
+                    } else {
+                        templateName = thirdDirName;
+                    }
                 } else if (fileName.endsWith(".hbs")) {
                     pageType = "template";
                     templateName = dirName;
                 }
             }
-
             if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
                 string pageContent = check io:fileReadString(item.absPath);
            
