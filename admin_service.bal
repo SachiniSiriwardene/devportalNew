@@ -92,11 +92,17 @@ service /admin on new http:Listener(8080) {
         string orgId = check utils:getOrgId(orgName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip";
-        string targetPath = "./" + orgName;
+        
+        // string targetPath = "/tmp" + orgName;
+
+        string tmpDir = check file:createTempDir();
+
+        string path = tmpDir+ "/tmp";
+        log:printInfo(tmpDir);
+
         check io:fileWriteBytes(path, binaryPayload);
 
-        error? result = check zip:extract(path, targetPath);
+        error? result = check zip:extract(path, orgName);
 
         //types- template/layout/markdown/partial
 
