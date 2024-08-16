@@ -122,17 +122,18 @@ public function createOrgAssets(models:OrganizationAssets[] orgContent) returns 
     store:OrganizationAssets[] orgAssets = [];
     foreach var asset in orgContent {
         store:OrganizationAssets storeAsset = {
+            orgAssetId: uuid:createType1AsString(),
             pageType: asset.pageType,
             pageContent: asset.pageContent,
             organizationOrgId: asset.orgId,
             orgName: asset.orgName,
             pageName: asset.pageName,
-            filePath: asset.fileName
+            filePath: asset.dirName
         };
         orgAssets.push(storeAsset);
     }
 
-    string[][] listResult = check dbClient->/organizationassets.post(orgAssets);
+    string[] listResult = check dbClient->/organizationassets.post(orgAssets);
 
     log:printInfo("Asset ID update: " + listResult[0][0]);
 
@@ -147,11 +148,12 @@ public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns 
     foreach var asset in orgContent {
         stream<store:OrganizationAssets, persist:Error?> storedOrgAssets = dbClient->/organizationassets.get();
         store:OrganizationAssets[] existingAsset = check from var storedAsset in storedOrgAssets
-            where storedAsset.pageType == asset.pageType && storedAsset.orgName == asset.orgName
+            where storedAsset.pageType == asset.pageType && storedAsset.filePath == asset.dirName && storedAsset.pageName == asset.pageName
+            && storedAsset.orgName == asset.orgName
             select storedAsset;
         if (existingAsset.length() != 0) {
             do {
-                store:OrganizationAssets org = check dbClient->/organizationassets/[asset.pageType]/[asset.orgName].put({
+                store:OrganizationAssets org = check dbClient->/organizationassets/[existingAsset[0].orgAssetId].put({
                     organizationOrgId: asset.orgId,
                     pageContent: asset.pageContent
                 });
@@ -167,10 +169,11 @@ public function updateOrgAssets(models:OrganizationAssets[] orgContent) returns 
                 orgName: asset.orgName,
                 pageContent: asset.pageContent,
                 pageName: asset.pageName,
-                filePath: asset.fileName
+                filePath: asset.dirName,
+                orgAssetId: uuid:createType1AsString()
             });
             do {
-                string[][] contentResults = check dbClient->/organizationassets.post(orgAssetRecord);
+                string[] listResult = check dbClient->/organizationassets.post(orgAssetRecord);
             } on fail var e {
                 log:printError("Error occurred while adding organization assets: " + e.message());
                 return ("Error while adding org assets" + e.message());
@@ -316,7 +319,7 @@ public function addApiContent(models:APIAssets[] apiAssets, string apiID, string
                 string[] listResult = check dbClient->/apicontents.post(apiContentRecord);
             } on fail var e {
                 log:printError("Error occurred while adding api content: " + e.message());
-                return  "API content creation failed";
+                return "API content creation failed";
             }
 
         }
@@ -574,7 +577,6 @@ public function retrieveOrgFileType(string fileType, string orgName) returns sto
         return contents;
     }
 }
-
 
 public function retrieveOrgFilesFromPath(string fileType, string orgName, string filePath) returns store:OrganizationAssets[]|error? {
 

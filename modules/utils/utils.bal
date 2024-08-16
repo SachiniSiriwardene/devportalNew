@@ -206,7 +206,7 @@ returns models:OrganizationAssets[]|error {
                     orgId: orgId,
                     orgName: orgName,
                     pageName: fileName,
-                    fileName: templateName
+                    dirName: templateName
                 };
                 assetMappings.push(assetMapping);
             }

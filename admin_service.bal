@@ -139,18 +139,9 @@ service /admin on new http:Listener(8080) {
             log:printInfo("Added content to S3 successfully");
         }
 
-        // _ = check utils:getAssetmapping(partialDir, assetMappings, "partials", orgId, orgName);
-        // check file:remove(orgName + "/layout", file:RECURSIVE);
-        // check file:remove(orgName + "/partials", file:RECURSIVE);
-        // file:MetaData[] templateDir = check file:readDir("./" + orgName + "/");
-
-        // _ = check utils:getAssetmapping(templateDir, assetMappings, "template", orgId, orgName);
-        // _ = check utils:getAssetmapping(stylesheetDir, assetMappings, "styles", orgId, orgName);
-
         check file:remove(targetPath, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
-
     }
 
     # Store the organization landing page content.
@@ -166,62 +157,42 @@ service /admin on new http:Listener(8080) {
     resource function put orgContent(http:Request request, string orgName) returns string|error {
 
         string orgId = check utils:getOrgId(orgName);
-
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip";
-        string targetPath = "./" + orgName;
+        string tmpDir = check file:createTempDir();
+        string path = tmpDir + "/tmp";
+        string targetPath = tmpDir + "/" + orgName;
+
+        log:printInfo(tmpDir);
+
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] layoutDir = check file:readDir("./" + orgName + "/views/layouts");
-        file:MetaData[] partialDir = check file:readDir("./" + orgName + "/views/partials");
+        //types- template/layout/markdown/partial
 
-        file:MetaData[] imageDir = check file:readDir("./" + orgName + "/images");
-        file:MetaData[] stylesheetDir = check file:readDir("./" + orgName + "/styles");
+        file:MetaData[] imageDir = check file:readDir(targetPath + "/images");
 
+        file:MetaData[] stylesheetDir = [];
         models:OrganizationAssets[] assetMappings = [];
-
-        _ = check utils:getAssetmapping(layoutDir, assetMappings, orgId, orgName, adminURL);
-        _ = check utils:getAssetmapping(partialDir, assetMappings, orgId, orgName, adminURL);
-
-        check file:remove(orgName + "/views/layouts", file:RECURSIVE);
-        check file:remove(orgName + "/views/partials", file:RECURSIVE);
-        file:MetaData[] templateDir = check file:readDir("./" + orgName + "/views");
-
-        _ = check utils:getAssetmapping(templateDir, assetMappings, orgId, orgName, adminURL);
-        _ = check utils:getAssetmapping(stylesheetDir, assetMappings, orgId, orgName, adminURL);
 
         if (storage.equalsIgnoreCaseAscii("DB")) {
             models:OrgImages[] orgImages = [];
+
             foreach var file in imageDir {
                 string imageName = check file:relativePath(file:getCurrentDir(), file.absPath);
                 imageName = imageName.substring(<int>(imageName.lastIndexOf("/") + 1), imageName.length());
                 if (!imageName.equalsIgnoreCaseAscii(".DS_Store")) {
-                    if (imageName.endsWith(".svg")) {
-                        string fileName = file.absPath.substring(<int>(file.absPath.lastIndexOf("/") + 1), file.absPath.length());
-                        string filePath = "";
-                        if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
-                            string pageContent = check io:fileReadString(file.absPath);
-                            models:OrganizationAssets assetMapping = {
-                                pageType: "image",
-                                pageContent: pageContent,
-                                orgId: orgId,
-                                orgName: orgName,
-                                pageName: fileName,
-                                fileName: filePath
-                            };
-                            assetMappings.push(assetMapping);
-                        }
-                    } else {
-                        orgImages.push({
-                            image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
-                            imageName: imageName
-                        }
-                        );
-                    }
+                    orgImages.push({
+                        image: check io:fileReadBytes(check file:relativePath(file:getCurrentDir(), file.absPath)),
+                        imageName: imageName
+                    });
                 }
             }
+            check file:remove(targetPath + "/images", file:RECURSIVE);
+            file:MetaData[] dirContent = check file:readDir(targetPath);
+
+            _ = check utils:getAssetmapping(dirContent, assetMappings, orgId, orgName, adminURL);
+
             string _ = check utils:updateOrgAssets(assetMappings);
             string _ = check utils:updateOrgImages(orgImages, orgId);
         } else {
@@ -229,7 +200,8 @@ service /admin on new http:Listener(8080) {
             check utils:pushContentS3(stylesheetDir, "text/css");
             log:printInfo("Added content to S3 successfully");
         }
-        check file:remove(orgName, file:RECURSIVE);
+
+        check file:remove(targetPath, file:RECURSIVE);
         io:println("Organization content uploaded");
         return "Organization content uploaded successfully";
 

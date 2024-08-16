@@ -36,7 +36,7 @@ public type APIContentResponse record {
 # + orgId - field description
 public type OrganizationAssets record {|
     string pageType;
-    string fileName;
+    string dirName;
     string pageName;
     string pageContent;
     string orgId;

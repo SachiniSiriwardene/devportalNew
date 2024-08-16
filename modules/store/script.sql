@@ -169,6 +169,7 @@ CREATE TABLE "ApiImages" (
 );
 
 CREATE TABLE "OrganizationAssets" (
+	"orgAssetId" VARCHAR(191) NOT NULL,
 	"pageType" VARCHAR(191) NOT NULL,
 	"pageName" VARCHAR(191) NOT NULL,
 	"pageContent" TEXT NOT NULL,
@@ -176,5 +177,5 @@ CREATE TABLE "OrganizationAssets" (
 	"orgName" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
-	PRIMARY KEY("pageName","orgName","filePath")
+	PRIMARY KEY("orgAssetId")
 );

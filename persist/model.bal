@@ -180,8 +180,9 @@ public type Organization record {|
 # + pageContent - field description  
 # + organization - field description
 public type OrganizationAssets record {|
-    readonly string pageName;
-    readonly string orgName;
+    readonly string orgAssetId;
+    string pageName;
+    string orgName;
     string pageType;
     string filePath;
     string pageContent;

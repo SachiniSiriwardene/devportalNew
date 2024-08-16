@@ -394,8 +394,9 @@ public type OrganizationUpdate record {|
 |};
 
 public type OrganizationAssets record {|
-    readonly string pageName;
-    readonly string orgName;
+    readonly string orgAssetId;
+    string pageName;
+    string orgName;
     string pageType;
     string filePath;
     string pageContent;
@@ -403,6 +404,7 @@ public type OrganizationAssets record {|
 |};
 
 public type OrganizationAssetsOptionalized record {|
+    string orgAssetId?;
     string pageName?;
     string orgName?;
     string pageType?;
@@ -421,6 +423,8 @@ public type OrganizationAssetsTargetType typedesc<OrganizationAssetsWithRelation
 public type OrganizationAssetsInsert OrganizationAssets;
 
 public type OrganizationAssetsUpdate record {|
+    string pageName?;
+    string orgName?;
     string pageType?;
     string filePath?;
     string pageContent?;
