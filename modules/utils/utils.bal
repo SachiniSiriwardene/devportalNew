@@ -199,7 +199,12 @@ returns models:OrganizationAssets[]|error {
                     pageContent = regex:replaceAll(pageContent,"\\/styles\\/", adminURL+ orgName + "&fileName=");
                     // log:printInfo(pageContent);
 
-                }   
+                } 
+                if(fileName.equalsIgnoreCaseAscii("main.hbs")) {
+                    pageContent = regex:replaceAll(pageContent,"\\/styles\\/", adminURL+ orgName + "&fileName=");
+                }
+                pageContent = regex:replaceAll(pageContent,"\\/images\\/", adminURL+ orgName + "&fileName=");
+                  
                 models:OrganizationAssets assetMapping = {
                     pageType: pageType,
                     pageContent: pageContent,

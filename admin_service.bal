@@ -93,8 +93,6 @@ service /admin on new http:Listener(8080) {
 
         byte[] binaryPayload = check request.getBinaryPayload();
 
-        // string targetPath = "/tmp" + orgName;
-
         string tmpDir = check file:createTempDir();
 
         string path = tmpDir + "/tmp";

@@ -396,27 +396,7 @@ public function updateApiImages(models:APIImages[] imageRecords, string apiID, s
                 return "Error occurred while updating API images";
             }
 
-        } else {
-            store:ApiImagesInsert[] apiImagesRecord = [];
-            foreach var image in imageRecords {
-                apiImagesRecord.push({
-                    imageTag: image.imageTag,
-                    imagePath: image.imageName,
-                    apiId: apiID,
-                    orgId: orgId,
-                    image: image.image
-                });
-            }
-            if (apiImagesRecord.length() != 0) {
-                do {
-                    string[][] contentResults = check dbClient->/apiimages.post(apiImagesRecord);
-                } on fail var e {
-                    log:printError("Error occurred while adding API images: " + e.message());
-
-                }
-            }
-
-        }
+        } 
     }
     return "API Image upload success";
 }
