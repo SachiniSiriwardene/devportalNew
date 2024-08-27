@@ -10,7 +10,10 @@ public type ApiInfo record {
     string apiName;
     string apiCategory;
     string tags;
-    json openApiDefinition;
+    string apiDescription;
+    string apiVersion;
+    string apiType;
+    string  apiDefinition?;
     map<string> additionalProperties;
     string[] authorizedRoles?;
     ApiArtifacts apiArtifacts;
@@ -21,9 +24,10 @@ public type ApiInfoResponse record {
     string apiName;
     string apiCategory;
     string[] tags;
+    string apiDescription;
     string apiVersion;
+    string apiType;
     string[] authorizedRoles?;
-    json openApiDefinition;
     APIReview[] reviews?;
     map<string> additionalProperties;
     ApiArtifactsResponse apiArtifacts;
@@ -40,11 +44,11 @@ public type APIReview record {|
 
 # Description.
 #
-# + 'type - field description  
+# + 'category - field description  
 # + policyName - field description  
 # + description - field description
 public type ThrottlingPolicy record {
-    string 'type;
+    string 'category?;
     string policyName;
     string description;
 };
@@ -74,7 +78,8 @@ public type ServerUrl record {
 # + serverUrl - Gateway server urls
 public type ApiMetadata record {
     ApiInfo apiInfo;
-    ThrottlingPolicy[]? throttlingPolicies;
+    ThrottlingPolicy[] throttlingPolicies?;
+    #Subscription[] subscriptions;
     ServerUrl serverUrl;
 };
 

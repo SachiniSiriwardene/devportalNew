@@ -46,10 +46,13 @@ public type Review record {|
 # + apiId - api id  
 # + orgId - organization id  
 # + apiName - field description  
-# + metadata - field description
+# + metadata - field description  
 # + organizationName - field description  
 # + apiCategory - field description  
-# + openApiDefinition - field description  
+# + apiVersion - field description  
+# + apiDescription - field description  
+# + tags - field description  
+# + apiDefinition - field description  
 # + additionalProperties - field description  
 # + throttlingPolicies - details about the throttling policies  
 # + productionUrl - field description  
@@ -66,8 +69,11 @@ public type ApiMetadata record {|
     string metadata;
     string organizationName;
     string apiCategory;
+    string apiVersion;
+    string apiDescription;
+    string apiType;
     string tags;
-    string openApiDefinition;
+    string apiDefinition;
     AdditionalProperties[] additionalProperties;
     ThrottlingPolicy[] throttlingPolicies;
     string productionUrl;

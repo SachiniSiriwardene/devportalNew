@@ -2,6 +2,7 @@ import devportal.models;
 import devportal.store;
 import devportal.utils;
 
+import ballerina/data.jsondata;
 import ballerina/file;
 import ballerina/http;
 import ballerina/io;
@@ -16,10 +17,49 @@ service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
     #
-    # + metadata - api metadata
     # + return - api Id
-    resource function post api(@http:Payload models:ApiMetadata metadata) returns http:Response|error {
+    resource function post api(http:Request request) returns http:Response|error {
 
+        var bodyParts = check request.getBodyParts();
+        models:ApiMetadata metadata = {
+            serverUrl:
+            {sandboxUrl: "", productionUrl: ""},
+            apiInfo: {
+                orgName: "",
+                apiName: "",
+                apiCategory: "",
+                tags: "",
+                apiDescription: "",
+                apiVersion: "",
+                apiType: "",
+                additionalProperties: {},
+                apiArtifacts: {apiImages: {}}
+            }
+        };
+        foreach var part in bodyParts {
+            var mediaType = mime:getMediaType(part.getContentType());
+            if mediaType is mime:MediaType {
+                string baseType = mediaType.getBaseType();
+                if mime:APPLICATION_JSON == baseType {
+                    var body = part.getJson();
+                    if body is json {
+                        string extractPayload = body.toJsonString();
+                        metadata = check jsondata:parseString(extractPayload);
+                        log:printInfo(body.toJsonString());
+                    } else {
+                        log:printError(body.message());
+                    }
+                } else if mime:APPLICATION_OCTET_STREAM == baseType {
+                    var body = part.getByteArray();
+                    if body is byte[] {
+                        string apiDefinition = check string:fromBytes(body);
+                        metadata.apiInfo.apiDefinition = apiDefinition;
+                    } else {
+                        log:printError(body.message());
+                    }
+                }
+            }
+        }
         string apiId = check utils:createAPIMetadata(metadata);
         error? apiImages = utils:addApiImages(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
         if apiImages is error {
@@ -35,11 +75,50 @@ service /apiMetadata on new http:Listener(9090) {
         return utils:deleteAPI(apiID, orgName);
     }
 
-    resource function put api(string apiID, string orgName, models:ApiMetadata metadata) returns http:Response|error {
+    resource function put api(string apiID, string orgName, http:Request request) returns http:Response|error {
 
+        var bodyParts = check request.getBodyParts();
+        models:ApiMetadata metadata = {
+            serverUrl:
+            {sandboxUrl: "", productionUrl: ""},
+            apiInfo: {
+                orgName: "",
+                apiName: "",
+                apiCategory: "",
+                tags: "",
+                apiDescription: "",
+                apiVersion: "",
+                apiType: "",
+                additionalProperties: {},
+                apiArtifacts: {apiImages: {}}
+            }
+        };
+        foreach var part in bodyParts {
+            var mediaType = mime:getMediaType(part.getContentType());
+            if mediaType is mime:MediaType {
+                string baseType = mediaType.getBaseType();
+                if mime:APPLICATION_JSON == baseType {
+                    var body = part.getJson();
+                    if body is json {
+                        string extractPayload = body.toJsonString();
+                        metadata = check jsondata:parseString(extractPayload);
+                        log:printInfo(body.toJsonString());
+                    } else {
+                        log:printError(body.message());
+                    }
+                } else if mime:APPLICATION_OCTET_STREAM == baseType {
+                    var body = part.getByteArray();
+                    if body is byte[] {
+                        string apiDefinition = check string:fromBytes(body);
+                        metadata.apiInfo.apiDefinition = apiDefinition;
+                    } else {
+                        log:printError(body.message());
+                    }
+                }
+            }
+        }
         string apiId = check utils:updateAPIMetadata(metadata, apiID, orgName);
-        string|error apiImageUpdateResponse
-        = utils:updateApiImagePath(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
+        string|error apiImageUpdateResponse = utils:updateApiImagePath(metadata.apiInfo.apiArtifacts.apiImages, apiId, metadata.apiInfo.orgName);
         if apiImageUpdateResponse is error {
             log:printError(apiImageUpdateResponse.toString());
         }
@@ -65,7 +144,7 @@ service /apiMetadata on new http:Listener(9090) {
             models:ThrottlingPolicy policyData = {
                 policyName: policy.policyName ?: "",
                 description: policy.description ?: "",
-                'type: policy.'type ?: ""
+                'category: policy.'type ?: ""
             };
             throttlingPolicies.push(policyData);
         }
@@ -99,10 +178,9 @@ service /apiMetadata on new http:Listener(9090) {
         foreach var property in apiImages {
             apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
-        string apiDefinition = check apiMetaData.openApiDefinition ?: "";
+        string apiDefinition = check apiMetaData.apiDefinition ?: "";
         json openApiDefinition = check apiDefinition.fromJsonString();
 
-        string version = check openApiDefinition.info.version;
         models:ApiMetadataResponse metaData = {
             serverUrl: {
                 sandboxUrl: apiMetaData.sandboxUrl ?: "",
@@ -113,13 +191,14 @@ service /apiMetadata on new http:Listener(9090) {
                 apiName: apiMetaData.apiName ?: "",
                 apiCategory: apiMetaData.apiCategory ?: "",
                 tags: regex:split(apiMetaData?.tags ?: "", " "),
-                openApiDefinition: openApiDefinition,
                 additionalProperties: properties,
                 reviews: reviews,
                 orgName: apiMetaData.organizationName ?: "",
                 apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                apiVersion: version,
-                authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " ")
+                apiVersion: apiMetaData.apiVersion ?: "",
+                authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " "),
+                apiDescription: apiMetaData.apiDescription ?: "",
+                apiType: apiMetaData.apiType ?: ""
             }
         };
         log:printInfo(apiMetaData?.authorizedRoles ?: "");
@@ -127,14 +206,24 @@ service /apiMetadata on new http:Listener(9090) {
         return metaData;
     }
 
-    resource function get apiDefinition(string apiID, string orgName) returns json|error {
+    resource function get apiDefinition(string apiID, string orgName) returns http:Response|error {
 
         string orgId = check utils:getOrgId(orgName);
+        mime:Entity file = new;
+        http:Response response = new;
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
-        string apiDefinition = apiMetaData.openApiDefinition ?: "";
-        json openApiDefinition = check apiDefinition.fromJsonString();
+        string apiDefinition = apiMetaData.apiDefinition ?: "";
+        string apiType = apiMetaData.apiType ?: "";
+        if (apiType.equalsIgnoreCaseAscii("REST")) {
+            json openApiDefinition = check apiDefinition.fromJsonString();
+            file.setBody(openApiDefinition);
+            response.setEntity(file);
+        }
+        response.setHeader("Content-Type", "application/octet-stream");
+        response.setHeader("Content-Description", "File Transfer");
+        response.setHeader("Transfer-Encoding", "chunked");
         log:printInfo("API definition returned");
-        return openApiDefinition;
+        return response;
     }
 
     resource function get apiList(string orgName) returns models:ApiMetadataResponse[]|error {
@@ -163,7 +252,7 @@ service /apiMetadata on new http:Listener(9090) {
                 models:ThrottlingPolicy policyData = {
                     policyName: policy.policyName ?: "",
                     description: policy.description ?: "",
-                    'type: policy.'type ?: ""
+                    'category: policy.'type ?: ""
                 };
                 throttlingPolicies.push(policyData);
             }
@@ -198,10 +287,6 @@ service /apiMetadata on new http:Listener(9090) {
                 apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
             }
 
-            string apiDefinition = check apiMetaData.openApiDefinition ?: "";
-            json openApiDefinition = check apiDefinition.fromJsonString();
-            string version = check openApiDefinition.info.version;
-
             models:ApiMetadataResponse metaData = {
                 serverUrl: {
                     sandboxUrl: apiMetaData.sandboxUrl ?: "",
@@ -212,13 +297,14 @@ service /apiMetadata on new http:Listener(9090) {
                     apiName: apiMetaData.apiName ?: "",
                     apiCategory: apiMetaData.apiCategory ?: "",
                     tags: regex:split(apiMetaData?.tags ?: "", " "),
-                    openApiDefinition: openApiDefinition ?: "",
                     additionalProperties: properties,
                     reviews: reviews,
                     orgName: apiMetaData.organizationName ?: "",
                     apiArtifacts: {apiContent: apiContentRecord, apiImages: apiImagesRecord},
-                    apiVersion: version,
-                    authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " ")
+                    apiVersion: apiMetaData.apiVersion ?: "",
+                    authorizedRoles: regex:split(apiMetaData?.authorizedRoles ?: "", " "),
+                    apiDescription: apiMetaData.apiDescription ?: "",
+                    apiType: apiMetaData.apiType ?: ""
                 }
             };
             apis.push(metaData);

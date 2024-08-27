@@ -104,8 +104,11 @@ public type ApiMetadata record {|
     string metadata;
     string organizationName;
     string apiCategory;
+    string apiVersion;
+    string apiDescription;
+    string apiType;
     string tags;
-    string openApiDefinition;
+    string apiDefinition;
 
     string productionUrl;
     string sandboxUrl;
@@ -120,8 +123,11 @@ public type ApiMetadataOptionalized record {|
     string metadata?;
     string organizationName?;
     string apiCategory?;
+    string apiVersion?;
+    string apiDescription?;
+    string apiType?;
     string tags?;
-    string openApiDefinition?;
+    string apiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
     string? authorizedRoles?;
@@ -146,8 +152,11 @@ public type ApiMetadataUpdate record {|
     string metadata?;
     string organizationName?;
     string apiCategory?;
+    string apiVersion?;
+    string apiDescription?;
+    string apiType?;
     string tags?;
-    string openApiDefinition?;
+    string apiDefinition?;
     string productionUrl?;
     string sandboxUrl?;
     string? authorizedRoles?;
