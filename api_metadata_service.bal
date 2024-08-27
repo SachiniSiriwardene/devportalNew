@@ -214,11 +214,15 @@ service /apiMetadata on new http:Listener(9090) {
         store:ApiMetadataWithRelations apiMetaData = check adminClient->/apimetadata/[apiID]/[orgId].get();
         string apiDefinition = apiMetaData.apiDefinition ?: "";
         string apiType = apiMetaData.apiType ?: "";
-        if (apiType.equalsIgnoreCaseAscii("REST")) {
-            file.setBody(apiDefinition);
-            response.setEntity(file);
+        mime:ContentDisposition cDisposition = new ();
+        if (!apiType.equalsIgnoreCaseAscii("SOAP")) {
+            cDisposition = mime:getContentDispositionObject("form-data; name=filepart; filename=apiDefinition.json");
+        } else {
+            cDisposition = mime:getContentDispositionObject("form-data; name=filepart; filename=apiDefinition.xml");
         }
-        response.setHeader("Content-Type", "application/octet-stream");
+        file.setBody(apiDefinition);
+        file.setContentDisposition(cDisposition);
+        response.setEntity(file);
         response.setHeader("Content-Description", "File Transfer");
         response.setHeader("Transfer-Encoding", "chunked");
         log:printInfo("API definition returned");
