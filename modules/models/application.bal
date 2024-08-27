@@ -5,26 +5,25 @@
 # + appProperties - list of properties as application information  
 # + addedAPIs - list of added APIs for the application  
 # + accessControl - access control for the application  
-# + sandBoxKey - field description  
-# + productionKey - field description  
-# + idpId - field description
 public type Application record {|
+
     readonly string appId;
     string applicationName;
     string description;
     ApplicationProperties[] appProperties;
     string addedAPIs;
     ApplicationUser[] accessControl;
-    string sandBoxKey;
-    string productionKey;
-    string idpId;
+    ApplicationKeys[] appKeys;
+    IdentityProvider idp;
 |};
 
 public type ApplicationKeys record {|
-    string sandboxClientId;
-    string sanboxClientSecret;
-    string productionClientId;
-    string productionClientSecret;
+
+    string clientId;
+    string clientSecret;
+    string idpId;
+    string keyType;
+    Application application;
 
 |};
 
@@ -37,7 +36,6 @@ public type APISubscription record {|
     string orgName;
 |};
 
-
 public type ApplicationProperties record {
     string name;
     string value;
@@ -49,19 +47,32 @@ public type ApplicationUser record {|
     boolean appOwner;
 |};
 
-
 public type API record {|
     string id;
     string name;
 |};
 
-
 public type Review record {|
     readonly string reviewId;
     string orgName;
     string comment;
-   int rating;
+    int rating;
     string reviewedBy;
     string apiId;
     string apiName;
 |};
+
+public type SubscriberOrganization record {|
+    readonly string orgId;
+    Organization publisherOrgId;
+    string publisherOrgName;
+    Subscription[] subscriptions;
+|};
+
+public type Subscription record {|
+    readonly string subscriptionId;
+    Organization producerOrg;
+    SubscriberOrganization subscrioberOrg;
+    ThrottlingPolicy subscriptionPolicy;
+|};
+

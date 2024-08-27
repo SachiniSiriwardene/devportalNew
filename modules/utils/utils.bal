@@ -4,37 +4,26 @@ import ballerina/file;
 import ballerina/io;
 import ballerina/log;
 import ballerina/mime;
-import ballerinax/aws.s3;
 import ballerina/regex;
+import ballerinax/aws.s3;
 
-public function handleContent(mime:Entity bodyPart) {
+public function extractPayload(mime:Entity bodyPart) returns string {
     // Get the media type from the body part retrieved from the request.
     var mediaType = mime:getMediaType(bodyPart.getContentType());
+    string payLoad = "";
     if mediaType is mime:MediaType {
         string baseType = mediaType.getBaseType();
-        if mime:APPLICATION_XML == baseType || mime:TEXT_XML == baseType {
-            var payload = bodyPart.getXml();
-            if payload is xml {
-                log:printInfo(payload.toString());
+        if mime:APPLICATION_JSON == baseType {
+            var body = bodyPart.getJson();
+            if body is json {
+                payLoad = body.toJsonString();
+                log:printInfo(body.toJsonString());
             } else {
-                log:printError(payload.message());
-            }
-        } else if mime:APPLICATION_JSON == baseType {
-            var payload = bodyPart.getJson();
-            if payload is json {
-                log:printInfo(payload.toJsonString());
-            } else {
-                log:printError(payload.message());
-            }
-        } else if mime:TEXT_PLAIN == baseType {
-            var payload = bodyPart.getText();
-            if payload is string {
-                log:printInfo(payload);
-            } else {
-                log:printError(payload.message());
+                log:printError(body.message());
             }
         }
     }
+    return payLoad;
 }
 
 public function readOrganizationContent(file:MetaData[] directories, string path, string[] assetMappings) returns string[]|error {
@@ -102,7 +91,6 @@ public function readAPIContent(file:MetaData[] directories, string orgname, stri
             string relativePath = check file:relativePath(file:getCurrentDir(), item.absPath);
             string fileName = item.absPath.substring(<int>(item.absPath.lastIndexOf("/") + 1), item.absPath.length());
             if (relativePath.endsWith("md") || relativePath.endsWith("hbs")) {
-                log:printInfo(fileName);
                 models:APIAssets assetMapping = {
                     apiContent: check io:fileReadString(relativePath),
                     fileName: fileName,
@@ -149,7 +137,7 @@ returns models:OrganizationAssets[]|error {
                 dirName = item.absPath.substring(secondLastSlashIndex + 1, lastSlashIndex);
 
                 if (fileName.endsWith(".css")) {
-                    pageType = "styles";   
+                    pageType = "styles";
                     if (dirName == "layout") {
                         templateName = "main";
                     } else if (dirName == "partials") {
@@ -162,7 +150,7 @@ returns models:OrganizationAssets[]|error {
                         }
                     } else {
                         templateName = dirName;
-                    }            
+                    }
                 } else if (fileName.endsWith(".hbs") && dirName == "layout") {
                     pageType = "layout";
                     templateName = "main";
@@ -191,20 +179,20 @@ returns models:OrganizationAssets[]|error {
             }
             if (!fileName.equalsIgnoreCaseAscii(".DS_Store")) {
                 string pageContent = check io:fileReadString(item.absPath);
-           
-                if(fileName.equalsIgnoreCaseAscii("main.css")) {
-                                 
+
+                if (fileName.equalsIgnoreCaseAscii("main.css")) {
+
                     pageContent = regex:replaceAll(pageContent, "@import '", "@import url(\" ");
                     pageContent = regex:replaceAll(pageContent, "';", "\");");
-                    pageContent = regex:replaceAll(pageContent,"\\/styles\\/", adminURL+ orgName + "&fileName=");
+                    pageContent = regex:replaceAll(pageContent, "\\/styles\\/", adminURL + orgName + "&fileName=");
                     // log:printInfo(pageContent);
 
-                } 
-                if(fileName.equalsIgnoreCaseAscii("main.hbs")) {
-                    pageContent = regex:replaceAll(pageContent,"\\/styles\\/", adminURL+ orgName + "&fileName=");
                 }
-                pageContent = regex:replaceAll(pageContent,"\\/images\\/", adminURL+ orgName + "&fileName=");
-                  
+                if (fileName.equalsIgnoreCaseAscii("main.hbs")) {
+                    pageContent = regex:replaceAll(pageContent, "\\/styles\\/", adminURL + orgName + "&fileName=");
+                }
+                pageContent = regex:replaceAll(pageContent, "\\/images\\/", adminURL + orgName + "&fileName=");
+
                 models:OrganizationAssets assetMapping = {
                     pageType: pageType,
                     pageContent: pageContent,
@@ -219,7 +207,6 @@ returns models:OrganizationAssets[]|error {
     }
     return assetMappings;
 }
-
 
 # Description.
 #

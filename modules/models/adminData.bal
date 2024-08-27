@@ -86,12 +86,14 @@ public type ThemeResponse record {
 
 # Identity Provider configured for dev portal.
 #
-# + orgName - field description  
-# + id - field description  
-# + name - field description  
-# + 'type - field description  
 # + issuer - field description  
+# + authorizationURL - field description  
+# + tokenURL - field description  
+# + userInfoURL - field description  
 # + clientId - field description  
+# + callbackURL - field description  
+# + scope - field description  
+# + signUpURL - field description
 public type IdentityProvider record {
     string issuer;
     string authorizationURL;

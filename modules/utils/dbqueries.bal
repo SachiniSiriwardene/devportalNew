@@ -199,7 +199,7 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
     json metadata = {
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
-        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJson(),
+        openApiDefinition: apiMetaData.apiInfo.apiDefinition.toJson(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl
     };
@@ -209,12 +209,15 @@ public function createAPIMetadata(models:ApiMetadata apiMetaData) returns string
         apiName: apiMetaData.apiInfo.apiName,
         metadata: metadata.toJsonString(),
         apiCategory: apiMetaData.apiInfo.apiCategory,
-        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         organizationName: apiMetaData.apiInfo.orgName,
         authorizedRoles: roles,
-        tags: apiMetaData.apiInfo.tags
+        tags: apiMetaData.apiInfo.tags,
+        apiVersion: apiMetaData.apiInfo.apiVersion,
+        apiDescription: apiMetaData.apiInfo.apiDescription,
+        apiDefinition: apiMetaData.apiInfo.apiDefinition ?: "",
+        apiType: apiMetaData.apiInfo.apiType
     };
 
     string[][] listResult = check dbClient->/apimetadata.post([metadataRecord]);
@@ -242,7 +245,10 @@ public function updateAPIMetadata(models:ApiMetadata apiMetaData, string apiID, 
     store:ApiMetadataUpdate metadataRecord = {
         apiName: apiMetaData.apiInfo.apiName,
         apiCategory: apiMetaData.apiInfo.apiCategory,
-        openApiDefinition: apiMetaData.apiInfo.openApiDefinition.toJsonString(),
+        apiDefinition: apiMetaData.apiInfo.apiDefinition,
+        apiDescription: apiMetaData.apiInfo.apiDescription,
+        apiVersion: apiMetaData.apiInfo.apiVersion,
+        apiType: apiMetaData.apiInfo.apiType,
         productionUrl: apiMetaData.serverUrl.productionUrl,
         sandboxUrl: apiMetaData.serverUrl.sandboxUrl,
         authorizedRoles: roles
@@ -264,7 +270,7 @@ public function addThrottlingPolicy(models:ThrottlingPolicy[] throttlingPolicies
         throttlingPolicyRecords.push({
             apimetadataApiId: apiID,
             policyId: uuid:createType1AsString(),
-            'type: policy.'type,
+            'type: policy.'category ?: "",
             policyName: policy.policyName,
             description: policy.description,
             apimetadataOrgId: orgId
@@ -313,15 +319,13 @@ public function addApiContent(models:APIAssets[] apiAssets, string apiID, string
             apimetadataApiId: apiID,
             apimetadataOrgId: orgId
         });
-
-        if (apiContentRecord.length() != 0) {
-            do {
-                string[] listResult = check dbClient->/apicontents.post(apiContentRecord);
-            } on fail var e {
-                log:printError("Error occurred while adding api content: " + e.message());
-                return "API content creation failed";
-            }
-
+    }
+    if (apiContentRecord.length() != 0) {
+        do {
+            string[] listResult = check dbClient->/apicontents.post(apiContentRecord);
+        } on fail var e {
+            log:printError("Error occurred while adding api content: " + e.message());
+            return "API content creation failed";
         }
     }
     return "Content updated";
@@ -396,7 +400,7 @@ public function updateApiImages(models:APIImages[] imageRecords, string apiID, s
                 return "Error occurred while updating API images";
             }
 
-        } 
+        }
     }
     return "API Image upload success";
 }
@@ -614,10 +618,10 @@ public function addIdentityProvider(models:IdentityProvider identityProvider, st
         authorizationURL: identityProvider.authorizationURL,
         tokenURL: identityProvider.tokenURL,
         userInfoURL: identityProvider.userInfoURL,
-        clientId: identityProvider.clientId,
         callbackURL: identityProvider.callbackURL,
         scope: identityProvider.scope,
-        signUpURL: identityProvider.signUpURL
+        signUpURL: identityProvider.signUpURL,
+        clientId: identityProvider.clientId
     };
     log:printInfo(idp.toString());
     string[] listResult = check dbClient->/identityproviders.post([idp]);
