@@ -227,7 +227,6 @@ returns models:OrganizationAssets[]|error {
 # + return - return value description
 public function addFileTypeContent(file:MetaData[] directories, file:MetaData[] stylesheetDir, string fileType) returns file:MetaData[]|error {
     io:println("Reading API Content");
-    io:println(directories);
     foreach var item in directories {
         if (item.dir) {
             file:MetaData[] meta = check file:readDir(item.absPath);
