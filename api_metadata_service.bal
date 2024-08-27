@@ -215,8 +215,7 @@ service /apiMetadata on new http:Listener(9090) {
         string apiDefinition = apiMetaData.apiDefinition ?: "";
         string apiType = apiMetaData.apiType ?: "";
         if (apiType.equalsIgnoreCaseAscii("REST")) {
-            json openApiDefinition = check apiDefinition.fromJsonString();
-            file.setBody(openApiDefinition);
+            file.setBody(apiDefinition);
             response.setEntity(file);
         }
         response.setHeader("Content-Type", "application/octet-stream");
