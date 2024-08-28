@@ -178,8 +178,7 @@ service /apiMetadata on new http:Listener(9090) {
         foreach var property in apiImages {
             apiImagesRecord[property.imageTag ?: ""] = property.imagePath ?: "";
         }
-        string apiDefinition = check apiMetaData.apiDefinition ?: "";
-        json openApiDefinition = check apiDefinition.fromJsonString();
+
 
         models:ApiMetadataResponse metaData = {
             serverUrl: {
