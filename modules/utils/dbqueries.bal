@@ -621,7 +621,9 @@ public function addIdentityProvider(models:IdentityProvider identityProvider, st
         callbackURL: identityProvider.callbackURL,
         scope: identityProvider.scope,
         signUpURL: identityProvider.signUpURL,
-        clientId: identityProvider.clientId
+        clientId: identityProvider.clientId,
+        logoutRedirectURI: identityProvider.logoutRedirectURI,
+        logoutURL: identityProvider.logoutURL
     };
     log:printInfo(idp.toString());
     string[] listResult = check dbClient->/identityproviders.post([idp]);

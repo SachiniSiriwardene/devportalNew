@@ -292,6 +292,8 @@ public type IdentityProvider record {|
     string callbackURL;
     string scope;
     string signUpURL;
+    string logoutURL;
+    string logoutRedirectURI;
     string organizationOrgId;
 |};
 
@@ -306,6 +308,8 @@ public type IdentityProviderOptionalized record {|
     string callbackURL?;
     string scope?;
     string signUpURL?;
+    string logoutURL?;
+    string logoutRedirectURI?;
     string organizationOrgId?;
 |};
 
@@ -328,6 +332,8 @@ public type IdentityProviderUpdate record {|
     string callbackURL?;
     string scope?;
     string signUpURL?;
+    string logoutURL?;
+    string logoutRedirectURI?;
     string organizationOrgId?;
 |};
 

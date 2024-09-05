@@ -158,7 +158,6 @@ service /admin on new http:Listener(8080) {
         string path = tmpDir + "/tmp";
         string targetPath = tmpDir + "/" + orgName;
 
-
         check io:fileWriteBytes(path, binaryPayload);
 
         error? result = check zip:extract(path, targetPath);
@@ -207,14 +206,14 @@ service /admin on new http:Listener(8080) {
         string apiId = check utils:getAPIId(orgName, apiName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        
+
         string tmpDir = check file:createTempDir();
         string path = tmpDir + "/tmp";
         string targetPath = tmpDir + "/" + orgName;
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] directories = check file:readDir(targetPath+ "/" + apiName + "/content");
+        file:MetaData[] directories = check file:readDir(targetPath + "/" + apiName + "/content");
 
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
@@ -354,7 +353,9 @@ service /admin on new http:Listener(8080) {
             clientId: identityProvider.clientId,
             callbackURL: identityProvider.callbackURL,
             scope: identityProvider.scope,
-            signUpURL: identityProvider.signUpURL
+            signUpURL: identityProvider.signUpURL,
+            logoutURL: identityProvider.logoutURL,
+            logoutRedirectURI: identityProvider.logoutRedirectURI
         };
         return createdIDP;
     }
@@ -378,7 +379,9 @@ service /admin on new http:Listener(8080) {
                 clientId: idp.clientId ?: "",
                 callbackURL: idp.callbackURL ?: "",
                 scope: idp.scope ?: "",
-                signUpURL: idp.signUpURL ?: ""
+                signUpURL: idp.signUpURL ?: "",
+                logoutURL: idp.logoutURL ?: "",
+                logoutRedirectURI: idp.logoutRedirectURI ?: ""
             };
             idps.push(identityProvider);
 

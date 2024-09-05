@@ -112,6 +112,8 @@ CREATE TABLE "IdentityProvider" (
 	"callbackURL" VARCHAR(191) NOT NULL,
 	"scope" VARCHAR(191) NOT NULL,
 	"signUpURL" VARCHAR(191) NOT NULL,
+	"logoutURL" VARCHAR(191) NOT NULL,
+	"logoutRedirectURI" VARCHAR(191) NOT NULL,
 	"organizationOrgId" VARCHAR(191) NOT NULL,
 	FOREIGN KEY("organizationOrgId") REFERENCES "Organization"("orgId"),
 	PRIMARY KEY("idpId")

@@ -103,6 +103,8 @@ public type IdentityProvider record {
     string callbackURL;
     string scope;
     string signUpURL;
+    string logoutURL;
+    string logoutRedirectURI;
 };
 
 
@@ -125,6 +127,8 @@ public type IdentityProviderResponse record {
     string callbackURL;
     string scope;
     string signUpURL;
+    string logoutURL;
+    string logoutRedirectURI;
 };
 
 

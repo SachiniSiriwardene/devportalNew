@@ -141,6 +141,8 @@ public type IdentityProvider record {|
     string callbackURL;
     string scope;
     string signUpURL;
+    string logoutURL;
+    string logoutRedirectURI;
     Organization organization;
 |};
 
