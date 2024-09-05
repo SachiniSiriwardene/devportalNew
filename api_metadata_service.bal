@@ -320,12 +320,15 @@ service /apiMetadata on new http:Listener(9090) {
         string apiId = check utils:getAPIId(orgName, apiName);
 
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip";
-        string targetPath = "./" + orgName + "/";
+        
+        string tmpDir = check file:createTempDir();
+        string path = tmpDir + "/tmp";
+        string targetPath = tmpDir + "/" + orgName;
+
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
+        file:MetaData[] directories = check file:readDir(targetPath+ "/" + apiName + "/content");
 
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
@@ -370,7 +373,7 @@ service /apiMetadata on new http:Listener(9090) {
             }
         }
 
-        check file:remove(orgName, file:RECURSIVE);
+        check file:remove(targetPath, file:RECURSIVE);
         string|error apiContent = utils:addApiContent(apiAssets, apiId, orgName);
         if apiContent is string {
 
@@ -386,12 +389,13 @@ service /apiMetadata on new http:Listener(9090) {
 
         string apiId = check utils:getAPIId(orgName, apiName);
         byte[] binaryPayload = check request.getBinaryPayload();
-        string path = "./zip";
-        string targetPath = "./" + orgName + "/";
+        string tmpDir = check file:createTempDir();
+        string path = tmpDir + "/tmp";
+        string targetPath = tmpDir + "/" + orgName ;
         check io:fileWriteBytes(path, binaryPayload);
         error? result = check zip:extract(path, targetPath);
 
-        file:MetaData[] directories = check file:readDir("./" + orgName + "/" + apiName + "/content");
+        file:MetaData[] directories = check file:readDir(targetPath+ "/" + apiName + "/content");
 
         models:APIAssets[] apiAssets = [];
         apiAssets = check utils:readAPIContent(directories, orgName, apiId, apiAssets);
@@ -439,6 +443,7 @@ service /apiMetadata on new http:Listener(9090) {
             log:printError(apiContent.toString());
             return "Asset update failed";
         }
+        check file:remove(targetPath, file:RECURSIVE);
         io:println("API content added successfully");
         return "API asset updated";
     }
