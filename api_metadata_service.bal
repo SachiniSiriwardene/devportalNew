@@ -13,6 +13,9 @@ import ballerina/regex;
 
 import ballerinacentral/zip;
 
+final store:Client adminClient = check new ();
+configurable string storage = ?;
+
 service /apiMetadata on new http:Listener(9090) {
 
     # Create an API.
